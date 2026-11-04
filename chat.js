@@ -24,7 +24,7 @@ async function chatRoom(v){
  const fi=h("input",{type:"file",style:"display:none",accept:"image/jpeg,image/png,image/webp,.pdf,.txt,.csv,.docx,.xlsx",onchange:e=>{const f=e.target.files[0];e.target.value="";if(f)sendFile(cid,f,inp)}});
  const isG=(SC.cname||"").startsWith("👥");
  v.append(h("div",{class:"card"},h("div",{class:"btns",style:"margin:0;align-items:center"},h("button",{class:"btn",onclick:()=>{SC.view="chats";render()}},"→"),h("b",{dir:"auto",style:"flex:1"},SC.cname||""),
-  !isG?h("button",{class:"btn",onclick:()=>startCall(cid,SC.cname,false)},"📞"):null,!isG?h("button",{class:"btn",onclick:()=>startCall(cid,SC.cname,true)},"🎥"):null,
+  !isG&&!(window.APP&&APP.pilot)?h("button",{class:"btn",onclick:()=>startCall(cid,SC.cname,false)},"📞"):null,!isG&&!(window.APP&&APP.pilot)?h("button",{class:"btn",onclick:()=>startCall(cid,SC.cname,true)},"🎥"):null,
   !isG?h("button",{class:"btn",onclick:async()=>{if(!peer||!confirm("حظر هذا المستخدم؟"))return;const r=await SC.sb.from("blocks").insert({blocker:SC.user.id,blocked:peer});if(r.error)return toast(r.error.message);SC.blocked.add(peer);SC.view="chats";render()}},"🚫"):null,
   isG?h("button",{class:"btn",onclick:async()=>{const u=prompt("اسم المستخدم لإضافته (للمشرف فقط):");if(!u)return;const r=await SC.sb.rpc("add_member",{cid,uname:u});toast(r.error?r.error.message:"✅ تمت الإضافة")}},"＋"):null,
   isG?h("button",{class:"btn",onclick:async()=>{if(confirm("مغادرة المجموعة؟")){await SC.sb.from("members").delete().match({conv_id:cid,user_id:SC.user.id});SC.view="chats";render()}}},"🚪"):null)),

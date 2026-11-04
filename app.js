@@ -55,13 +55,13 @@ en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",
  pts2:"Review a card +1 · Quiz +15 · Create a deck +8 · Challenge +20 · Perfect quiz +25"}};
 const T={ar:{...T0.ar,...N.ar},en:{...T0.en,...N.en}};
 // ===================== النواة: الحالة والتخزين =====================
-const APP_VER="17.1 · 2026-11-03";
+const APP_VER="18.0 · 2026-11-04";
 const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,
- rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"🦊",goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
+ rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"📚",col:0,goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
 const LS={get(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x==null?d:x}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 try{const x=LS.get("7s_saved",[]);if(Array.isArray(x))S.saved=x;const l=localStorage.getItem("7s_lang");if(l==="en"||l==="ar")S.lang=l}catch(e){}
 {const r=LS.get("7s_rem",[]);if(Array.isArray(r))S.rem=r;const d=LS.get("7s_decks",[]);if(Array.isArray(d))S.decks=d.filter(x=>x&&Array.isArray(x.cards));
- const p=LS.get("7s_prof",{});if(p&&typeof p==="object")Object.assign(S.prof,p);const v=LS.get("7s_riv",[]);if(Array.isArray(v))S.riv=v}
+ const p=LS.get("7s_prof",{});if(p&&typeof p==="object")Object.assign(S.prof,p);if(!S.prof.av||/[🦊🐼🦉🐯🐸🦁🐙🦄🐧🦅🐬🐢]/u.test(S.prof.av))S.prof.av="📚";if(typeof S.prof.col!=="number"||S.prof.col<0||S.prof.col>5)S.prof.col=0;const v=LS.get("7s_riv",[]);if(Array.isArray(v))S.riv=v}
 const t=k=>{const v=T[S.lang][k];if(v==null){console.warn("missing i18n:",k);return k}return v};
 const tf=(k,o)=>t(k).replace(/\{(\w+)\}/g,(m,x)=>o[x]);
 const persist=()=>{try{localStorage.setItem("7s_saved",JSON.stringify(S.saved));localStorage.setItem("7s_lang",S.lang);localStorage.setItem("7s_rem",JSON.stringify(S.rem));
@@ -241,6 +241,11 @@ function modal(...kids){const m=h("div",{class:"modal",onclick:e=>{if(e.target==
 function newDeck(title,cards,o){o=o||{};const d={id:uid(),title:title||t("dNew"),emoji:o.emoji||EMO[Math.random()*EMO.length|0],created:Date.now(),cards:cards||[],exam:null,best:0};S.decks.unshift(d);persist();return d}
 function openDeck(id){S.deckId=id;S.tab="deck";render();window.scrollTo(0,0)}
 function go(tab){S.tab=tab;render();window.scrollTo(0,0)}
+// التنقل بالسحب الأفقي بين التبويبات؛ يتجاهل الحقول والنوافذ المنبثقة والتمرير العمودي.
+(()=>{let x=0,y=0,active=false;const root=()=>document.getElementById("view");
+ document.addEventListener("touchstart",e=>{if(e.touches.length!==1)return;const t=e.target;if(t.closest("input,textarea,select,button,a,[contenteditable=true],.modal,.carousel,.no-swipe"))return;x=e.touches[0].clientX;y=e.touches[0].clientY;active=true},{passive:true});
+ document.addEventListener("touchend",e=>{if(!active)return;active=false;if(!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-x,dy=e.changedTouches[0].clientY-y;if(Math.abs(dx)<75||Math.abs(dx)<Math.abs(dy)*1.35)return;const ids=TABS.map(t=>t[0]),cur=ids.indexOf(S.tab);if(cur<0)return;const rtl=document.documentElement.dir==="rtl",step=(dx>0?-1:1)*(rtl?-1:1),next=cur+step;if(next>=0&&next<ids.length)go(ids[next])},{passive:true});
+})();
 
 // --- من موضوع: ويكيبيديا + ملخصات أبحاث OpenAlex ---
 async function topicGroups(q){const ar=isAr(q),yr=new Date().getFullYear(),useW=LS.get("7s_wiki",false);
@@ -433,6 +438,7 @@ const GT={ar:{eye:"إنجازاتي",pts:"نقطة",streak:"يوم متتالٍ"
  priv:"Your points are stored on your device only and are never sent anywhere.",reset:"Reset achievements",resetQ:"Your points and badges will be erased. Are you sure?",lvl:"New level",bdg:"New badge",
  lv:["Novice researcher","Researcher","Seasoned researcher","Source expert","Scholar","Thinker","Polymath","Sage","Legend"]}};
 const gt=k=>GT[S.lang][k];
+const myCol=()=>window.SC&&SC.me&&SC.me.academic_level?Math.max(0,["l1","l2","l3","m1","m2","phd"].indexOf(SC.me.academic_level)):Math.min(Math.max(S.prof.col|0,0),5);
 const LV=[0,50,150,350,700,1200,2000,3500,6000];
 const ACT={search:{p:2,cap:5},save:{p:5,cap:6},cite:{p:3,cap:5},rem:{p:5,cap:2},cal:{p:5,cap:2},review:{p:1,cap:100},quiz:{p:15,cap:6},deck:{p:8,cap:3},chal:{p:20,cap:3},perfect:{p:25,cap:2}};
 const cn=k=>(G.counts[k]||0);
@@ -460,7 +466,7 @@ function streak(){const d=new Date();if(!G.active[dkey(d)])d.setDate(d.getDate()
 const lvIdx=()=>{let i=0;LV.forEach((x,k)=>{if(G.pts>=x)i=k});return i};
 function updChip(){const c=$("gchip");if(c)c.textContent="🔥 "+streak()+" · ⭐ "+G.pts}
 function award(kind,pre,quiet){const a=ACT[kind],k=dkey(new Date()),dd=G.daily[k]=G.daily[k]||{},n=dd[kind]||0,parts=pre?[pre]:[];let gain=0;
- if(n<a.cap){const before=lvIdx();dd[kind]=n+1;G.counts[kind]=(G.counts[kind]||0)+1;G.pts+=a.p;G.active[k]=1;gain=a.p;G.xpd[k]=(G.xpd[k]||0)+a.p;if(!quiet)parts.push("+"+a.p+" ⭐");
+ if(n<a.cap){const before=lvIdx();dd[kind]=n+1;G.counts[kind]=(G.counts[kind]||0)+1;G.pts+=a.p;try{const q=LS.get("7s_pend",{});q[kind]=(q[kind]||0)+1;LS.set("7s_pend",q)}catch(e){}G.active[k]=1;gain=a.p;G.xpd[k]=(G.xpd[k]||0)+a.p;if(!quiet)parts.push("+"+a.p+" ⭐");
   if(lvIdx()>before)parts.push("🎉 "+gt("lvl")+": "+gt("lv")[lvIdx()]);
   BD.forEach(b=>{if(!G.badges[b.id]&&b.c()){G.badges[b.id]=k;parts.push("🏅 "+gt("bdg")+": "+b[S.lang][0])}});saveG()}
  if(parts.length)toast(parts.join(" · "));updChip();return gain}
@@ -585,15 +591,30 @@ function renderPlay(v){const code=h("input",{class:"in",placeholder:t("dImpPh"),
  v.append(h("details",{class:"card"},h("summary",{style:"font-weight:700;color:var(--blue)"},t("pHow")),h("div",{class:"meta",style:"line-height:1.8;margin-top:8px"},t("pHowT"))))}
 
 // ---------- حسابي ----------
-const AVS=["🦊","🐼","🦉","🐯","🐸","🦁","🐙","🦄","🐧","🦅","🐬","🐢"];
+const AVS=[["📚"],["✏️"],["🎯"],["💡"],["🔬"],["🧠"],["🚀"],["⚡"],["🛰️"],["💎"],["👑"],["🌟"]];
+const AVC=[["ليسانس 1","#6d3f14","#d98a45","L1"],["ليسانس 2","#7d8996","#eef1f5","L2"],["ليسانس 3","#a9740a","#ffe066","L3"],["ماستر 1","#6a1b9a","#e070ff","M1"],["ماستر 2","#a50f1c","#ff5a5a","M2"],["دكتوراه","#d84a00","#ffd740","PhD"]];
+const AVMSG=["أحسنت! 👏","واصل التقدّم 🔥","أنت مبدع ✨","فخور بك 🎉"];
+let _avid=0;
+function avBadge(size,big,col,emo){const T=Math.min(Math.max((col==null?myCol():col)|0,0),5),c=AVC[T],id="g"+(++_avid),hh=Math.round(size*1.12),n=T%3+1;
+ const wings=T>=3?'<path d="M8 30 L-6 18 L4 46 L8 54Z M92 30 L106 18 L96 46 L92 54Z" fill="url(#'+id+')" opacity=".9"/>':"";
+ const pips=Array.from({length:n},(_,k)=>'<path d="M'+(50+(k-(n-1)/2)*14-5)+' 96 l5 -6 l5 6z" fill="#fff" opacity=".95"/>').join("");
+ const b=h("div",{class:"avb"+(big?" big":"")+(T>=4?" glow":""),style:"width:"+size+"px;height:"+hh+"px;font-size:"+Math.round(size*.33)+"px"});
+ b.innerHTML='<svg viewBox="-8 0 116 112" width="100%" height="100%" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[1]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs>'+wings+'<path d="M50 3 L93 19 V62 Q93 90 50 107 Q7 90 7 62 V19Z" fill="url(#'+id+')" stroke="#fff" stroke-width="3"/><circle cx="50" cy="52" r="29" fill="rgba(10,20,40,.78)"/>'+pips+'</svg>';
+ b.append(h("span",{class:"avi"},emo||S.prof.av));
+ if(big)b.onclick=()=>{b.classList.remove("pop");void b.offsetWidth;b.classList.add("pop");toast(AVMSG[Math.random()*AVMSG.length|0])};return b}
 function renderMe(v){const i=lvIdx(),nx=LV[i+1],cur=LV[i],pc=nx?Math.round((G.pts-cur)/(nx-cur)*100):100;
- v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},gt("eye")),h("h1",{},S.prof.av+" "+gt("lv")[i]),h("div",{style:"font-size:15px"},"⭐ "+G.pts+" "+gt("pts")+"  ·  🔥 "+streak()+" "+gt("streak")),
+ v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},gt("eye")),h("div",{style:"display:flex;justify-content:center;margin-bottom:6px"},avBadge(64,true)),h("div",{style:"text-align:center;font-weight:700;margin-bottom:4px"},AVC[myCol()][0]),window.SC&&SC.me&&SC.me.researcher_uid?uidChip(SC.me.researcher_uid):null,h("h1",{},gt("lv")[i]),h("div",{style:"font-size:15px"},"⭐ "+G.pts+" "+gt("pts")+"  ·  🔥 "+streak()+" "+gt("streak")),
   h("div",{class:"bar"},h("i",{style:"width:"+pc+"%"})),h("div",{style:"font-size:13px;margin-top:6px;opacity:.9"},nx?(nx-G.pts)+" "+gt("next"):gt("max"))));
  v.append(h("div",{class:"tabs"},[["s","mS"],["r","mR"],["d","mD"]].map(([k,l])=>h("button",{class:S.me===k?"on":"",onclick:()=>{S.me=k;render()}},t(l)))));
  if(S.me==="r"){renderRem(v);return}
  if(S.me==="d"){renderData(v);return}
  const nm=h("input",{class:"in",value:S.prof.name,placeholder:t("mName"),maxlength:24,oninput:e=>{S.prof.name=e.target.value;persist()}});
- v.append(h("div",{class:"card"},h("h3",{},t("mProf")),h("label",{class:"lbl",style:"margin-top:0"},t("mAv")),h("div",{class:"emj"},AVS.map(a=>h("button",{class:S.prof.av===a?"on":"",onclick:()=>{S.prof.av=a;persist();render()}},a))),
+ v.append(h("div",{class:"card"},h("h3",{},t("mProf")),h("label",{class:"lbl",style:"margin-top:0"},t("mAv")),h("div",{style:"display:flex;justify-content:center;margin:8px 0"},avBadge(92,true)),
+  h("div",{class:"meta",style:"text-align:center"},"المس الصورة للتفاعل · اختر مستواك والرمز"),
+  h("div",{class:"meta",style:"text-align:center;font-weight:700"},"مستوى الباحث: "+AVC[myCol()][0]+(window.SC&&SC.me?(SC.me.level_verified?" ✓ موثّق":" (غير موثّق)"):" (غير موثّق — سجّل الدخول)")),
+  window.SC&&SC.user?h("div",{class:"meta",style:"text-align:center"},"اختر مستواك بحرية. التوثيق (✓) اختياري: بريد جامعي معتمد (ليسانس) أو موافقة المشرف"):null,
+  h("div",{class:"emj",style:"justify-content:center;margin:10px 0"},AVC.map((c,k)=>h("button",{class:"col lvb"+(myCol()===k?" on":""),title:c[0],style:"background:linear-gradient(135deg,"+c[1]+","+c[2]+")",onclick:()=>lvPick(k)},c[3]))),
+  h("div",{class:"emj",style:"justify-content:center"},AVS.map(([a])=>h("button",{class:S.prof.av===a?"on":"",onclick:()=>{S.prof.av=a;persist();render();window.syncProf&&syncProf()}},a))),
   h("label",{class:"lbl"},t("mName")),nm,h("label",{class:"lbl"},t("mGoal")),
   h("select",{class:"in",onchange:e=>{S.prof.goal=+e.target.value;persist();render()}},[10,20,30,50].map(n=>h("option",{value:n,selected:S.prof.goal===n?"selected":null},n)))));
  const wk=weekXp(),mx=Math.max(10,...wk.map(x=>x.v)),dn=T0[S.lang].dn;
