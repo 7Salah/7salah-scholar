@@ -130,7 +130,7 @@ details.card summary{cursor:pointer}
 .cin,.cta{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font-size:16px;font-family:inherit;margin:4px 0;min-height:0}
 .cta{min-height:110px;resize:vertical;line-height:1.7}
 .cvid{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;margin-top:8px}
-.msgs{height:calc(100vh - 330px);min-height:240px;overflow:auto;padding:8px 16px;display:flex;flex-direction:column;gap:6px}
+.msgs{height:calc(100vh - 570px);height:calc(100dvh - 570px);min-height:150px;overflow:auto;padding:8px 16px;display:flex;flex-direction:column;gap:6px}
 .msg2{max-width:82%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 10px;align-self:flex-start}
 .msg2.me{align-self:flex-end;background:var(--soft)}
 .flag{border:0;background:none;font-size:12px;padding:0 0 0 4px;opacity:.6}
