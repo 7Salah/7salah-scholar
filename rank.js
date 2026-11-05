@@ -17,8 +17,10 @@ async function lvPick(k){if(!SC.user||!SC.sb){S.prof.col=k;persist();render();re
  const pr=await SC.sb.from("profiles").select("*").eq("id",SC.user.id).maybeSingle();if(pr.data)SC.me=pr.data;
  toast(r.data==="verified"?"✅ تم اعتماد المستوى":r.data==="pending"?"⏳ أُرسل طلب التوثيق للمشرف":"✅ تم تعيين مستواك");render()}
 function askLevel(){if(!SC.user||!SC.me||SC.me.level_set||document.querySelector(".lvask"))return;
- const m=modal(h("h3",{},"🎓 ما مستواك الأكاديمي؟"),h("div",{class:"meta"},"اختر مستواك الحالي. يمكنك طلب توثيقه (✓) لاحقًا."),
-  h("div",{class:"emj",style:"justify-content:center;margin:10px 0"},AVC.map((c,k)=>h("button",{class:"col lvb",title:c[0],style:"background:linear-gradient(135deg,"+c[1]+","+c[2]+")",onclick:async()=>{m.remove();await lvPick(k)}},c[3]))));
+ // اختياري: لا نسأل أكثر من مرة كل 7 أيام إن تخطّاه المستخدم
+ try{if(Date.now()-(+localStorage.getItem("7s_lvskip")||0)<6048e5)return;localStorage.setItem("7s_lvskip",String(Date.now()))}catch(e){}
+ const m=modal(h("h3",{},"🎓 ما مستواك الأكاديمي؟"),h("div",{class:"meta"},"اختياري: اختر مستواك الحالي، أو تخطَّ الآن وغيّره في أي وقت. يمكنك طلب توثيقه (✓) لاحقًا."),
+  h("div",{class:"emj",style:"justify-content:center;margin:10px 0"},AVC.map((c,k)=>h("button",{class:"col lvb",title:c[0],style:"background:linear-gradient(135deg,"+c[1]+","+c[2]+")",onclick:async()=>{m.remove();await lvPick(k)}},c[3]))),h("button",{class:"btn",onclick:()=>m.remove()},"لاحقًا — ليس الآن"));
  m.classList.add("lvask")}
 {const _su=setUser;setUser=async function(ss){await _su(ss);syncProf();setTimeout(askLevel,800)}}
 setInterval(syncProf,60000);
