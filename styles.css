@@ -8,7 +8,7 @@ button{font-family:inherit;cursor:pointer;color:inherit}
 body.focus .app{padding-bottom:30px}
 body.focus #tabbar{display:none}
 header{display:flex;align-items:center;gap:6px;padding:12px 16px;position:sticky;top:0;z-index:6;background:var(--bg)}
-.brand{display:flex;align-items:center;gap:8px;font-weight:800;flex:1;min-width:0;white-space:nowrap}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden}.brand span:last-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gchip{flex:none;max-width:118px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .logo{background:var(--blue);color:var(--teal);width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:15px;flex:none}
 .lang{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 12px;font-size:14px}
 .hbtn{width:34px;height:34px;padding:0!important;border-radius:50%;font-weight:700;flex:none}
@@ -155,15 +155,9 @@ header{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .card:focus-within{border-color:var(--teal)}
 .premium-badge{display:inline-flex;align-items:center;justify-content:center;margin-inline-start:6px;padding:2px 8px;border-radius:999px;background:linear-gradient(120deg,#fff4d6,#f8df9d);color:#80570b;font-size:11px;font-weight:900;vertical-align:middle;white-space:nowrap}
 .teacher-badge{display:inline-flex;margin-inline-start:5px;padding:3px 8px;border-radius:999px;background:#e4f3ef;color:#126454;font-size:11px;font-weight:800;vertical-align:middle}
-.teacher-hero{margin:12px 16px 16px;padding:24px 20px;border-radius:24px;color:#fff;background:radial-gradient(circle at 10% 10%,rgba(255,255,255,.2),transparent 35%),linear-gradient(135deg,#102f50,#126c70 72%,#0d9488);box-shadow:0 14px 32px rgba(16,47,80,.18)}
-.teacher-hero h2{font-size:26px;margin:7px 0;font-weight:900}.teacher-hero p{line-height:1.8;color:rgba(255,255,255,.86);margin:0 0 16px}.teacher-kicker{font-size:10px;letter-spacing:2px;font-weight:900;color:#f1d99e}
-.teacher-hero .btn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff}
-.teacher-card{display:flex;align-items:center;gap:13px;cursor:pointer}.teacher-info{flex:1;min-width:0}.teacher-info p{font-size:13px;line-height:1.7;margin:5px 0 0;color:var(--mute)}.teacher-arrow{font-size:22px;color:var(--teal)}.teacher-own{border-color:rgba(13,148,136,.35);background:linear-gradient(135deg,var(--card),rgba(13,148,136,.07))}.teacher-own p,.teacher-empty{line-height:1.8;color:var(--mute)}.teacher-open{display:block;margin:12px auto;padding:10px 16px;border:1px solid rgba(13,148,136,.35);border-radius:12px;background:rgba(13,148,136,.08);color:var(--teal);font-weight:800}
-.teacher-nav{border-color:rgba(13,148,136,.3)!important}
 .ltr-handle{direction:ltr;unicode-bidi:isolate}
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
 
-.teacher-profile{text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px}.teacher-profile p{line-height:1.8;color:var(--mute)}.teacher-section-title{margin:18px 16px 8px;font-size:16px}
 
 .avb{position:relative;display:grid;place-items:center;flex:none;user-select:none}
 .avb svg{position:absolute;inset:0;overflow:visible;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))}

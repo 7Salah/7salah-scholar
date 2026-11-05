@@ -33,9 +33,14 @@
 ثم: انسخ `Project URL` و`anon/publishable key` من **Project Settings ← API** إلى `config.js` (لا تضع `service_role` أبدًا)، وفي **Authentication ← URL Configuration** ضع رابط موقعك في Site URL وRedirect URLs. تأكد أن `call_signals` ضمن `supabase_realtime`.
 عدّل `APP.contact` في `config.js` إلى بريدك الحقيقي: يُستخدم مع الترجمة المجانية، ومع OpenAlex وCrossref لتحسين السرعة وتقليل الحجب.
 
+## إصلاح أخطاء المجموعة والأستاذ والملفات
+إذا ظهرت رسائل `create_study_group` أو `Bucket not found` أو لم تظهر صفحة الأستاذ، شغّل `99-repair-missing-features.sql` مرة واحدة في SQL Editor ثم حدّث الصفحة تحديثًا كاملًا. لا يحذف هذا الملف بياناتك ولا يعيد ضبط النقاط.
+
+حقل DOI أزيل من نموذج نشر المنشورات؛ بقيت بيانات DOI في أدوات المراجع الأكاديمية فقط لتوثيق المصادر، ولا تُرسل إلى جدول `posts`.
+
 ## 3) الصلاحيات الإدارية
 - مشرف: `update profiles set is_admin=true where username='...';`
-- أستاذ: `select admin_act('set_teacher','UUID');` أو من أدوات الإدارة.
+- صفة الأستاذ (لإتاحة نشر المواد التعليمية فقط؛ لا توجد صفحة مستقلة للأستاذ): `select admin_act('set_teacher','UUID');` أو من أدوات الإدارة.
 - توثيق المستوى الجامعي: `insert into public.allowed_domains(domain) values ('univ-xxx.dz');`
 - لا تمنح هذه الامتيازات ذاتيًا. تأكيد البريد: Authentication ← Providers ← Email ← Confirm email.
 
