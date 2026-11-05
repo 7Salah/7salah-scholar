@@ -14,30 +14,34 @@ function renderCom(v){
  v.append(h("div",{class:"meta",style:"text-align:center;padding:24px"},"⏳"));
  loadSb().then(()=>{if(S.tab!=="com")return;v.replaceChildren();comBody(v);v.append(h("div",{class:"meta",style:"text-align:center;padding:16px"},h("a",{href:"#",onclick:e=>{e.preventDefault();legalModal()}},"الشروط وسياسة الخصوصية")))}).catch(()=>{v.replaceChildren(h("div",{class:"card"},"⚠ تعذّر الاتصال. تحقق من الإنترنت."))})}
 function comBody(v){const u=SC.user;if(window.stopChat)stopChat();
+ if(u&&!SC._k0){SC._k0=1;if(!SC.kind)SC.kind="foryou"}if(!u&&SC.kind==="foryou")SC.kind="";
  v.append(h("div",{class:"card"},h("div",{class:"btns",style:"margin:0"},
-  h("button",{class:"btn",onclick:()=>{SC.view="feed";render()}},"🏠 المنشورات"),h("button",{class:"btn",onclick:()=>{SC.view="rank";render()}},"🏆 التصنيف"),u?h("button",{class:"btn",onclick:()=>{SC.view="chats";render()}},"💬 الرسائل"+(unreadTotal()?" ("+unreadTotal()+")":"")):null,SC.me&&SC.me.is_admin?h("button",{class:"btn",onclick:()=>{SC.view="admin";render()}},"🛡 الإدارة"):null,u?h("button",{class:"btn",onclick:()=>openProf(u.id)},"👤 صفحتي"):null,h("button",{class:"btn teacher-nav",onclick:()=>{SC.view="teacher";SC.uid=null;render()}},"🎓 صفحة الأستاذ"),
+  h("button",{class:"btn",onclick:()=>{SC.view="feed";render()}},"🏠 المنشورات"),h("button",{class:"btn",onclick:()=>{SC.view="rank";render()}},"🏆 التصنيف"),h("button",{class:"btn",onclick:()=>{SC.view="inst";SC.iid=null;render()}},"🏛 الجامعات والمخابر"),window.inviteModal?h("button",{class:"btn",onclick:inviteModal},"🤝 ادعُ أصدقاءك"):null,u?h("button",{class:"btn",onclick:()=>{SC.view="chats";render()}},"💬 الرسائل"+(unreadTotal()?" ("+unreadTotal()+")":"")):null,SC.me&&SC.me.is_admin?h("button",{class:"btn",onclick:()=>{SC.view="admin";render()}},"🛡 الإدارة"):null,u?h("button",{class:"btn",onclick:()=>openProf(u.id)},"👤 صفحتي"):null,h("button",{class:"btn teacher-nav",onclick:()=>{SC.view="teacher";SC.uid=null;render()}},"🎓 صفحة الأستاذ"),
   u?h("button",{class:"btn",onclick:postModal},"＋ انشر"):null,h("button",{class:"btn",onclick:trModal},"🌐"),h("button",{class:"btn",onclick:()=>u?SC.sb.auth.signOut():authModal()},u?"خروج":"دخول / تسجيل"))));
- if(SC.view==="rank")return rankView(v);if(SC.view==="teacher")return teacherView(v);if(SC.view==="prof")return profView(v);if(SC.view==="chats")return chatList(v);if(SC.view==="admin")return adminView(v);if(SC.view==="search")return searchView(v);if(SC.view==="chat")return chatRoom(v);
- v.append(searchBar());if(u&&!SC.kind)sugBox(v);v.append(h("div",{class:"chips",style:"padding:0 16px"},[["","الكل"],["research","أبحاث"],["experience","تجارب"],["video","فيديو"],["board","🖼 لوحات"],["map","🗺 خرائط"],["attachment","📎 مرفقات"]].concat(u?[["following","متابَعوني"]]:[]).map(([k,n])=>h("button",{class:"chip"+(SC.kind===k?" on":""),onclick:()=>{SC.kind=k;render()}},n))));
- const box=h("div",{});v.append(box);if(SC.kind==="following"&&u)SC.sb.from("follows").select("followee").eq("follower",u.id).then(r=>loadPosts(box,{uids:(r.data||[]).map(x=>x.followee)}));else loadPosts(box,SC.kind&&SC.kind!=="following"?{kind:SC.kind}:{})}
+ if(SC.view==="inst"&&window.instView)return instView(v);if(SC.view==="instp"&&window.instPage)return instPage(v);if(SC.view==="rank")return rankView(v);if(SC.view==="teacher")return teacherView(v);if(SC.view==="prof")return profView(v);if(SC.view==="chats")return chatList(v);if(SC.view==="admin")return adminView(v);if(SC.view==="search")return searchView(v);if(SC.view==="chat")return chatRoom(v);
+ v.append(searchBar());if(u&&typeof storiesBar==="function")v.append(storiesBar());if(u&&(!SC.kind||SC.kind==="foryou"))sugBox(v);v.append(h("div",{class:"chips",style:"padding:0 16px"},(u?[["foryou","✨ لك"]]:[]).concat([["","الكل"],["post","💬 منشورات"],["question","❓ أسئلة"],["deck","🃏 حزم"],["topdecks","🔥 حزم رائجة"],["research","أبحاث"],["experience","تجارب"],["video","فيديو"],["board","🖼 لوحات"],["map","🗺 خرائط"],["attachment","📎 مرفقات"]]).concat(u?[["following","متابَعوني"]]:[]).map(([k,n])=>h("button",{class:"chip"+(SC.kind===k?" on":""),onclick:()=>{SC.kind=k;render()}},n))));
+ const box=h("div",{});v.append(box);if(SC.kind==="foryou"&&u)loadForYou(box);else if(SC.kind==="topdecks")loadTopDecks(box);else if(SC.kind==="following"&&u)SC.sb.from("follows").select("followee").eq("follower",u.id).then(r=>loadPosts(box,{uids:(r.data||[]).map(x=>x.followee)}));else loadPosts(box,SC.kind&&SC.kind!=="following"&&SC.kind!=="foryou"?{kind:SC.kind}:{})}
 const av=(p,n)=>{const d=h("div",{class:"cav",style:"width:"+n+"px;height:"+n+"px;font-size:"+n/2+"px"});
- if(p&&p.avatar_url&&p.avatar_url.startsWith(SUPA.url))d.append(h("img",{src:p.avatar_url,alt:""}));else d.textContent=((p&&(p.name||p.username))||"?").slice(0,1).toUpperCase();return d};
+ if(p&&p.avatar_url&&p.avatar_url.startsWith(SUPA.url+"/"))d.append(h("img",{src:p.avatar_url,alt:""}));else d.textContent=((p&&(p.name||p.username))||"?").slice(0,1).toUpperCase();return d};
 function vid(u){const m=(u||"").match(/^https:\/\/(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/);
  return m?h("iframe",{class:"cvid",src:"https://www.youtube-nocookie.com/embed/"+m[1],allowfullscreen:"",loading:"lazy"}):(okU(u)?h("a",{class:"btn",href:u,target:"_blank",rel:"noopener noreferrer"},"▶ مشاهدة الفيديو"):null)}
 async function loadPosts(box,f){
- let q=SC.sb.from("posts").select("*,likes(count),comments(count)").order("created_at",{ascending:false}).limit(30);
- if(f.kind)q=q.eq("kind",f.kind);if(f.uid)q=q.eq("user_id",f.uid);if(f.uids)q=q.in("user_id",f.uids.length?f.uids:["00000000-0000-0000-0000-000000000000"]);if(f.q)q=q.or("title.ilike.*"+f.q+"*,body.ilike.*"+f.q+"*");
- const {data,error}=await q;if(error){box.append(h("div",{class:"card"},"⚠ "+error.message));return}
+ // البحث يشمل التخصص (topic)؛ وإن لم يُشغَّل v19m-topic.sql بعد نعيد المحاولة بدونه كي لا ينكسر البحث
+ const mk=tp=>{let q=SC.sb.from("posts").select("*,likes(count),comments(count)").order("created_at",{ascending:false}).limit(f.limit||30);
+  if(f.kind)q=q.eq("kind",f.kind);if(f.ids)q=q.in("id",f.ids);if(f.uid)q=q.eq("user_id",f.uid);if(f.uids)q=q.in("user_id",f.uids.length?f.uids:["00000000-0000-0000-0000-000000000000"]);if(f.q)q=q.or("title.ilike.*"+f.q+"*,body.ilike.*"+f.q+"*"+(tp?",topic.ilike.*"+f.q+"*":""));return q};
+ let {data,error}=await mk(true);if(error&&f.q&&/topic/i.test(error.message||""))({data,error}=await mk(false));
+ if(error){box.append(h("div",{class:"card"},"⚠ "+error.message));return}
+ if(f.rank)data=f.rank(data).slice(0,30);
  {const ids=[...new Set(data.map(p=>p.user_id))];if(ids.length){const pr=await SC.sb.from("profiles").select("id,username,name,avatar_url,verified,is_teacher").in("id",ids),m={};(pr.data||[]).forEach(x=>m[x.id]=x);data.forEach(p=>p.profiles=m[p.user_id]||null)}}
  const mine=new Set();if(SC.user&&data.length)((await SC.sb.from("likes").select("post_id").eq("user_id",SC.user.id).in("post_id",data.map(p=>p.id))).data||[]).forEach(x=>mine.add(x.post_id));
  if(!data.length)box.append(h("div",{class:"meta",style:"text-align:center;padding:20px"},"لا منشورات بعد. كن أول من ينشر!"));
- data.filter(p=>!SC.blocked.has(p.user_id)).forEach(p=>box.append(postCard(p,mine.has(p.id))))}
+ data.filter(p=>!SC.blocked.has(p.user_id)).forEach(p=>{const c=postCard(p,mine.has(p.id));if(p._why)c.prepend(h("div",{class:"meta",style:"font-size:12px;opacity:.75;margin-bottom:4px"},p._why));box.append(c)})}
 function postCard(p,liked){const a=p.profiles||{},cnt=x=>(p[x]&&p[x][0]&&p[x][0].count)||0;let lk=cnt("likes"),lked=liked;
  const lb=h("button",{class:"btn"}),cb=h("div",{}),tr=h("div",{class:"trout",dir:"auto"}),paint=()=>{lb.textContent=(lked?"❤️ ":"🤍 ")+lk};paint();
  lb.onclick=async()=>{if(!SC.user)return authModal();lked=!lked;lk+=lked?1:-1;paint();
   const r=lked?await SC.sb.from("likes").insert({post_id:p.id,user_id:SC.user.id}):await SC.sb.from("likes").delete().match({post_id:p.id,user_id:SC.user.id});
   if(r.error){lked=!lked;lk+=lked?1:-1;paint()}};
- const own=SC.user&&SC.user.id===p.user_id,K={research:"📄 بحث",experience:"🧪 تجربة",video:"🎬 فيديو",lesson:"🎓 مادة تعليمية"};
+ const own=SC.user&&SC.user.id===p.user_id,K={post:"💬 منشور",question:"❓ سؤال",deck:"🃏 حزمة",research:"📄 بحث",experience:"🧪 تجربة",video:"🎬 فيديو",lesson:"🎓 مادة تعليمية"};
  return h("div",{class:"card"},
   h("div",{class:"phd",onclick:()=>openProf(a.id)},av(a,42),h("div",{},h("b",{dir:"auto"},(a.name||a.username||"?"),a.verified?h("span",{class:"premium-badge","aria-label":"حساب مميز موثّق"}," ✓"):null,a.is_teacher?h("span",{class:"teacher-badge"}," أستاذ"):null),h("div",{class:"meta"},"@"+(a.username||"")+" · "+new Date(p.created_at).toLocaleDateString(S.lang)))),
   h("span",{class:"badge"},K[p.kind]||p.kind),h("h3",{dir:"auto"},p.title),p.body?h("div",{dir:"auto",style:"white-space:pre-wrap"},p.body):null,tr,
@@ -77,7 +81,7 @@ async function teacherView(v){
 }
 const square=(f,n)=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>{const c=document.createElement("canvas");c.width=c.height=n;const s=Math.min(i.width,i.height);
  c.getContext("2d").drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,n,n);c.toBlob(ok,"image/jpeg",.85)};i.onerror=no;i.src=URL.createObjectURL(f)});
-function editModal(p){const I=(v,ph)=>h("input",{class:"cin",value:v||"",placeholder:ph}),nm=I(p.name,"الاسم"),fl=I(p.field,"التخصص"),un=I(p.university,"الجامعة / المؤسسة"),
+function editModal(p){const I=(v,ph)=>h("input",{class:"cin",value:v||"",placeholder:ph}),nm=I(p.name,"الاسم"),fl=(x=>{x.setAttribute("list",fieldDl());x.maxLength=60;return x})(I(p.field,"التخصص (اكتب ما تشاء أو اختر من الاقتراحات)")),un=I(p.university,"الجامعة / المؤسسة"),
  bio=h("textarea",{class:"cta",maxlength:"300",placeholder:"نبذة عنك"},p.bio||""),file=h("input",{type:"file",accept:"image/*"});
  const m=modal(h("h3",{},"✏️ ملفي الأكاديمي"),h("div",{class:"meta"},"الصورة الشخصية"),file,nm,fl,un,bio,h("button",{class:"pri",onclick:async()=>{let url=p.avatar_url;const f=file.files[0];
   if(f){const b=await square(f,256),path=SC.user.id+"/avatar-"+Date.now()+".jpg",up=await SC.sb.storage.from("avatars").upload(path,b,{contentType:"image/jpeg"});
@@ -86,10 +90,10 @@ function editModal(p){const I=(v,ph)=>h("input",{class:"cin",value:v||"",placeho
   if(r.error)return toast(r.error.message);await setUser((await SC.sb.auth.getSession()).data.session);m.remove();render()}},"حفظ"),h("button",{class:"btn danger",style:"margin-top:8px",onclick:deleteAccount},"🗑 حذف حسابي نهائيًا"),cancelB({remove:()=>m.remove()}))}
 function postModal(){const kinds=[["research","📄 بحث"],["experience","🧪 تجربة"],["video","🎬 فيديو"]];if(SC.me&&SC.me.is_teacher)kinds.push(["lesson","🎓 مادة تعليمية"]);const kind=h("select",{class:"cin"},kinds.map(([k,n])=>h("option",{value:k},n)));
  const ti=h("input",{class:"cin",placeholder:"العنوان",maxlength:"150"}),bd=h("textarea",{class:"cta",placeholder:"لخّص بحثك أو اشرح تجربتك…",maxlength:"3000"}),
- doi=h("input",{class:"cin",dir:"ltr",placeholder:"DOI (اختياري) 10.1000/xyz"}),vd=h("input",{class:"cin",dir:"ltr",placeholder:"رابط فيديو يوتيوب (اختياري)"});
+ doi=h("input",{class:"cin",dir:"ltr",placeholder:"DOI (اختياري — يقبل الرابط أو الرقم)"}),vd=h("input",{class:"cin",dir:"ltr",placeholder:"رابط فيديو يوتيوب (اختياري)"});
  const sv=h("select",{class:"cin",onchange:()=>{const s=S.saved[sv.value-1];if(s){ti.value=s.title||"";doi.value=s.doi||""}}},h("option",{value:0},"أرفق من مصادري المحفوظة…"),S.saved.map((s,i)=>h("option",{value:i+1},(s.title||"").slice(0,60))));
  const m=modal(h("h3",{},"＋ منشور جديد"),kind,ti,bd,sv,doi,vd,h("button",{class:"pri",onclick:async()=>{
-  const d=doi.value.trim(),vu=vd.value.trim();if(!ti.value.trim())return toast("اكتب عنوانًا");if(d&&!/^10\.\d{4,9}\/\S+$/.test(d))return toast("صيغة DOI غير صحيحة");if(vu&&!okU(vu))return toast("الرابط يجب أن يبدأ بـ https://");
+  const d=cleanDoi(doi.value),vu=vd.value.trim();if(!ti.value.trim())return toast("اكتب عنوانًا");if(d&&!/^10\.\d{4,9}\/\S+$/.test(d))return toast("صيغة DOI غير صحيحة — الصق الرقم مثل 10.1000/xyz أو الرابط كاملًا، أو اتركه فارغًا");if(vu&&!okU(vu))return toast("الرابط يجب أن يبدأ بـ https://");
   const r=await SC.sb.from("posts").insert({user_id:SC.user.id,kind:kind.value,title:ti.value.trim(),body:bd.value.trim()||null,doi:d||null,video_url:vu||null});
   if(r.error)return toast(r.error.message);m.remove();SC.view="feed";render()}},"نشر"),cancelB({remove:()=>m.remove()}))}
 function authModal(){let up=false;const I=(ph,o)=>h("input",Object.assign({class:"cin",placeholder:ph},o||{}));

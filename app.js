@@ -55,7 +55,7 @@ en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",
  pts2:"Review a card +1 · Quiz +15 · Create a deck +8 · Challenge +20 · Perfect quiz +25"}};
 const T={ar:{...T0.ar,...N.ar},en:{...T0.en,...N.en}};
 // ===================== النواة: الحالة والتخزين =====================
-const APP_VER="18.0 · 2026-11-04";
+const APP_VER="19s.1 · 2026-11-05";
 const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,
  rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"📚",col:0,goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
 const LS={get(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x==null?d:x}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -66,7 +66,10 @@ const t=k=>{const v=T[S.lang][k];if(v==null){console.warn("missing i18n:",k);ret
 const tf=(k,o)=>t(k).replace(/\{(\w+)\}/g,(m,x)=>o[x]);
 const persist=()=>{try{localStorage.setItem("7s_saved",JSON.stringify(S.saved));localStorage.setItem("7s_lang",S.lang);localStorage.setItem("7s_rem",JSON.stringify(S.rem));
  localStorage.setItem("7s_decks",JSON.stringify(S.decks));localStorage.setItem("7s_prof",JSON.stringify(S.prof));localStorage.setItem("7s_riv",JSON.stringify(S.riv))}catch(e){}};
-function h(tag,attrs,...kids){const e=document.createElement(tag);for(const k in(attrs||{})){const v=attrs[k];if(k==="class")e.className=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null)e.setAttribute(k,v)}
+// يمنع javascript: و data: وأي بروتوكول خطِر في الروابط القادمة من فهارس خارجية أو روابط مشاركة
+const safeUrl=(u,img)=>{u=String(u==null?"":u).trim();if(!u)return"";const c=u.replace(/[\u0000-\u0020\u00AD\u200B-\u200F\u2028\u2029\uFEFF]/g,"");
+ if(/^(?:https?:|mailto:|tel:|blob:|#|\?|\.{0,2}\/)/i.test(c))return u;if(img&&/^data:image\/(?:png|jpe?g|gif|webp);/i.test(c))return u;if(/^[a-z][a-z0-9+.\-]*:/i.test(c))return"";return u};
+function h(tag,attrs,...kids){const e=document.createElement(tag);for(const k in(attrs||{})){const v=attrs[k];if(k==="class")e.className=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null){if(k==="href"||k==="src"||k==="action"||k==="formaction"){const sv=safeUrl(v,tag==="img");if(!sv)continue;e.setAttribute(k,sv)}else e.setAttribute(k,v)}}
  kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c))});return e}
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
@@ -142,11 +145,13 @@ const unb64u=s=>{s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="="
 async function pack(o){const raw=new TextEncoder().encode(JSON.stringify(o));
  if(typeof CompressionStream!=="undefined"){try{const cs=new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate-raw"));return"z"+b64u(new Uint8Array(await new Response(cs).arrayBuffer()))}catch(e){}}
  return"p"+b64u(raw)}
-async function unpack(s){s=(s||"").trim();const f=s[0],b=unb64u(s.slice(1));
- if(f==="z"){const ds=new Blob([b]).stream().pipeThrough(new DecompressionStream("deflate-raw"));return JSON.parse(new TextDecoder().decode(await new Response(ds).arrayBuffer()))}
+async function unpack(s){s=(s||"").trim();if(s.length>400000)throw new Error("big");const f=s[0],b=unb64u(s.slice(1));
+ if(f==="z"){const ds=new Blob([b]).stream().pipeThrough(new DecompressionStream("deflate-raw")),rd=ds.getReader(),ch=[];let n=0;
+  for(;;){const{done,value}=await rd.read();if(done)break;n+=value.length;if(n>2e6){try{await rd.cancel()}catch(e){}throw new Error("big")}ch.push(value)}
+  const all=new Uint8Array(n);let off=0;ch.forEach(c=>{all.set(c,off);off+=c.length});return JSON.parse(new TextDecoder().decode(all))}
  if(f==="p")return JSON.parse(new TextDecoder().decode(b));throw new Error("bad")}
 const slim=c=>{const o={q:c.q,a:c.a,t:c.t};if(c.src)o.s={t:c.src.t,a:(c.src.a||[]).slice(0,4),y:c.src.y,j:c.src.j,d:c.src.d,u:c.src.u,own:c.src.own};return o};
-const unslim=o=>({id:uid(),t:o.t||"c",q:String(o.q||""),a:String(o.a||""),src:o.s&&o.s.t?{t:o.s.t,a:o.s.a||[],y:o.s.y||null,j:o.s.j||"",d:o.s.d||"",u:o.s.u||"",own:o.s.own?1:undefined}:undefined});
+const unslim=o=>({id:uid(),t:o.t||"c",q:String(o.q||"").slice(0,1500),a:String(o.a||"").slice(0,1500),src:o.s&&o.s.t?{t:String(o.s.t).slice(0,400),a:(Array.isArray(o.s.a)?o.s.a:[]).slice(0,6).map(x=>String(x).slice(0,80)),y:Number.isFinite(+o.s.y)?+o.s.y:null,j:String(o.s.j||"").slice(0,200),d:String(o.s.d||"").slice(0,120),u:safeUrl(o.s.u).slice(0,600),own:o.s.own?1:undefined}:undefined});
 const baseUrl=()=>location.href.split("#")[0].split("?")[0];
 async function mkLink(kind,title,emoji,cards,score){const cs=cards.slice(0,40).map(slim);
  const code=await pack({v:1,k:kind,n:S.prof.name||"",av:S.prof.av,t:title,e:emoji||"📘",sc:score==null?null:score,c:cs});
@@ -170,17 +175,19 @@ function apa(p){
  let s=au?au+" ("+(p.year||"n.d.")+"). "+(p.title||"").replace(/\.$/,"")+". ":(p.title||"").replace(/\.$/,"")+". ("+(p.year||"n.d.")+"). ";
  if(p.journal){s+=p.journal;if(p.vol){s+=", "+p.vol;if(p.issue)s+="("+p.issue+")"}if(p.pages)s+=", "+p.pages;s+=". "}
  if(p.doi)s+="https://doi.org/"+p.doi;else if(p.url)s+=p.url;return s.trim()}
-const cleanDoi=d=>(d||"").replace(/^https?:\/\/(dx\.)?doi\.org\//i,"").trim();
+const cleanDoi=d=>{d=String(d||"").trim().replace(/^(?:https?:\/\/(?:dx\.)?doi\.org\/|doi\s*:\s*)/i,"");try{if(/%[0-9a-f]{2}/i.test(d))d=decodeURIComponent(d)}catch(e){}return d.replace(/[\s.,;]+$/,"").trim()};
 
 const isAr=s=>/[\u0600-\u06FF]/.test(s);
-const jf=u=>{const c=new AbortController(),tm=setTimeout(()=>c.abort(),12000);return fetch(u,{signal:c.signal}).then(r=>{clearTimeout(tm);if(!r.ok)throw new Error("http");return r.json()})};
+const jf=u=>{const c=new AbortController(),tm=setTimeout(()=>c.abort(),12000);return fetch(u,{signal:c.signal}).then(r=>{if(!r.ok)throw new Error("http");return r.json()}).finally(()=>clearTimeout(tm))};
+// بريد التواصل الحقيقي (إن وُضع في config.js) يضعك في «المجمّع المهذّب» لدى OpenAlex وCrossref فيقلّ الحجب وتتحسن السرعة
+const MT=()=>{const m=window.APP&&APP.contact;return/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m||"")&&!/@example\.com$/i.test(m)?encodeURIComponent(m):""};
 const normT=s=>(s||"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const STOP=new Set(["في","من","عن","على","إلى","الى","أو","او","ما","هو","هي","هذا","هذه","ذلك","التي","الذي","الذين","كل","بين","مع","حول","عند","ثم","قد","لا","لم","لن","إن","أن","كان","يكون","مثل","ذات","أي","the","of","and","in","on","for","to","a","an","is","are"]);
 function keywordify(q){const w=q.trim().split(/\s+/);if(w.length<=4)return q.trim();
  const c=w.map(x=>/^و(?=[أإا]|ال)/.test(x)&&x.length>4?x.slice(1):x).filter(x=>x&&!STOP.has(x));return (c.length?c:w).slice(0,4).join(" ")}
 const absOf=ix=>{if(!ix)return"";const a=[];for(const w in ix)ix[w].forEach(p=>{a[p]=w});return a.filter(Boolean).join(" ")};
 async function viaOpenAlex(q,o){o=o||{oa:S.oa,sort:S.sort};let u="https://api.openalex.org/works?search="+encodeURIComponent(q)+"&per-page=15"+(o.oa?"&filter=is_oa:true":"");
- if(o.raw)u=o.raw;else if(o.sort==="year")u+="&sort=publication_year:desc";const j=await jf(u);
+ if(o.raw)u=o.raw;else{if(o.sort==="year")u+="&sort=publication_year:desc";if(MT())u+="&mailto="+MT()}const j=await jf(u);
  return (j.results||[]).map(w=>({title:w.title||w.display_name,authors:(w.authorships||[]).map(a=>a.author&&a.author.display_name).filter(Boolean),
   journal:w.primary_location&&w.primary_location.source&&w.primary_location.source.display_name,year:w.publication_year,doi:cleanDoi(w.doi),
   vol:w.biblio&&w.biblio.volume,issue:w.biblio&&w.biblio.issue,pages:w.biblio&&w.biblio.first_page?(w.biblio.first_page+(w.biblio.last_page?"–"+w.biblio.last_page:"")):"",
@@ -190,7 +197,7 @@ async function viaDOAJ(q){const c=q.replace(/[:\/\\()\[\]{}"~^]/g," ").trim();co
   return{title:b.title,authors:(b.author||[]).map(a=>a.name).filter(Boolean),journal:b.journal&&b.journal.title,year:b.year?+b.year:null,doi:cleanDoi(d&&d.id),
   vol:b.journal&&b.journal.volume,issue:b.journal&&b.journal.number,pages:b.start_page?(b.start_page+(b.end_page?"\u2013"+b.end_page:"")):"",url:l&&l.url,abs:(b.abstract||"").slice(0,1800),oa:true,verified:true,src:"DOAJ"}}).filter(p=>p.title)}
 async function viaCrossref(q){let u="https://api.crossref.org/works?query.bibliographic="+encodeURIComponent(q)+"&rows=12&select=DOI,title,author,issued,container-title,volume,issue,page,URL,abstract";
- if(S.sort==="year")u+="&sort=issued&order=desc";const j=await jf(u);
+ if(S.sort==="year")u+="&sort=issued&order=desc";if(MT())u+="&mailto="+MT();const j=await jf(u);
  return ((j.message&&j.message.items)||[]).map(w=>({title:(w.title||[])[0],authors:(w.author||[]).map(a=>((a.given||"")+" "+(a.family||a.name||"")).trim()).filter(Boolean),
   journal:(w["container-title"]||[])[0],year:w.issued&&w.issued["date-parts"]&&w.issued["date-parts"][0]&&w.issued["date-parts"][0][0],doi:cleanDoi(w.DOI),
   vol:w.volume,issue:w.issue,pages:(w.page||"").replace("-","–"),url:w.URL,abs:(w.abstract||"").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,1800),oa:false,verified:true,src:"Crossref"})).filter(p=>p.title)}
@@ -220,8 +227,9 @@ function viaSite(q){
  return SITE_LIBRARY.map(p=>({...p,doi:cleanDoi(p.doi),oa:false,verified:true,site:true,src:lab,
   _sc:ws.filter(w=>{const hay=normT([p.title,(p.authors||[]).join(" "),p.journal,(p.tags||[]).join(" ")].join(" "));const st=w.replace(/^(وال|بال|كال|فال|لل|ال)/,"");return hay.includes(w)||(st.length>1&&hay.includes(st))}).length}))
  .filter(p=>p._sc>0).sort((a,b)=>b._sc-a._sc)}
+let SEQ=0;
 async function doSearch(){
- const q=S.q.trim();if(!q)return;award("search");S.loading=true;S.err=false;S.res=null;S.show=20;render();
+ const q=S.q.trim();if(!q)return;const my=++SEQ;award("search");S.loading=true;S.err=false;S.res=null;S.show=20;render();
  try{const site=viaSite(q);
   const run=qq=>{const L=[viaOpenAlex(qq),viaDOAJ(qq),viaArchive(qq)];if(!S.oa)L.push(viaCrossref(qq),viaOpenLibrary(qq),viaGBooks(qq));return Promise.allSettled(L)};
   const ok=r=>r.map(x=>x.status==="fulfilled"?x.value:[]);
@@ -229,7 +237,8 @@ async function doSearch(){
   if(m.length<5&&w.length>2){const r2=await run(w.slice(0,2).join(" "));m=merge(m,...ok(r2));r=r.concat(r2)}
   if(r.every(x=>x.status==="rejected")&&!site.length)throw new Error("all");
   if(S.sort==="year")m.sort((x,y)=>(y.year||0)-(x.year||0));
-  S.res=site.concat(m.filter(p=>!site.some(x=>(x.doi&&p.doi&&x.doi.toLowerCase()===p.doi.toLowerCase())||normT(x.title)===normT(p.title))))}catch(e){S.err=true}
+  if(my!==SEQ)return;
+  S.res=site.concat(m.filter(p=>!site.some(x=>(x.doi&&p.doi&&x.doi.toLowerCase()===p.doi.toLowerCase())||normT(x.title)===normT(p.title))))}catch(e){if(my!==SEQ)return;S.err=true}
  S.loading=false;render()}
 const licLabel=u=>/publicdomain/i.test(u||"")?"الملك العام / Public domain":"Creative Commons";
 const keyOf=p=>p.doi||p.title;
@@ -339,10 +348,10 @@ function challengeModal(o){const cards=o.c.slice(0,60).map(unslim),isC=o.k==="c"
   isC?[h("label",{class:"lbl"},t("chName")),name]:null,
   h("div",{class:"acts"},
    isC?h("button",{class:"ok",onclick:()=>{if(name.value.trim())S.prof.name=name.value.trim();persist();m.remove();startQuiz(null,{cards,title:o.t,emoji:o.e,chal:{n:o.n||t("friend"),av:o.av||"",sc:o.sc}})}},t("chGo")):null,
-   h("button",{class:isC?"btn":"ok",onclick:()=>{const d=newDeck(o.t||t("dT"),cards,{emoji:o.e});m.remove();toast(t("qDeckSaved"));if(!isC)openDeck(d.id)}},isC?t("chSave"):t("qSaveD")),
+   h("button",{class:isC?"btn":"ok",onclick:()=>{const d=newDeck(o.t||t("dT"),cards,{emoji:o.e});if(o.onSave)try{o.onSave()}catch(e){}m.remove();toast(t("qDeckSaved"));if(!isC)openDeck(d.id)}},isC?t("chSave"):t("qSaveD")),
    h("button",{class:"btn",onclick:()=>m.remove()},t("chLater"))))}
 async function handleHash(){const m=location.hash.match(/^#([cd])=(.+)$/);if(!m)return;try{history.replaceState(null,"",location.pathname)}catch(e){}
- try{const o=await unpack(m[2]);if(!o||!Array.isArray(o.c)||!o.c.length)throw 0;o.k=o.k||m[1];challengeModal(o)}catch(e){toast(t("pBad"))}}
+ try{const o=await unpack(m[2]);if(!o||!Array.isArray(o.c)||!o.c.length)throw 0;o.c=o.c.slice(0,60).filter(x=>x&&typeof x==="object");if(!o.c.length)throw 0;o.k=o.k||m[1];challengeModal(o)}catch(e){toast(t("pBad"))}}
 // ===================== جلسة الدراسة =====================
 function clozeNodes(c,reveal){if(c.t!=="c"||!c.q.includes("_____"))return[c.q];const ps=c.q.split("_____"),out=[];
  ps.forEach((p,i)=>{out.push(p);if(i<ps.length-1)out.push(reveal?h("mark",{},c.a):h("span",{class:"blank"},"     "))});return out}
@@ -626,7 +635,8 @@ function renderMe(v){const i=lvIdx(),nx=LV[i+1],cur=LV[i],pc=nx?Math.round((G.pt
  v.append(h("div",{class:"card"},h("h3",{},gt("how")),h("div",{class:"meta"},gt("howT")),h("div",{class:"meta"},gt("priv"))))}
 function renderData(v){
  const file=h("input",{type:"file",accept:"application/json,.json",style:"display:none",onchange:e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{const o=JSON.parse(r.result);let n=0;Object.keys(o).forEach(k=>{if(/^7s_/.test(k)&&typeof o[k]==="string"){localStorage.setItem(k,o[k]);n++}});if(!n)throw 0;toast(t("mImpOk"));setTimeout(()=>location.reload(),700)}catch(x){toast(t("mImpBad"))}};r.readAsText(f)}});
+  r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||typeof o!=="object"||Array.isArray(o))throw 0;let n=0;const okv=k=>{if(k==="7s_lang"||k==="7s_tour"||k==="7s_instx")return true;try{JSON.parse(o[k]);return true}catch(e){return false}};
+  const ks=Object.keys(o).filter(k=>/^7s_[\w-]{1,40}$/.test(k)&&typeof o[k]==="string"&&o[k].length<5e6&&okv(k));if(!ks.length)throw 0;if(!confirm(S.lang==="ar"?"سيستبدل هذا الاستعادة بياناتك الحالية على هذا الجهاز. المتابعة؟":"Restoring will replace your current data on this device. Continue?"))return;ks.forEach(k=>{localStorage.setItem(k,o[k]);n++});toast(t("mImpOk"));setTimeout(()=>location.reload(),700)}catch(x){toast(t("mImpBad"))}};r.readAsText(f)}});
  v.append(h("div",{class:"card"},h("h3",{},"💾 "+t("mBackT")),h("div",{class:"meta",style:"line-height:1.8"},t("mBackD")),
   h("div",{class:"btns"},h("button",{class:"btn fill",onclick:()=>{persist();saveG();const o={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^7s_/.test(k)&&k!=="7s_instx"&&k!=="7s_tour")o[k]=localStorage.getItem(k)}}catch(e){}
    const a=h("a",{href:URL.createObjectURL(new Blob([JSON.stringify(o)],{type:"application/json"})),download:"7salah-backup-"+dkey(new Date())+".json"});document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}},"⬇ "+t("mExp")),
