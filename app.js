@@ -55,7 +55,7 @@ en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",
  pts2:"Review a card +1 · Quiz +15 · Create a deck +8 · Challenge +20 · Perfect quiz +25"}};
 const T={ar:{...T0.ar,...N.ar},en:{...T0.en,...N.en}};
 // ===================== النواة: الحالة والتخزين =====================
-const APP_VER="19p.1 · 2026-11-05";
+const APP_VER="19p.2 · 2026-11-05";
 const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,
  rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"📚",col:0,goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
 const LS={get(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x==null?d:x}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};

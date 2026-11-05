@@ -12,7 +12,7 @@ async function setUser(ss){SC.user=ss?ss.user:null;SC.me=null;if(SC.user)SC.me=(
 function renderCom(v){
  if(!(window.SUPA&&SUPA.url&&SUPA.key)){v.append(h("div",{class:"card"},h("h3",{},"🌐 المجتمع الأكاديمي"),h("div",{class:"meta"},SUPA.bad?("⚠️ "+SUPA.bad):"لتفعيله: أنشئ مشروع Supabase، شغّل schema.sql، ثم ضع Project URL وanon key في config.js.")));return}
  v.append(h("div",{class:"meta",style:"text-align:center;padding:24px"},"⏳"));
- loadSb().then(()=>{if(S.tab!=="com")return;v.replaceChildren();comBody(v);v.append(h("div",{class:"meta",style:"text-align:center;padding:16px"},h("a",{href:"#",onclick:e=>{e.preventDefault();legalModal()}},"الشروط وسياسة الخصوصية")))}).catch(()=>{v.replaceChildren(h("div",{class:"card"},"⚠ تعذّر الاتصال. تحقق من الإنترنت."))})}
+ loadSb().then(()=>{if(S.tab!=="com")return;v.replaceChildren();comBody(v);if(window.connBanner)connBanner(v);v.append(h("div",{class:"meta",style:"text-align:center;padding:16px"},h("a",{href:"#",onclick:e=>{e.preventDefault();legalModal()}},"الشروط وسياسة الخصوصية")))}).catch(()=>{v.replaceChildren(h("div",{class:"card"},"⚠ تعذّر الاتصال. تحقق من الإنترنت."))})}
 function comBody(v){const u=SC.user;if(window.stopChat)stopChat();
  if(u&&!SC._k0){SC._k0=1;if(!SC.kind)SC.kind="foryou"}if(!u&&SC.kind==="foryou")SC.kind="";
  v.append(h("div",{class:"card"},h("div",{class:"btns",style:"margin:0"},

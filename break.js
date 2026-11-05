@@ -81,7 +81,7 @@ function openBreak(sm){
   const step=()=>{if(i>=qs.length){body.replaceChildren(h("h3",{},"🎉 أحسنت! "+ok+"/"+qs.length),h("div",{class:"meta"},"المهم أنك ابتسمت واستمتعت. عُد للدراسة حين تكون جاهزًا."),h("button",{class:"pri",onclick:quiz},"جولة أخرى"),h("button",{class:"btn",onclick:home},"رجوع"));return}
    const [q,o,a,f]=qs[i],opts=brkShuf(o.map((t,j)=>[t,j===a]));let done=false;
    body.replaceChildren(h("div",{class:"meta"},"سؤال "+(i+1)+" من "+qs.length),h("b",{dir:"auto"},q),
-    opts.map(([t,c])=>{const b=h("button",{class:"btn",style:"display:block;width:100%;margin-top:6px",onclick:()=>{if(done)return;done=true;if(c)ok++;
+    ...opts.map(([t,c])=>{const b=h("button",{class:"btn",style:"display:block;width:100%;margin-top:6px",onclick:()=>{if(done)return;done=true;if(c)ok++;
      b.textContent=(c?"✅ ":"❌ ")+t;[...body.querySelectorAll("button.btn")].forEach((x,j)=>{if(opts[j]&&opts[j][1]&&x!==b)x.textContent="✅ "+opts[j][0]});
      body.append(h("div",{class:"meta",style:"margin-top:8px"},"💡 "+f),h("button",{class:"pri",onclick:()=>{i++;step()}},i+1<qs.length?"التالي":"النتيجة"))}},t);return b}))};
   step()};

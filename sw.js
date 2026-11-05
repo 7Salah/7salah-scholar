@@ -1,6 +1,6 @@
 // 7salah-scholar service worker: offline app shell + notification click
-const V='7s-v19p1';
-const SHELL=['./','index.html','styles.css','app.js','social.js','chat.js','admin.js','discover.js','rank.js','formats.js','stories.js','groups.js','break.js','translate.js','calls.js','config.js','manifest.json','icon-192.png','icon-512.png'];
+const V='7s-v19p2';
+const SHELL=['./','index.html','styles.css','app.js','social.js','diag.js','chat.js','admin.js','discover.js','rank.js','formats.js','stories.js','groups.js','break.js','translate.js','calls.js','config.js','manifest.json','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()).catch(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 // الشبكة أولًا للملفات المحلية (لتصل التحديثات) ثم النسخة المخزّنة عند انقطاع الإنترنت. طلبات الفهارس الخارجية لا تُعترَض.
