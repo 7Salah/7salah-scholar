@@ -208,3 +208,4 @@ header{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 @keyframes n-orbit{to{transform:rotate(360deg)}}
 @keyframes n-cap{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
 @media(prefers-reduced-motion:reduce){.nibras-svg,.n-cat,.n-cap,.n-tail,.n-scarf-tail,.n-paw,.n-sparkles,.n-orbit{animation:none!important}}
+.phd .meta{direction:ltr;text-align:right}
