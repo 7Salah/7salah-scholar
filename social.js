@@ -41,9 +41,10 @@ function postCard(p,liked){const a=p.profiles||{},cnt=x=>(p[x]&&p[x][0]&&p[x][0]
  lb.onclick=async()=>{if(!SC.user)return authModal();lked=!lked;lk+=lked?1:-1;paint();
   const r=lked?await SC.sb.from("likes").insert({post_id:p.id,user_id:SC.user.id}):await SC.sb.from("likes").delete().match({post_id:p.id,user_id:SC.user.id});
   if(r.error){lked=!lked;lk+=lked?1:-1;paint()}};
- const own=SC.user&&SC.user.id===p.user_id,K={post:"💬 منشور",ques لي فيtion:"❓ سؤال",deck:"🃏 حزمة",research:"📄 بحث",experience:"🧪 تجربة",video:"🎬 فيديو",lesson:"🎓 مادة تعليمية"};
+ const own=SC.user&&SC.user.id===p.user_id,K={post:"💬 منشور",question:"❓ سؤال",deck:"🃏 حزمة",research:"📄 بحث",experience:"🧪 تجربة",video:"🎬 فيديو",lesson:"🎓 مادة تعليمية"};
  return h("div",{class:"card"},
-    h("div",{class:"phd",onclick:()=>openProf(a.id)},av(a,42),h("div",{},h("b",{dir:"auto"},(a.name||a.username||"?"),a.verified?h("span",{class:"premium-badge","aria-label":"حساب مميز موثّق"}," ✓"):null,a.is_teacher?h("span",{class:"teacher-badge"}," أستاذ"):null),h("div",{class:"meta"},"@"+(a.username||"")+" · "+new Date(p.created_at).toLocaleDateString(S.lang)))),
+  h("div",{class:"phd",onclick:()=>openProf(a.id)},av(a,42),h("div",{},h("b",{dir:"auto"},(a.name||a.username||"?"),a.verified?h("span",{class:"premium-badge","aria-label":"حساب مميز موثّق"}," ✓"):null,a.is_teacher?h("span",{class:"teacher-badge"}," أستاذ"):null),h("div",{class:"meta"},"@"+(a.username||"")+" · "+new Date(p.created_at).toLocaleDateString(S.lang)))),
+  h("span",{class:"badge"},K[p.kind]||p.kind),h("h3",{dir:"auto"},p.title),p.body?h("div",{dir:"auto",style:"white-space:pre-wrap"},p.body):null,tr,
   p.doi?h("div",{class:"btns"},h("a",{class:"btn",href:"https://doi.org/"+encodeURI(p.doi),target:"_blank",rel:"noopener noreferrer"},"🔗 DOI: "+p.doi)):null,vid(p.video_url),
   h("div",{class:"btns"},lb,trBtn(()=>p.title+(p.body?"\n\n"+p.body:""),tr),h("button",{class:"btn",onclick:()=>cb.childNodes.length?cb.replaceChildren():loadComments(p,cb)},"💬 "+cnt("comments")),
    own?h("button",{class:"btn",onclick:async()=>{if(confirm("حذف المنشور؟")){if(p.file_path)await SC.sb.storage.from("posts").remove([p.file_path]);await SC.sb.from("posts").delete().eq("id",p.id);render()}}},"🗑"):
