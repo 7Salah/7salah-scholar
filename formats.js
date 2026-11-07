@@ -81,8 +81,8 @@ postModal=function(){
   if(k==="board"||k==="attachment"){const f=file.files[0];if(!f)return toast(k==="board"?"اختر صورة اللوحة":"اختر ملفًا");const isV=/^video\//.test(f.type);if(f.size>(isV?1073741824:52428800))return toast(isV?"الفيديو كبير جدًا (الحد 1GB قبل الضغط). استخدم رابط يوتيوب":"الحد الأقصى للملف 50MB");
    btn.disabled=true;let blob=f,type=f.type,ext=(f.name.match(/\.(\w{1,5})$/)||[])[1]||"bin";
    if(isV&&f.size>52428800){if(!confirm("الفيديو أكبر من 50MB. هل تريد ضغطه تلقائيًا إلى 720p؟ يستغرق تقريبًا بمدة الفيديو، فأبقِ الصفحة مفتوحة."))return btn.disabled=false;
-     try{blob=await compressVideo(f,52428800,p=>{btn.textContent="⏳ ضغط الفيديو "+p+"%"});type="video/webm";ext="webm"}catch(e){btn.disabled=false;btn.textContent="نشر";return toast(e.message==="long"?"الفيديو طويل جدًا للضغط في 50MB؛ استخدم رابط يوتيوب":"تعذّر ضغط الفيديو في هذا المتصفح؛ استخدم رابط يوتيوب أو اضغطه يدويًا");}
-     btn.textContent="⏳ جارٍ الرفع…";if(blob.size>52428800){btn.disabled=false;btn.textContent="نشر";return toast("ما زال أكبر من 50MB؛ استخدم رابط يوتيوب")}}
+     try{blob=await compressVideo(f,52428800,p=>{setT(btn,"⏳ ضغط الفيديو "+p+"%")});type="video/webm";ext="webm"}catch(e){btn.disabled=false;btn.textContent="نشر";return toast(e.message==="long"?"الفيديو طويل جدًا للضغط في 50MB؛ استخدم رابط يوتيوب":"تعذّر ضغط الفيديو في هذا المتصفح؛ استخدم رابط يوتيوب أو اضغطه يدويًا");}
+     setT(btn,"⏳ جارٍ الرفع…");if(blob.size>52428800){btn.disabled=false;btn.textContent="نشر";return toast("ما زال أكبر من 50MB؛ استخدم رابط يوتيوب")}}
     if(k==="board"){if(!/^image\//.test(f.type)){btn.disabled=false;return toast("اللوحة يجب أن تكون صورة")}try{blob=await shrink(f,1600);type="image/jpeg";ext="jpg"}catch(_){btn.disabled=false;return toast("تعذّرت قراءة الصورة")}}
    const path=SC.user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,8)+"."+ext.toLowerCase(),up=await SC.sb.storage.from("posts").upload(path,blob,{contentType:type});
    if(up.error){btn.disabled=false;return toast(up.error.message)}Object.assign(row,{file_path:path,file_name:f.name.slice(0,100),file_type:type,file_size:blob.size})}

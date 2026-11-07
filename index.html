@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f4c81">
+<meta name="theme-color" content="#173D70">
 <meta name="description" content="ادرس بدليل: بطاقات ذكية موثّقة بالمصادر العلمية، مراجعة متباعدة، وتحدّيات بين الأصدقاء.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,23 +12,26 @@
 <link rel="icon" href="icon-192.png">
 <title>7salah-scholar — ادرس بدليل</title>
 <link rel="stylesheet" href="styles.css">
+<script src="theme.js"></script>
 </head>
 <body>
 <div class="app">
   <header>
     <div class="brand"><span class="logo">7</span><span>7Salah Scholar</span></div>
     <button class="gchip" id="gchip"></button>
-    <button class="lang hbtn" id="help">؟</button>
+    <button class="lang hbtn theme-toggle" id="theme-toggle" type="button" aria-label="التبديل إلى الوضع الداكن" aria-pressed="false" title="تغيير المظهر"></button>
+    <button class="lang hbtn" id="help" aria-label="مساعدة"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
     <button class="lang" id="lang"></button>
   </header>
   <div id="inst"></div>
   <div id="view"></div>
 </div>
 <nav id="tabbar"><div class="in2" id="tabs"></div></nav>
-<script src="config.js?v=2"></script>
+<script src="config.js"></script>
+<script src="icons.js"></script>
 <script src="app.js"></script>
-<script src="social.js?v=2"></script>
-<script src="diag.js?v=2"></script>
+<script src="social.js"></script>
+<script src="diag.js"></script>
 <script src="chat.js"></script>
 <script src="admin.js"></script>
 <script src="discover.js"></script>

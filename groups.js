@@ -12,9 +12,9 @@ function newGroupModal(){
    if(r.error)return toast(r.error.message);m.remove();openChat(r.data,"👥 "+ti.value.trim())}},"إنشاء"),cancelB({remove:()=>m.remove()}))}
 
 async function discoverModal(){
- const q=h("input",{class:"cin",placeholder:"🔎 مادة أو جامعة أو اسم مجموعة"}),lv=lvSel(true),list=h("div",{},"⏳");
+ const q=h("input",{class:"cin",placeholder:"مادة أو جامعة أو اسم مجموعة"}),lv=lvSel(true),list=h("div",{},"⏳");
  const m=modal(h("h3",{},"🔎 مجموعات المواد"),q,lv,h("button",{class:"btn",onclick:load},"بحث"),list,cancelB({remove:()=>m.remove()}));
- async function load(){list.textContent="⏳";let s=SC.sb.from("conversations").select("id,title,subject,level,university").eq("kind","group").eq("is_public",true);
+ async function load(){setT(list,"⏳");let s=SC.sb.from("conversations").select("id,title,subject,level,university").eq("kind","group").eq("is_public",true);
   if(lv.value)s=s.eq("level",lv.value);const t=sq(q.value);if(t)s=s.or("title.ilike.*"+t+"*,subject.ilike.*"+t+"*,university.ilike.*"+t+"*");
   const {data,error}=await s.order("last_at",{ascending:false}).limit(30);
   list.replaceChildren(...(error?[h("div",{},"⚠ "+error.message)]:(data||[]).map(g=>h("div",{class:"btns",style:"align-items:center"},
@@ -37,9 +37,9 @@ async function openMentors(){
    h("div",{class:"btns"},[true,false].map(a=>h("button",{class:"btn",onclick:async()=>{const r=await SC.sb.rpc("answer_mentor",{req:x.rid,accept:a});if(r.error)return toast(r.error.message);
     if(a&&r.data){m.remove();openChat(r.data,x.name||x.username)}else{toast("تم");m.remove();openMentors()}}},a?"✅ قبول":"رفض"))))))}
  else if(["m1","m2","phd"].includes(me.academic_level))body.append(h("div",{class:"meta"},"وثّق مستواك (✓) لتصبح مرشدًا: من تبويب الإنجازات اطلب التوثيق."));
- const q=h("input",{class:"cin",placeholder:"🔎 ابحث عن مرشد بالمجال أو الجامعة"}),list=h("div",{},"⏳");
+ const q=h("input",{class:"cin",placeholder:"ابحث عن مرشد بالمجال أو الجامعة"}),list=h("div",{},"⏳");
  body.append(T("🧭 ابحث عن مرشد"),q,list);
- async function load(){list.textContent="⏳";const r=await SC.sb.rpc("list_mentors",{q:sq(q.value)||null});
+ async function load(){setT(list,"⏳");const r=await SC.sb.rpc("list_mentors",{q:sq(q.value)||null});
   list.replaceChildren(...(r.error?[h("div",{},"⚠ "+r.error.message)]:(r.data||[]).map(p=>h("div",{class:"card phd"},av(p,38),
    h("div",{style:"flex:1;min-width:0"},h("b",{dir:"auto"},p.name||p.username),h("div",{class:"meta",dir:"auto"},[lvName(p.academic_level),p.university,p.mentor_topics].filter(Boolean).join(" · "))),
    h("button",{class:"btn",onclick:async()=>{const n=prompt("اكتب رسالة قصيرة للمرشد: ما الذي تحتاج مساعدة فيه؟","");if(n===null)return;

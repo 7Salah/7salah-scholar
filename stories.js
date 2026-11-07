@@ -61,7 +61,7 @@ function stView(groups,gi,ii,done){
     h("button",{class:"btn",title:own?"حذف":"بلاغ",onclick:()=>own?del(s,G):rep(s,G)},own?"🗑":"⚑"),h("button",{class:"btn",title:"إغلاق",onclick:close},"✕")),
    h("div",{style:"flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;text-align:center;"+(s.kind==="image"?"background:#000":"background:"+ST_BG[s.bg||0])},
     s.kind==="image"?(img?h("img",{src:img,alt:"",style:"max-width:100%;max-height:100%;object-fit:contain;flex:1;min-height:0"}):h("div",{class:"meta"},"تعذّر عرض الصورة")):null,
-    s.kind==="study"?h("div",{style:"font-size:54px;margin-bottom:12px"},"📚"):null,
+    s.kind==="study"?h("div",{style:"margin-bottom:12px"},ic("book",{s:54,cls:"gold"})):null,
     s.body?h("div",{dir:"auto",style:"white-space:pre-wrap;word-break:break-word;font-weight:700;"+(s.kind==="image"?"font-size:15px;padding-top:10px":"font-size:"+(s.body.length>120?"20px":"28px")+";line-height:1.5")},s.body):null),
    h("div",{style:"position:absolute;inset:92px 0 0 0;display:flex;z-index:2"},h("div",{style:"flex:1",onclick:prev}),h("div",{style:"flex:1",onclick:next})));
   timer=setTimeout(next,s.kind==="image"?7000:Math.min(9000,4000+(s.body||"").length*40))}

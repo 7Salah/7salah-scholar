@@ -9,7 +9,7 @@ const T0={
  err:"Could not reach the search sources. Check your connection and open the site from its online link, not a file preview.",more:"Show more",src1:"Sources: OpenAlex · DOAJ · Crossref · Open Library · Google Books · Internet Archive",src2:"Results come from Claude and may contain errors. Verify every source before relying on it.",rm:"Remove",siteB:"Curated by the site",siteNote:"Results labelled “Site library” were hand-picked by the site’s editors and appear before index results.",aboutT:"About this site & data transparency",aboutB:["All results come directly from open indexes: OpenAlex, DOAJ and Crossref (papers), Open Library and Google Books (books), and Internet Archive (openly licensed texts), and each result shows its source. This site adds no papers of its own.","The Verify button opens the paper at its publisher (or a search for it when no link exists).","APA citations are generated automatically from index metadata and may be incomplete. Check them before use.","Arabic coverage in the index is weaker than English, so Arabic searches may return fewer results.","The site does not track users. Saved sources stay on your device only."]}
 };
 const N={
-ar:{nHome:"الرئيسية",nDecks:"حزمي",nRes:"بحث",nPlay:"تحدّي",nMe:"أنا",
+ar:{nHome:"الرئيسية",nDecks:"حزمي",nRes:"بحث",nPlay:"تحدّي",nMe:"أنا",nLibrary:"المكتبة",
  hi:"مرحبًا",tag:"ادرس بدليل",tagD:"بطاقات ذكية، كل بطاقة مرتبطة بمصدرها العلمي. لا معلومة بلا مرجع.",homePh:"ماذا تريد أن تدرس اليوم؟",homeGo:"ابدأ",
  qNotes:"ملاحظاتي",qFile:"ملف",qCode:"رمز تحدٍّ",qSaved:"مصادري",today:"اليوم",goalT:"هدف اليوم",cards:"بطاقة",dueNow:"بطاقة مستحقة للمراجعة",studyNow:"راجع الآن",nothingDue:"لا بطاقات مستحقة الآن. أحسنت! 🎉",
  noDecks:"لا توجد حزم بعد. اكتب موضوعًا في الأعلى لتبني أول حزمة موثّقة.",jump:"تابع من حيث توقفت",exam:"الامتحان",inDays:"بعد {n} يومًا",examToday:"اليوم!",perDay:"{n} بطاقة جديدة يوميًا",sugg:"اقتراحات",
@@ -31,7 +31,7 @@ ar:{nHome:"الرئيسية",nDecks:"حزمي",nRes:"بحث",nPlay:"تحدّي",
  ok:"حسنًا",cancel:"إلغاء",close:"إغلاق",
  how2:"من أين تأتي البطاقات؟",
  pts2:"مراجعة بطاقة +1 · اختبار +15 · إنشاء حزمة +8 · تحدٍّ +20 · اختبار كامل الدقة +25"},
-en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",
+en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",nLibrary:"Library",
  hi:"Hello",tag:"Study with proof",tagD:"Smart flashcards where every card is tied to its scholarly source. No fact without a reference.",homePh:"What do you want to study today?",homeGo:"Start",
  qNotes:"My notes",qFile:"File",qCode:"Challenge code",qSaved:"My sources",today:"Today",goalT:"Today's goal",cards:"cards",dueNow:"cards due for review",studyNow:"Review now",nothingDue:"Nothing due right now. Well done! 🎉",
  noDecks:"No decks yet. Type a topic above to build your first cited deck.",jump:"Jump back in",exam:"Exam",inDays:"in {n} days",examToday:"today!",perDay:"{n} new cards a day",sugg:"Suggestions",
@@ -55,7 +55,7 @@ en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",
  pts2:"Review a card +1 · Quiz +15 · Create a deck +8 · Challenge +20 · Perfect quiz +25"}};
 const T={ar:{...T0.ar,...N.ar},en:{...T0.en,...N.en}};
 // ===================== النواة: الحالة والتخزين =====================
-const APP_VER="19p.2 · 2026-11-05";
+const APP_VER="19q.5 · 2026-11-07";
 const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,
  rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"📚",col:0,goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
 const LS={get(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x==null?d:x}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
@@ -70,7 +70,7 @@ const persist=()=>{try{localStorage.setItem("7s_saved",JSON.stringify(S.saved));
 const safeUrl=(u,img)=>{u=String(u==null?"":u).trim();if(!u)return"";const c=u.replace(/[\u0000-\u0020\u00AD\u200B-\u200F\u2028\u2029\uFEFF]/g,"");
  if(/^(?:https?:|mailto:|tel:|blob:|#|\?|\.{0,2}\/)/i.test(c))return u;if(img&&/^data:image\/(?:png|jpe?g|gif|webp);/i.test(c))return u;if(/^[a-z][a-z0-9+.\-]*:/i.test(c))return"";return u};
 function h(tag,attrs,...kids){const e=document.createElement(tag);for(const k in(attrs||{})){const v=attrs[k];if(k==="class")e.className=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null){if(k==="href"||k==="src"||k==="action"||k==="formaction"){const sv=safeUrl(v,tag==="img");if(!sv)continue;e.setAttribute(k,sv)}else e.setAttribute(k,v)}}
- kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c))});return e}
+ kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:(window.iconize?iconize(c,tag,attrs):document.createTextNode(c)))});return e}
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
 let _u=0;const uid=()=>Date.now().toString(36)+(++_u).toString(36)+Math.random().toString(36).slice(2,5);
@@ -298,13 +298,13 @@ function previewCards(title,groups){
 // --- استخراج النص من صورة (OCR) داخل المتصفح عبر Tesseract.js، تُحمَّل عند أول استخدام ---
 let _tess=null;
 const loadTess=()=>_tess||(_tess=new Promise((ok,no)=>{if(window.Tesseract)return ok(window.Tesseract);const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js";s.onload=()=>ok(window.Tesseract);s.onerror=()=>{_tess=null;no(new Error("load"))};document.head.append(s)}));
-async function ocrImage(f,ta,title,box){box.textContent="⏳ "+t("ocrLoad");
+async function ocrImage(f,ta,title,box){setT(box,"⏳ "+t("ocrLoad"));
  try{const T=await loadTess();
-  const r=await T.recognize(f,"ara+eng",{logger:m=>{if(m.status==="recognizing text")box.textContent="⏳ "+Math.round(m.progress*100)+"%"}});
+  const r=await T.recognize(f,"ara+eng",{logger:m=>{if(m.status==="recognizing text")setT(box,"⏳ "+Math.round(m.progress*100)+"%")}});
   const tx=((r&&r.data&&r.data.text)||"").replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
-  if(tx.length<20){box.textContent="⚠ "+t("ocrNone");return}
-  ta.value=(ta.value?ta.value+"\n\n":"")+tx.slice(0,60000);if(!title.value)title.value=f.name.replace(/\.[^.]+$/,"");box.textContent="✅ "+t("ocrDone")}
- catch(e){box.textContent="⚠ "+t("ocrFail")}}
+  if(tx.length<20){setT(box,"⚠ "+t("ocrNone"));return}
+  ta.value=(ta.value?ta.value+"\n\n":"")+tx.slice(0,60000);if(!title.value)title.value=f.name.replace(/\.[^.]+$/,"");setT(box,"✅ "+t("ocrDone"))}
+ catch(e){setT(box,"⚠ "+t("ocrFail"))}}
 
 // --- من ملاحظات أو ملف نصي ---
 function notesModal(){const ocrBox=h("div",{class:"meta"}),ta=h("textarea",{class:"in",placeholder:t("nPh")}),name=h("input",{class:"in",placeholder:t("nSrc")}),title=h("input",{class:"in",placeholder:t("pvName")});
@@ -319,7 +319,7 @@ function notesModal(){const ocrBox=h("div",{class:"meta"}),ta=h("textarea",{clas
 
 // --- حزمة جديدة فارغة ---
 function newDeckModal(){const name=h("input",{class:"in",placeholder:t("dName")});let em=EMO[0];const row=h("div",{class:"emj"});
- const draw=()=>{row.replaceChildren(...EMO.map(e=>h("button",{class:e===em?"on":"",onclick:()=>{em=e;draw()}},e)))};draw();
+ const draw=()=>{row.replaceChildren(...EMO.map(e=>h("button",{class:"eo"+(e===em?" on":""),onclick:()=>{em=e;draw()}},e)))};draw();
  const m=modal(h("h3",{},t("dNew")),h("label",{class:"lbl"},t("dName")),name,h("label",{class:"lbl"},t("dEmoji")),row,
   h("button",{class:"pri blue",onclick:()=>{const n=name.value.trim();if(!n){name.focus();return}const d=newDeck(n,[],{emoji:em});award("deck");m.remove();openDeck(d.id)}},t("dCreate")))}
 
@@ -343,7 +343,7 @@ async function openCode(raw){raw=(raw||"").trim();if(!raw)return;const mm=raw.ma
  try{o=await unpack(code)}catch(e){toast(t("pBad"));return}
  if(!o||!Array.isArray(o.c)||!o.c.length){toast(t("pBad"));return}challengeModal(o)}
 function challengeModal(o){const cards=o.c.slice(0,60).map(unslim),isC=o.k==="c"&&o.sc!=null,name=h("input",{class:"in",value:S.prof.name,placeholder:t("chName")});
- const m=modal(h("div",{style:"text-align:center;font-size:46px"},isC?"⚔️":(o.e||"📘")),h("h3",{style:"text-align:center"},isC?t("chT"):"📥 "+(o.t||"")),
+ const m=modal(h("div",{style:"text-align:center;font-size:46px"},isC?ic("zap",{s:46,cls:"gold"}):(o.e||"📘")),h("h3",{style:"text-align:center"},isC?t("chT"):"📥 "+(o.t||"")),
   h("div",{style:"text-align:center",dir:"auto"},isC?tf("chB",{n:(o.av||"")+" "+(o.n||t("friend")),t:o.t||"",s:o.sc}):tf("chD",{t:o.t||"",c:cards.length})),
   isC?[h("label",{class:"lbl"},t("chName")),name]:null,
   h("div",{class:"acts"},
@@ -417,7 +417,7 @@ function renderQuiz(v){const q=S.quiz;if(!q){go("play");return}document.body.cla
   v.append(h("div",{class:"hero",style:"text-align:center"},h("div",{class:"eyebrow"},q.emoji+" "+q.title),h("div",{class:"score"},q.score),
    h("div",{},t("qAcc")+" "+acc+"% · "+t("qCombo")+" ×"+q.maxCombo+(q.deckId&&!q.newBest&&deckBy(q.deckId)?" · "+t("qBest")+" "+deckBy(q.deckId).best:"")),q.newBest?h("div",{style:"margin-top:8px;font-weight:800;color:var(--amber)"},t("qNB")):null));
   if(q.chal){const w=q.score>q.chal.sc,tie=q.score===q.chal.sc;
-   v.append(h("div",{class:"card"},h("div",{class:"vs"},h("div",{},q.score,h("small",{},S.prof.av+" "+(S.prof.name||t("chYou")))),h("div",{style:"font-size:28px"},"⚔️"),h("div",{},q.chal.sc,h("small",{},(q.chal.av||"")+" "+q.chal.n))),
+   v.append(h("div",{class:"card"},h("div",{class:"vs"},h("div",{},q.score,h("small",{},h("span",{class:"avi"},S.prof.av)," "+(S.prof.name||t("chYou")))),h("div",{},ic("zap",{s:30,cls:"gold"})),h("div",{},q.chal.sc,h("small",{},h("span",{class:"avi"},q.chal.av||"")," "+q.chal.n))),
     h("h3",{style:"text-align:center"},(tie?t("qTie"):w?t("qWin"):t("qLose"))+" "+q.chal.n+" "+(tie?"🤝":w?"🏆":"💪"))))}
   v.append(h("div",{class:"card"},h("div",{class:"btns"},
    h("button",{class:"btn fill",onclick:shareQuiz},"🔥 "+t("qShare")),
@@ -473,7 +473,7 @@ try{const x=JSON.parse(localStorage.getItem("7s_game")||"null");if(x&&typeof x.p
 const saveG=()=>{try{localStorage.setItem("7s_game",JSON.stringify(G))}catch(e){}};
 function streak(){const d=new Date();if(!G.active[dkey(d)])d.setDate(d.getDate()-1);let n=0;while(G.active[dkey(d)]){n++;d.setDate(d.getDate()-1)}return n}
 const lvIdx=()=>{let i=0;LV.forEach((x,k)=>{if(G.pts>=x)i=k});return i};
-function updChip(){const c=$("gchip");if(c)c.textContent="🔥 "+streak()+" · ⭐ "+G.pts}
+function updChip(){const c=$("gchip");if(c)c.replaceChildren(ic("flame",{cls:"gold"}),String(streak()),"  ·  ",ic("star",{cls:"gold"}),String(G.pts))}
 function award(kind,pre,quiet){const a=ACT[kind],k=dkey(new Date()),dd=G.daily[k]=G.daily[k]||{},n=dd[kind]||0,parts=pre?[pre]:[];let gain=0;
  if(n<a.cap){const before=lvIdx();dd[kind]=n+1;G.counts[kind]=(G.counts[kind]||0)+1;G.pts+=a.p;try{const q=LS.get("7s_pend",{});q[kind]=(q[kind]||0)+1;LS.set("7s_pend",q)}catch(e){}G.active[k]=1;gain=a.p;G.xpd[k]=(G.xpd[k]||0)+a.p;if(!quiet)parts.push("+"+a.p+" ⭐");
   if(lvIdx()>before)parts.push("🎉 "+gt("lvl")+": "+gt("lv")[lvIdx()]);
@@ -523,11 +523,12 @@ function renderRem(v){
    h("button",{class:"btn",onclick:()=>{S.rem=S.rem.filter(x=>x.id!==r.id);persist();render()}},t("rm"))))));
  v.append(h("div",{class:"note"},t("remNote")))}
 // ===================== الشاشات =====================
-const TABS=[["home","nHome","<path d='M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'/>"],
- ["decks","nDecks","<rect x='3' y='8' width='13' height='13' rx='2'/><path d='M8 8V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3'/>"],
- ["res","nRes","<circle cx='11' cy='11' r='7'/><path d='M21 21l-4.3-4.3'/>"],
- ["play","nPlay","<path d='M13 2L4 14h7l-1 8 9-12h-7z'/>"],
- ["me","nMe","<circle cx='12' cy='8' r='4'/><path d='M4 21c0-4 4-6 8-6s8 2 8 6'/>"]];
+const TABS=[["home","nHome",icp("home")],
+ ["decks","nDecks",icp("cards")],
+ ["library","nLibrary",icp("book")],
+ ["res","nRes",icp("search")],
+ ["play","nPlay",icp("zap")],
+ ["me","nMe",icp("user")]];
 const TABMAP={deck:"decks",study:"decks",quiz:"play"};
 function buildTabs(){const cur=TABMAP[S.tab]||S.tab,nd=dueTotal();
  $("tabs").replaceChildren(...TABS.map(([id,k,svg])=>{const b=h("button",{class:cur===id?"on":"",onclick:()=>go(id)});b.innerHTML="<svg viewBox='0 0 24 24'>"+svg+"</svg>";b.append(h("span",{},t(k)));
@@ -541,7 +542,7 @@ function deckCard(d){const s=deckStats(d),ev=evRate(d);
 // ---------- الرئيسية ----------
 function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=todayN("review"),goal=S.prof.goal||20,pc=Math.min(100,Math.round(done/goal*100));
  const inp=h("input",{type:"search",value:S.hq,placeholder:t("homePh"),enterkeyhint:"go",oninput:e=>{S.hq=e.target.value},onkeydown:e=>{if(e.key==="Enter")studyTopic(S.hq)}});
- v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},t("tag")),h("h1",{},t("hi")+(S.prof.name?" "+S.prof.name:"")+" "+S.prof.av),h("p",{},t("tagD")),
+ v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},t("tag")),h("h1",{},t("hi")+(S.prof.name?" "+S.prof.name:"")+" ",h("span",{class:"avi"},S.prof.av)),h("p",{},t("tagD")),
   h("div",{class:"sb"},inp,h("button",{onclick:()=>studyTopic(S.hq)},t("homeGo"))),
   h("div",{class:"chips"},t("sugs").map(s=>h("button",{class:"chip",onclick:()=>studyTopic(s)},s))),h("label",{class:"note",style:"display:flex;gap:6px;align-items:center;margin-top:8px"},h("input",{type:"checkbox",checked:LS.get("7s_wiki",false),onchange:e=>LS.set("7s_wiki",e.target.checked)}),t("wikiT"))));
  v.append(h("div",{class:"qa"},
@@ -550,10 +551,43 @@ function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=
  v.append(h("div",{class:"card"},h("div",{class:"today"},h("div",{class:"ring",style:"--p:"+pc},h("div",{},done+"/"+goal,h("small",{},t("goalT")))),
   h("div",{style:"flex:1"},nDue?[h("div",{class:"big"},nDue+" "+t("dueNow")),h("button",{class:"btn fill",style:"margin-top:8px",onclick:()=>startStudy(null)},"🧠 "+t("studyNow"))]:h("div",{style:"line-height:1.7"},S.decks.length?t("nothingDue"):t("noDecks"))))));
  const ex=S.decks.filter(d=>d.exam).map(d=>({d,n:Math.ceil((new Date(d.exam+"T00:00:00")-sod(Date.now()))/DAY)})).filter(x=>x.n>=0).sort((a,b)=>a.n-b.n).slice(0,2);
- ex.forEach(x=>v.append(h("div",{class:"card dk",onclick:()=>openDeck(x.d.id)},h("div",{class:"em"},"🎯"),h("div",{class:"tx"},h("h3",{dir:"auto"},t("exam")+": "+x.d.title),h("div",{class:"meta"},(x.n?tf("inDays",{n:x.n}):t("examToday"))+" · "+tf("perDay",{n:newLimit(x.d)}))))));
+ ex.forEach(x=>v.append(h("div",{class:"card dk",onclick:()=>openDeck(x.d.id)},h("div",{class:"em"},ic("target")),h("div",{class:"tx"},h("h3",{dir:"auto"},t("exam")+": "+x.d.title),h("div",{class:"meta"},(x.n?tf("inDays",{n:x.n}):t("examToday"))+" · "+tf("perDay",{n:newLimit(x.d)}))))));
  const last=S.decks.filter(d=>d.last).sort((a,b)=>b.last-a.last)[0];
  if(last){v.append(h("div",{class:"sec"},t("jump")));v.append(deckCard(last))}
- const rest=S.decks.filter(d=>d!==last).slice(0,3);if(rest.length){v.append(h("div",{class:"sec"},h("span",{},t("dT")),h("button",{class:"btn",onclick:()=>go("decks")},"›")));rest.forEach(d=>v.append(deckCard(d)))}}
+ const rest=S.decks.filter(d=>d!==last).slice(0,3);if(rest.length){v.append(h("div",{class:"sec"},h("span",{},t("dT")),h("button",{class:"btn",onclick:()=>go("decks")},"›")));rest.forEach(d=>v.append(deckCard(d)))}
+ renderAcademicOverview(v);}
+
+// لوحة أكاديمية إضافية: المؤشرات الدراسية من بيانات الجهاز، والمجتمع/الرسائل من Supabase فقط.
+function renderAcademicOverview(v){
+ const totalCards=S.decks.reduce((n,d)=>n+d.cards.length,0),mastered=S.decks.reduce((n,d)=>n+d.cards.filter(c=>c.sr&&c.sr.i>=21).length,0);
+ const studyBox=h("section",{class:"dash-section"},h("div",{class:"dash-head"},h("div",{},h("div",{class:"dash-kicker"},S.lang==="ar"?"مساحتك الأكاديمية":"YOUR ACADEMIC SPACE"),h("h2",{},S.lang==="ar"?"نظرة سريعة على دراستك":"Your study overview")),h("div",{class:"dash-head-actions"},h("button",{class:"dash-link",onclick:()=>go("library")},S.lang==="ar"?"مكتبتي ←":"My library →"),h("button",{class:"dash-link",onclick:()=>go("decks")},S.lang==="ar"?"كل الحزم ←":"All decks →"))),
+  h("div",{class:"dash-stats"},
+   h("div",{class:"dash-stat"},h("span",{},"📚"),h("b",{},String(S.decks.length)),h("small",{},S.lang==="ar"?"حزم دراسية":"Study decks")),
+   h("div",{class:"dash-stat"},h("span",{},"🗂️"),h("b",{},String(totalCards)),h("small",{},S.lang==="ar"?"بطاقات محفوظة":"Saved cards")),
+   h("div",{class:"dash-stat"},h("span",{},"✓"),h("b",{},String(mastered)),h("small",{},S.lang==="ar"?"بطاقات متقنة":"Mastered cards"))));
+ const last=S.decks.filter(d=>d.last).sort((a,b)=>b.last-a.last)[0];
+ const resume=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"متابعة آخر دراسة":"Continue studying"),h("span",{},"↗")));
+ if(last){resume.append(h("div",{class:"dash-resume"},h("div",{class:"dash-book"},last.emoji||"📘"),h("div",{class:"dash-resume-info"},h("b",{dir:"auto"},last.title),h("small",{},S.lang==="ar"?"آخر حزمة درستها":"Last studied deck")),h("button",{class:"btn fill",onclick:()=>openDeck(last.id)},S.lang==="ar"?"متابعة":"Continue")))}
+ else resume.append(h("p",{class:"dash-empty"},S.lang==="ar"?"لم تبدأ دراسة حزمة بعد. أنشئ حزمة أو ابدأ بموضوع من شريط البحث.":"No recently studied deck yet. Create a deck or search for a topic."),h("button",{class:"btn",onclick:()=>go("decks")},S.lang==="ar"?"افتح مكتبتي":"Open my library"));
+ const activity=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"المجتمع الجامعي":"University community"),h("button",{class:"dash-link",onclick:()=>{if(window.SC){SC.view="feed";SC.kind=""}go("com")}},S.lang==="ar"?"فتح المجتمع ←":"Open community →")),h("div",{class:"dash-live",id:"dash-live-posts"},h("p",{class:"dash-empty"},S.lang==="ar"?"جارٍ التحقق من المنشورات المتاحة…":"Checking available posts…")));
+ const messages=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"الرسائل والإشعارات":"Messages & notifications")),h("div",{class:"dash-message-row",id:"dash-live-messages"},h("span",{},"✉️"),h("div",{class:"dash-resume-info"},h("b",{},S.lang==="ar"?"الرسائل الجامعية":"Academic messages"),h("small",{},S.lang==="ar"?"يتطلب تسجيل الدخول":"Sign-in required")),h("button",{class:"btn",onclick:()=>{if(window.SC){SC.view="chats"}go("com")}},S.lang==="ar"?"فتح":"Open")));
+ const grid=h("div",{class:"dash-grid"},resume,activity,messages);studyBox.append(grid);v.append(studyBox);
+ loadAcademicLive(activity.querySelector("#dash-live-posts"),messages.querySelector("#dash-live-messages"));
+}
+async function loadAcademicLive(postsBox,msgBox){
+ const arUI=S.lang==="ar";
+ if(!(window.SUPA&&SUPA.url&&SUPA.key)){postsBox.replaceChildren(h("p",{class:"dash-empty"},arUI?"المجتمع يحتاج إعداد اتصال Supabase.":"Community requires Supabase configuration."));return}
+ try{
+  await loadSb();
+  const {data,error}=await SC.sb.from("posts").select("id,title,body,kind,created_at").order("created_at",{ascending:false}).limit(3);
+  postsBox.replaceChildren();
+  if(error)postsBox.append(h("p",{class:"dash-empty"},arUI?"تعذّر جلب المنشورات. تحقق من صلاحيات القراءة وسياسات RLS.":"Could not load posts. Check read permissions and RLS policies."));
+  else if(!data||!data.length)postsBox.append(h("p",{class:"dash-empty"},arUI?"لا توجد منشورات متاحة حالياً.":"No posts are available yet."));
+  else data.forEach(p=>postsBox.append(h("button",{class:"dash-post",onclick:()=>{SC.view="feed";SC.kind="";go("com")}},h("span",{class:"dash-post-kind"},p.kind|| (arUI?"منشور":"Post")),h("b",{dir:"auto"},(p.title||p.body|| (arUI?"منشور جامعي":"University post")).slice(0,100)),h("small",{},p.created_at?new Date(p.created_at).toLocaleDateString(S.lang):""))));
+  if(SC.user){if(typeof refreshUnread==="function")await refreshUnread();const count=typeof unreadTotal==="function"?unreadTotal():0;msgBox.replaceChildren(h("span",{},"✉️"),h("div",{class:"dash-resume-info"},h("b",{},arUI?"الرسائل غير المقروءة":"Unread messages"),h("small",{},count?String(count)+(arUI?" رسالة غير مقروءة":" unread messages"):(arUI?"لا توجد رسائل غير مقروءة":"No unread messages"))),h("button",{class:"btn",onclick:()=>{SC.view="chats";go("com")}},arUI?"فتح":"Open"));}
+  else msgBox.querySelector("small").textContent=arUI?"سجّل الدخول لعرض رسائلك وإشعاراتك.":"Sign in to view your messages and notifications.";
+ }catch(e){postsBox.replaceChildren(h("p",{class:"dash-empty"},arUI?"تعذّر الاتصال بالمجتمع. ستظل أدوات الدراسة المحلية متاحة.":"Could not connect to the community. Local study tools remain available."));}
+}
 
 // ---------- الحزم ----------
 function renderDecks(v){const code=h("input",{class:"in",placeholder:t("dImpPh"),style:"direction:ltr",onkeydown:e=>{if(e.key==="Enter")openCode(code.value)}});
@@ -623,7 +657,7 @@ function renderMe(v){const i=lvIdx(),nx=LV[i+1],cur=LV[i],pc=nx?Math.round((G.pt
   h("div",{class:"meta",style:"text-align:center;font-weight:700"},"مستوى الباحث: "+AVC[myCol()][0]+(window.SC&&SC.me?(SC.me.level_verified?" ✓ موثّق":" (غير موثّق)"):" (غير موثّق — سجّل الدخول)")),
   window.SC&&SC.user?h("div",{class:"meta",style:"text-align:center"},"اختر مستواك بحرية. التوثيق (✓) اختياري: بريد جامعي معتمد (ليسانس) أو موافقة المشرف"):null,
   h("div",{class:"emj",style:"justify-content:center;margin:10px 0"},AVC.map((c,k)=>h("button",{class:"col lvb"+(myCol()===k?" on":""),title:c[0],style:"background:linear-gradient(135deg,"+c[1]+","+c[2]+")",onclick:()=>lvPick(k)},c[3]))),
-  h("div",{class:"emj",style:"justify-content:center"},AVS.map(([a])=>h("button",{class:S.prof.av===a?"on":"",onclick:()=>{S.prof.av=a;persist();render();window.syncProf&&syncProf()}},a))),
+  h("div",{class:"emj",style:"justify-content:center"},AVS.map(([a])=>h("button",{class:"eo"+(S.prof.av===a?" on":""),onclick:()=>{S.prof.av=a;persist();render();window.syncProf&&syncProf()}},a))),
   h("label",{class:"lbl"},t("mName")),nm,h("label",{class:"lbl"},t("mGoal")),
   h("select",{class:"in",onchange:e=>{S.prof.goal=+e.target.value;persist();render()}},[10,20,30,50].map(n=>h("option",{value:n,selected:S.prof.goal===n?"selected":null},n)))));
  const wk=weekXp(),mx=Math.max(10,...wk.map(x=>x.v)),dn=T0[S.lang].dn;
@@ -631,7 +665,7 @@ function renderMe(v){const i=lvIdx(),nx=LV[i+1],cur=LV[i],pc=nx?Math.round((G.pt
  const k=dkey(new Date()),dd=G.daily[k]||{};
  v.append(h("div",{class:"card"},h("h3",{},gt("today")),Object.keys(ACT).map(a=>h("div",{class:"row"},h("span",{},gt("act")[a]),h("span",{},(dd[a]||0)+"/"+ACT[a].cap)))));
  v.append(h("div",{class:"note",style:"font-weight:700;color:var(--blue)"},gt("badgesT")+" ("+Object.keys(G.badges).length+"/"+BD.length+")"));
- v.append(h("div",{class:"bgrid"},BD.map(b=>{const on=!!G.badges[b.id];return h("div",{class:"bd"+(on?"":" lock")},h("b",{},on?b.ic:"🔒"),h("div",{style:"font-weight:700;font-size:14px"},b[S.lang][0]),h("span",{},b[S.lang][1]))})));
+ v.append(h("div",{class:"bgrid"},BD.map(b=>{const on=!!G.badges[b.id];return h("div",{class:"bd"+(on?"":" lock")},h("b",{},on?ie(b.ic):ic("lock")),h("div",{style:"font-weight:700;font-size:14px"},b[S.lang][0]),h("span",{},b[S.lang][1]))})));
  v.append(h("div",{class:"card"},h("h3",{},gt("how")),h("div",{class:"meta"},gt("howT")),h("div",{class:"meta"},gt("priv"))))}
 function renderData(v){
  const file=h("input",{type:"file",accept:"application/json,.json",style:"display:none",onchange:e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
@@ -723,7 +757,7 @@ const ht=()=>HT[S.lang];
 function closeTour(){document.querySelectorAll(".tourm").forEach(x=>x.remove());try{localStorage.setItem("7s_tour","5")}catch(e){}}
 function tour(i){document.querySelectorAll(".tourm").forEach(x=>x.remove());const L=ht(),st=L.steps[i],last=i===L.steps.length-1;
  const m=h("div",{class:"modal tourm"},h("div",{class:"box",style:"text-align:center"},
-  h("div",{style:"font-size:44px;line-height:1.3"},st.ic),h("h3",{},st.t),h("div",{style:"font-size:15px"},st.d),
+  h("div",{class:"obic"},ie(st.ic)),h("h3",{},st.t),h("div",{style:"font-size:15px"},st.d),
   h("div",{style:"margin:12px 0"},L.steps.map((_,k)=>h("span",{style:"display:inline-block;width:8px;height:8px;border-radius:50%;margin:0 3px;background:"+(k===i?"var(--teal)":"var(--line)")}))),
   h("div",{style:"display:flex;gap:10px;justify-content:center"},last?null:h("button",{class:"btn",onclick:closeTour},L.skip),
    h("button",{class:"ok",onclick:()=>{if(last)closeTour();else tour(i+1)}},last?L.start:L.next))));document.body.append(m)}
@@ -735,12 +769,108 @@ function renderHelp(v){const L=ht();
  v.append(h("div",{class:"card"},h("div",{class:"btns"},h("button",{class:"btn",onclick:()=>tour(0)},L.replay),
   HELP_VIDEO?h("a",{class:"btn",href:HELP_VIDEO,target:"_blank",rel:"noopener noreferrer"},L.video):null,
   h("button",{class:"btn",onclick:()=>go("home")},L.back))))}
+// ===================== المكتبة الأكاديمية وقارئ PDF =====================
+// ملفات PDF وملاحظات القراءة تحفظ محليًا في IndexedDB على هذا الجهاز فقط؛ لا تُرفع إلى Supabase.
+let LIB_OPEN_ID=null,LIB_OBJECT_URL=null,LIB_DB_PROMISE=null;
+function libraryDB(){
+ if(!("indexedDB" in window))return Promise.reject(new Error("IndexedDB غير مدعوم"));
+ if(LIB_DB_PROMISE)return LIB_DB_PROMISE;
+ LIB_DB_PROMISE=new Promise((resolve,reject)=>{
+  const req=indexedDB.open("7salah-scholar-library",1);
+  req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains("documents"))db.createObjectStore("documents",{keyPath:"id"})};
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error("تعذر فتح المكتبة"));
+ });return LIB_DB_PROMISE;
+}
+async function libraryGetAll(){const db=await libraryDB();return new Promise((resolve,reject)=>{const tx=db.transaction("documents","readonly"),req=tx.objectStore("documents").getAll();req.onsuccess=()=>resolve((req.result||[]).sort((a,b)=>(b.updated||b.created||0)-(a.updated||a.created||0)));req.onerror=()=>reject(req.error)});}
+async function libraryGet(id){const db=await libraryDB();return new Promise((resolve,reject)=>{const req=db.transaction("documents","readonly").objectStore("documents").get(id);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error)});}
+async function libraryPut(doc){const db=await libraryDB();return new Promise((resolve,reject)=>{const tx=db.transaction("documents","readwrite");tx.objectStore("documents").put(doc);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error||new Error("تعذر حفظ الملف"));tx.onabort=()=>reject(tx.error||new Error("أُلغي الحفظ"))});}
+async function libraryDelete(id){const db=await libraryDB();return new Promise((resolve,reject)=>{const tx=db.transaction("documents","readwrite");tx.objectStore("documents").delete(id);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error)});}
+function libraryBytes(n){if(n<1024*1024)return Math.max(1,Math.round(n/1024))+" KB";return (n/1024/1024).toFixed(1)+" MB"}
+async function publishAcademicResource(doc){
+ if(!window.SUPA||!SUPA.url||!SUPA.key)return toast(tr("إعداد Supabase غير مكتمل.","Supabase is not configured."));
+ try{
+  await loadSb();if(!SC.user)return toast(tr("سجّل الدخول أولاً لإرسال المحتوى.","Sign in before submitting content."));
+  const m=doc.meta||{};
+  const title=(prompt(tr("عنوان الملف للنشر في المكتبة المشتركة:","Title for the shared library:"),doc.name)||"").trim();
+  if(!title)return;
+  const description=(prompt(tr("وصف مختصر (اختياري):","Short description (optional):"),"")||"").trim();
+  const path=SC.user.id+"/"+crypto.randomUUID()+".pdf";
+  const up=await SC.sb.storage.from("academic-library").upload(path,doc.blob,{contentType:"application/pdf",upsert:false});
+  if(up.error)throw up.error;
+  const row={user_id:SC.user.id,title,description:description||null,university:m.university||null,faculty:m.faculty||null,department:m.department||null,level:m.level||null,semester:m.semester||null,course:m.course||null,content_type:m.kind||"other",file_path:path,file_name:doc.name,file_size:doc.size||doc.blob.size,status:"pending"};
+  const ins=await SC.sb.from("academic_resources").insert(row);
+  if(ins.error){await SC.sb.storage.from("academic-library").remove([path]);throw ins.error}
+  toast(tr("أُرسل الملف للمراجعة. سيظهر بعد اعتماده.","Submitted for review. It will appear after approval."));
+ }catch(e){console.error("[academic-resource-submit]",e);toast(tr("تعذر الإرسال: ","Submission failed: ")+(e.message||"Unknown error"))}
+}
+async function renderSharedAcademicLibrary(host){
+ const panel=h("section",{class:"card",style:"margin-bottom:14px"},h("div",{class:"lib-section-title"},tr("المكتبة الجامعية المشتركة","Shared academic library")),h("div",{class:"meta"},tr("المحتوى المعتمد من المشرفين فقط يظهر هنا.","Only moderator-approved resources appear here.")),h("div",{class:"lib-items"}));host.append(panel);
+ const list=panel.lastChild;
+ try{
+  await loadSb();if(!SC.user){list.append(h("div",{class:"meta"},tr("سجّل الدخول لاستعراض الملفات المشتركة.","Sign in to browse shared resources.")));return}
+  const r=await SC.sb.from("academic_resources").select("id,title,description,university,faculty,department,level,semester,course,content_type,file_path,file_name,file_size,created_at").eq("status","approved").order("created_at",{ascending:false}).limit(30);
+  if(r.error)throw r.error;
+  if(!r.data||!r.data.length){list.append(h("div",{class:"meta"},tr("لا توجد ملفات معتمدة بعد.","No approved resources yet.")));return}
+  r.data.forEach(x=>{const meta=[x.university,x.department,x.level,x.semester,x.course].filter(Boolean).join(" · ");const row=h("div",{class:"lib-file"},h("span",{class:"lib-file-icon"},ic("file-text")),h("span",{class:"lib-file-info"},h("b",{dir:"auto"},x.title),h("small",{},(x.content_type||"other")+" · "+libraryBytes(x.file_size||0)),h("small",{class:"lib-file-meta",dir:"auto"},meta||x.file_name)),h("button",{class:"btn",type:"button",onclick:async()=>{const z=await SC.sb.storage.from("academic-library").createSignedUrl(x.file_path,300);if(z.error)return toast(z.error.message);window.open(z.data.signedUrl,"_blank","noopener")}},tr("فتح PDF","Open PDF")));list.append(row)})
+ }catch(e){console.error("[shared-library]",e);list.append(h("div",{class:"meta"},tr("تعذر تحميل المكتبة المشتركة. قد تحتاج إلى تطبيق ترحيل قاعدة البيانات المرفق.","Could not load the shared library. The included database migration may need to be applied.")))}
+}
+function renderLibrary(v){
+ const ar=S.lang==="ar",title=ar?"المكتبة الأكاديمية":"Academic library";
+ const tr=(a,e)=>ar?a:e;
+ const headCopy=h("div",{});headCopy.append(h("div",{class:"dash-kicker"},tr("تنظيم محاضراتك ومراجعك على جهازك","ORGANIZE YOUR LECTURES AND REFERENCES")),h("h1",{},title),h("p",{},tr("صنّف ملفاتك حسب الجامعة والكلية والقسم والمستوى والسداسي والمقياس، ثم ابحث فيها بسهولة.","Classify files by university, faculty, department, level, semester and course, then find them quickly.")));
+ v.append(h("div",{class:"lib-head"},headCopy));
+ const field=(label,placeholder,key)=>{const wrap=h("label",{class:"lib-meta-field"},h("span",{},label));const el=h("input",{class:"in",type:"text",placeholder,value:"",maxlength:"100",autocomplete:"off"});el.dataset.meta=key;wrap.append(el);return {wrap,el}};
+ const uni=field(tr("الجامعة","University"),tr("اسم الجامعة","University name"),"university");
+ const faculty=field(tr("الكلية","Faculty"),tr("اسم الكلية","Faculty name"),"faculty");
+ const dept=field(tr("القسم","Department"),tr("اسم القسم","Department name"),"department");
+ const level=field(tr("المستوى","Level"),tr("مثال: السنة الأولى ليسانس","e.g. Year 1 Licence"),"level");
+ const semester=field(tr("السداسي","Semester"),tr("مثال: السداسي الأول","e.g. Semester 1"),"semester");
+ const course=field(tr("المقياس","Course / Module"),tr("اسم المقياس","Course name"),"course");
+ const kindWrap=h("label",{class:"lib-meta-field"},h("span",{},tr("نوع المحتوى","Content type")));
+ const kind=h("select",{class:"in",dataset:"kind"});
+ [["lecture",tr("محاضرة","Lecture")],["td",tr("أعمال موجهة TD","Tutorial / TD")],["summary",tr("ملخص","Summary")],["reference",tr("مرجع","Reference")],["other",tr("أخرى","Other")]].forEach(([value,label])=>kind.append(h("option",{value},label)));
+ kindWrap.append(kind);
+ const pick=h("input",{type:"file",accept:"application/pdf,.pdf",style:"display:none",onchange:async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){toast(tr("اختر ملف PDF صالحًا.","Choose a valid PDF file."));return}if(f.size>25*1024*1024){toast(tr("الحد الأقصى للملف 25 ميغابايت.","Maximum file size is 25 MB."));return}try{const id=uid(),now=Date.now(),meta={};[uni,faculty,dept,level,semester,course].forEach(x=>meta[x.el.dataset.meta]=x.el.value.trim());meta.kind=kind.value;await libraryPut({id,name:f.name,size:f.size,type:"application/pdf",created:now,updated:now,page:1,note:"",meta,blob:f});LIB_OPEN_ID=id;toast(tr("أُضيف الملف إلى مكتبتك مع تصنيفه ✓","PDF added with its classification ✓"));render()}catch(err){console.error("[library]",err);toast(tr("تعذر حفظ الملف. قد تكون مساحة التخزين غير كافية.","Could not save the file. Device storage may be full."))}}});
+ const metaForm=h("div",{class:"lib-classifier card"},h("div",{class:"lib-classifier-title"},tr("تصنيف ملف جديد","Classify a new file")),h("div",{class:"lib-meta-grid"},uni.wrap,faculty.wrap,dept.wrap,level.wrap,semester.wrap,course.wrap,kindWrap),h("div",{class:"lib-toolbar-inner"},h("button",{class:"btn fill",onclick:()=>pick.click()},ic("plus")+" "+tr("إضافة ملف PDF","Add PDF")),h("span",{class:"lib-hint"},tr("PDF فقط · حتى 25 MB للملف","PDF only · up to 25 MB per file")),pick));
+ v.append(metaForm);
+ renderSharedAcademicLibrary(v);
+ const layout=h("div",{class:"lib-layout"}),list=h("section",{class:"lib-list card"}),reader=h("section",{class:"lib-reader"});
+ list.append(h("div",{class:"lib-section-title"},tr("ملفاتي","My files")));
+ const search=h("input",{class:"in",type:"search",placeholder:tr("ابحث بالجامعة أو المقياس أو اسم الملف…","Search university, course or file name…")});
+ const typeFilter=h("select",{class:"in lib-filter"});typeFilter.append(h("option",{value:""},tr("كل أنواع المحتوى","All content types")));[["lecture",tr("محاضرات","Lectures")],["td",tr("أعمال TD","TD")],["summary",tr("ملخصات","Summaries")],["reference",tr("مراجع","References")],["other",tr("أخرى","Other")]].forEach(([value,label])=>typeFilter.append(h("option",{value},label)));
+ const semesterFilter=h("input",{class:"in",type:"search",placeholder:tr("تصفية حسب السداسي","Filter by semester")});
+ const items=h("div",{class:"lib-items"});
+ const applyFilters=()=>{const q=search.value.trim().toLowerCase(),k=typeFilter.value,sem=semesterFilter.value.trim().toLowerCase();items.querySelectorAll("[data-lib-search]").forEach(el=>{const hay=el.dataset.libSearch||"";el.hidden=!(hay.includes(q)&&(!k||el.dataset.libKind===k)&&(!sem||(el.dataset.libSemester||"").includes(sem)))})};
+ search.addEventListener("input",applyFilters);typeFilter.addEventListener("change",applyFilters);semesterFilter.addEventListener("input",applyFilters);
+ list.append(search,typeFilter,semesterFilter,items);layout.append(list,reader);v.append(layout);
+ if(LIB_OBJECT_URL){URL.revokeObjectURL(LIB_OBJECT_URL);LIB_OBJECT_URL=null}
+ libraryGetAll().then(async docs=>{
+  if(S.tab!=="library")return;
+  if(!docs.length)items.append(h("div",{class:"lib-empty"},h("div",{},ic("file-text")),h("b",{},tr("مكتبتك فارغة حاليًا","Your library is empty")),h("p",{},tr("أدخل بيانات التصنيف أعلاه ثم أضف أول محاضرة PDF.","Enter classification above, then add your first PDF lecture."))));
+  docs.forEach(d=>{const m=d.meta||{},kindLabel=({lecture:tr("محاضرة","Lecture"),td:tr("أعمال TD","TD"),summary:tr("ملخص","Summary"),reference:tr("مرجع","Reference"),other:tr("أخرى","Other")})[m.kind]||tr("غير مصنّف","Unclassified");const parts=[m.university,m.faculty,m.department,m.level,m.semester,m.course,kindLabel,d.name].filter(Boolean);const row=h("button",{class:"lib-file"+(d.id===LIB_OPEN_ID?" active":""),type:"button",onclick:()=>{LIB_OPEN_ID=d.id;render()},"data-lib-search":parts.join(" ").toLowerCase(),"data-lib-kind":m.kind||"","data-lib-semester":String(m.semester||"").toLowerCase()},h("span",{class:"lib-file-icon"},ic("file-text")),h("span",{class:"lib-file-info"},h("b",{dir:"auto"},d.name),h("small",{},kindLabel+" · "+libraryBytes(d.size||0)+" · "+tr("صفحة ","Page ")+(d.page||1)),h("small",{class:"lib-file-meta",dir:"auto"},[m.university,m.department,m.level,m.semester,m.course].filter(Boolean).join(" · ")||tr("لم تُضف بيانات التصنيف","No classification details"))),h("span",{class:"lib-file-arrow"},"›"));items.append(row)});
+  if(!LIB_OPEN_ID&&docs.length)LIB_OPEN_ID=docs[0].id;
+  if(!LIB_OPEN_ID){reader.append(h("div",{class:"lib-empty lib-reader-empty"},h("div",{},ic("book")),h("b",{},tr("قارئ المحاضرات","Lecture reader")),h("p",{},tr("اختر ملفًا من القائمة أو أضف ملف PDF جديدًا.","Choose a file or add a new PDF."))));return}
+  const d=docs.find(x=>x.id===LIB_OPEN_ID)||await libraryGet(LIB_OPEN_ID);if(!d||S.tab!=="library")return;
+  LIB_OBJECT_URL=URL.createObjectURL(d.blob);
+  const page=h("input",{class:"in lib-page-input",type:"number",min:"1",step:"1",value:String(d.page||1),inputmode:"numeric","aria-label":tr("رقم الصفحة","Page number")});
+  const note=h("textarea",{class:"in lib-note",rows:"4",placeholder:tr("اكتب ملاحظاتك حول هذه المحاضرة…","Write notes about this lecture…")});note.value=d.note||"";
+  const savePage=h("button",{class:"btn",onclick:async()=>{const n=Math.max(1,parseInt(page.value,10)||1);d.page=n;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظ موضع القراءة ✓","Reading position saved ✓"));render()}catch(e){toast(tr("تعذر حفظ موضع القراءة.","Could not save reading position."))}}},tr("حفظ الصفحة","Save page"));
+  const saveNote=h("button",{class:"btn fill",onclick:async()=>{d.note=note.value;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظت الملاحظات ✓","Notes saved ✓"))}catch(e){toast(tr("تعذر حفظ الملاحظات.","Could not save notes."))}}},tr("حفظ الملاحظات","Save notes"));
+  const download=h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download")+" "+tr("فتح / تنزيل","Open / download"));
+  const publish=h("button",{class:"btn fill",type:"button",onclick:()=>publishAcademicResource(d)},tr("إرسال للمكتبة المشتركة","Submit to shared library"));
+  const del=h("button",{class:"btn danger",onclick:async()=>{if(!confirm(tr("حذف هذا الملف وملاحظاته من هذا الجهاز؟","Delete this PDF and its notes from this device?")))return;try{await libraryDelete(d.id);LIB_OPEN_ID=null;render()}catch(e){toast(tr("تعذر حذف الملف.","Could not delete file."))}}},tr("حذف","Delete"));
+  const frame=h("iframe",{class:"lib-pdf-frame",src:LIB_OBJECT_URL+"#page="+(d.page||1)+"&view=FitH",title:tr("قارئ ملف PDF","PDF reader"),loading:"lazy"});
+  const m=d.meta||{},metaLine=[m.university,m.faculty,m.department,m.level,m.semester,m.course].filter(Boolean).join(" · ");
+  reader.append(h("div",{class:"lib-reader-head"},h("div",{class:"lib-reader-name",dir:"auto"},d.name),h("div",{class:"lib-reader-actions"},download,publish,del)),metaLine?h("div",{class:"lib-reader-meta",dir:"auto"},metaLine):null,h("div",{class:"lib-pdf-wrap"},frame),h("div",{class:"lib-progress"},h("label",{},tr("آخر صفحة محفوظة","Last saved page")),page,savePage,h("small",{},tr("حدّث رقم الصفحة يدويًا ثم اضغط حفظ الصفحة؛ لا يستطيع عارض المتصفح إبلاغ التطبيق بكل انتقال داخلي.","Update the page number manually and save it; the browser viewer does not expose every internal page change."))),h("div",{class:"lib-notes"},h("label",{},tr("ملاحظات المحاضرة","Lecture notes")),note,saveNote));
+ }).catch(err=>{console.error("[library]",err);items.append(h("div",{class:"lib-empty"},tr("تعذر فتح المكتبة على هذا المتصفح. تحقق من دعم التخزين المحلي.","Could not open the library. Check local storage support.")))});
+}
+
 // ===================== العرض والتشغيل =====================
-const VIEWS={home:renderHome,decks:renderDecks,deck:renderDeck,study:renderStudy,res:renderResearch,play:renderPlay,quiz:renderQuiz,me:renderMe,help:renderHelp};
+const VIEWS={home:renderHome,decks:renderDecks,deck:renderDeck,study:renderStudy,library:renderLibrary,res:renderResearch,play:renderPlay,quiz:renderQuiz,me:renderMe,help:renderHelp};
 function render(){
  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==="ar"?"rtl":"ltr";
- $("lang").textContent=S.lang==="ar"?"EN":"ع";$("help").textContent=S.lang==="ar"?"؟":"?";
- document.body.classList.remove("focus");if(S.tab!=="quiz")stopTimer();
+ $("lang").textContent=S.lang==="ar"?"EN":"ع";$("help").setAttribute("aria-label",S.lang==="ar"?"مساعدة":"Help");
+ document.body.classList.remove("focus","inchat");if(S.tab!=="quiz")stopTimer();
  buildTabs();updChip();updInst();
  const v=$("view");v.replaceChildren();(VIEWS[S.tab]||renderHome)(v)}
 $("lang").onclick=()=>{S.lang=S.lang==="ar"?"en":"ar";persist();render()};

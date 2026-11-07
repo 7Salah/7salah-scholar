@@ -82,7 +82,7 @@ function openBreak(sm){
    const [q,o,a,f]=qs[i],opts=brkShuf(o.map((t,j)=>[t,j===a]));let done=false;
    body.replaceChildren(h("div",{class:"meta"},"سؤال "+(i+1)+" من "+qs.length),h("b",{dir:"auto"},q),
     ...opts.map(([t,c])=>{const b=h("button",{class:"btn",style:"display:block;width:100%;margin-top:6px",onclick:()=>{if(done)return;done=true;if(c)ok++;
-     b.textContent=(c?"✅ ":"❌ ")+t;[...body.querySelectorAll("button.btn")].forEach((x,j)=>{if(opts[j]&&opts[j][1]&&x!==b)x.textContent="✅ "+opts[j][0]});
+     setT(b,(c?"✅ ":"❌ ")+t);[...body.querySelectorAll("button.btn")].forEach((x,j)=>{if(opts[j]&&opts[j][1]&&x!==b)setT(x,"✅ "+opts[j][0])});
      body.append(h("div",{class:"meta",style:"margin-top:8px"},"💡 "+f),h("button",{class:"pri",onclick:()=>{i++;step()}},i+1<qs.length?"التالي":"النتيجة"))}},t);return b}))};
   step()};
  const mood=()=>{body.replaceChildren(mascot(-1,96),brkBubble("كيف حالك اليوم؟ 😊"),h("div",{class:"emj",style:"justify-content:center;margin:12px 0"},BRK_MOOD.map(([e,n,t])=>h("button",{title:n,onclick:()=>{
@@ -91,9 +91,9 @@ function openBreak(sm){
  const breathe=()=>{const t=h("h2",{style:"text-align:center;margin:20px 0"},"استعد…"),c=h("div",{class:"meta",style:"text-align:center"},"3 دورات: شهيق 4 ثوانٍ، احبس 4، زفير 6");let alive=true,n=0;
   body.replaceChildren(t,c,h("button",{class:"btn",onclick:()=>{alive=false;home()}},"إنهاء"));
   const ph=[["🌬 شهيق…",4],["✋ احبس…",4],["😮‍💨 زفير…",6]],run=async()=>{for(let r=0;r<3&&alive;r++)for(const [s,d] of ph){if(!alive)return;t.textContent=s;await new Promise(z=>setTimeout(z,d*1000))}
-   if(alive){t.textContent="✨ أحسنت";c.textContent="أخذت دقيقة لنفسك."}};setTimeout(run,800)};
+   if(alive){setT(t,"✨ أحسنت");c.textContent="أخذت دقيقة لنفسك."}};setTimeout(run,800)};
  sm?mood():home()}
-{const hb=document.getElementById("help");if(hb&&hb.parentNode){const b=h("button",{class:"lang hbtn",title:"استراحة",onclick:()=>openBreak()},"🙂");hb.parentNode.insertBefore(b,hb)}}
+{const hb=document.getElementById("help");if(hb&&hb.parentNode){const b=h("button",{class:"lang hbtn",title:"استراحة","aria-label":"استراحة",onclick:()=>openBreak()},ic("smile"));hb.parentNode.insertBefore(b,hb)}}
 
 // سؤال لطيف مرة كل يوم (يُغلق بالضغط على ✕ ولا يتكرر في اليوم نفسه)
 setTimeout(()=>{try{const day=new Date().toDateString();if(LS.get("7s_askd","")===day||document.querySelector(".nbask"))return;

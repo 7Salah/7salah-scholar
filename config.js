@@ -11,8 +11,8 @@ window.SUPA={url:"https://sgacauoadufbuotreeeh.supabase.co",key:"sb_publishable_
  if(SUPA.bad){console.warn("[SUPA] "+SUPA.bad);SUPA.url="";SUPA.key=""}
 })();
 window.APP={
-  pilot:false, // نسخة تجريبية مركّزة: تُخفي أزرار المكالمات. اجعلها false لإظهارها.
-  contact:"208sportiv@gmail.com", // بريدك: يُرسَل مع طلبات الترجمة المجانية (MyMemory)
+  pilot:true, // نسخة تجريبية مركّزة: تُخفي أزرار المكالمات. اجعلها false لإظهارها.
+ contact:"ضع-بريد-التواصل-هنا@example.com", // بريدك: يُرسَل مع طلبات الترجمة المجانية (MyMemory)
  // اختياري — المكالمات: بدون هذا السطر تُستخدم خوادم STUN العامة فقط، وقد لا تتصل المكالمة في بعض الشبكات.
  // لموثوقية أعلى أضف خادم TURN من مزوّد تختاره (انظر SETUP.md)، مثال:
  // ice:[{urls:"stun:stun.l.google.com:19302"},{urls:"turn:YOUR_TURN_HOST:3478",username:"USER",credential:"PASS"}],

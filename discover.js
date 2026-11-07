@@ -1,6 +1,6 @@
 // الاكتشاف: بحث عن باحثين ومنشورات، واقتراحات المتابعة. يُحمَّل بعد admin.js.
 const sq=s=>(s||"").replace(/[,()%*\\"]/g," ").trim().slice(0,50);
-function searchBar(){const inp=h("input",{class:"cin",type:"search",placeholder:"🔎 ابحث عن باحث (اسم أو ID) أو تخصص أو منشور",value:SC.q||"",enterkeyhint:"search",
+function searchBar(){const inp=h("input",{class:"cin",type:"search",placeholder:"ابحث عن باحث (اسم أو ID) أو تخصص أو منشور",value:SC.q||"",enterkeyhint:"search",
  onkeydown:e=>{if(e.key==="Enter"){const q=sq(inp.value);if(q.length<2)return toast("اكتب حرفين على الأقل");SC.q=q;SC.view="search";render()}}});
  return h("div",{style:"padding:0 16px"},inp)}
 function userRow(p,fw){const sub=[p.field,p.university].filter(Boolean).join(" · ");
