@@ -1,4 +1,4 @@
-# دليل تشغيل 7salah-scholar (v19q.2)
+# دليل تشغيل 7salah-scholar (v21)
 
 ## ما الذي يعمل بلا إعداد؟
 الدراسة والبحث والبطاقات والتحدّيات والتذكيرات والإنجازات والاستراحة 🙂 تعمل مباشرة بعد النشر (Netlify أو GitHub Pages)، وبياناتها على جهاز المستخدم فقط.
@@ -31,6 +31,8 @@
 18. `v19p-stories.sql` (القصص ⏳؛ جدولا `stories` و`story_reports`). **لم يُشغَّل على PostgreSQL أثناء التطوير، فجرّبه أولًا على مشروع تجريبي.**
 
 19. `v20-interactive.sql` (الرد على الرسائل، إعادة النشر، الاقتباس، السلاسل، الردود المتفرعة). إضافي بالكامل وداخل معاملة واحدة؛ يتحقق من وجود `v19m-topic.sql` أولًا. قبل تشغيله تعمل الميزات القديمة كما هي.
+
+20. `v21-lecture-ai.sql` (7Salah Lecture AI: المحاضرات والنصوص والمخرجات ومخزن الصوت). إضافي ومعاملة واحدة. يحتاج أيضًا نشر الدالة الخلفية وضبط الأسرار: انظر `LECTURE-AI-SETUP.md`. قبل ذلك تعمل بقية المنصة كما هي.
 
 ثم: انسخ `Project URL` و`anon/publishable key` من **Project Settings ← API** إلى `config.js` (لا تضع `service_role` أبدًا)، وفي **Authentication ← URL Configuration** ضع رابط موقعك في Site URL وRedirect URLs. تأكد أن `call_signals` ضمن `supabase_realtime`.
 عدّل `APP.contact` في `config.js` إلى بريدك الحقيقي: يُستخدم مع الترجمة المجانية، ومع OpenAlex وCrossref لتحسين السرعة وتقليل الحجب.
