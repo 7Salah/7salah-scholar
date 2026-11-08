@@ -57,7 +57,7 @@ const T={ar:{...T0.ar,...N.ar},en:{...T0.en,...N.en}};
 // v20: الفرنسية. شاشات الدراسة القديمة تعود للنصوص الإنجليزية إلى أن تُترجم؛ ميزات المجتمع الجديدة (x.js) مترجمة بالكامل.
 T.fr={...T.en,dn:["dim.","lun.","mar.","mer.","jeu.","ven.","sam."]};T0.fr=T.fr;
 // ===================== النواة: الحالة والتخزين =====================
-const APP_VER="21.0 · 2026-11-08";
+const APP_VER="20.0 · 2026-11-07";
 const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,
  rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"📚",col:0,goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
 const LS={get(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x==null?d:x}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
