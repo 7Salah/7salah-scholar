@@ -77,7 +77,15 @@ const P={
  "message-plus":"<path d='M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z'/><path d='M12 8.5v6M9 11.5h6'/>",
  "user-plus":"<circle cx='9' cy='8' r='4'/><path d='M2 21c0-3.8 3.1-6 7-6s7 2.2 7 6'/><path d='M19 8v6M16 11h6'/>",
  smile:"<circle cx='12' cy='12' r='10'/><path d='M8 14s1.5 2 4 2 4-2 4-2'/><path d='M9 9h.01M15 9h.01'/>",
- crown:"<path d='m2 8 4.5 4L12 4l5.5 8L22 8l-2 12H4z'/>"
+ crown:"<path d='m2 8 4.5 4L12 4l5.5 8L22 8l-2 12H4z'/>",
+ reply:"<path d='m9 17-5-5 5-5'/><path d='M20 18v-2a4 4 0 0 0-4-4H4'/>",
+ repeat:"<path d='m17 2 4 4-4 4'/><path d='M3 11v-1a4 4 0 0 1 4-4h14'/><path d='m7 22-4-4 4-4'/><path d='M21 13v1a4 4 0 0 1-4 4H3'/>",
+ quote:"<path d='M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z'/><path d='M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z'/>",
+ thread:"<path d='M6 3v12'/><circle cx='6' cy='18' r='3'/><circle cx='18' cy='6' r='3'/><path d='M18 9a9 9 0 0 1-9 9'/>",
+ "corner-down-right":"<path d='m15 10 5 5-5 5'/><path d='M4 4v7a4 4 0 0 0 4 4h12'/>",
+ "at-sign":"<circle cx='12' cy='12' r='4'/><path d='M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8'/>",
+ "chevron-down":"<path d='m6 9 6 6 6-6'/>",
+ "chevron-up":"<path d='m18 15-6-6-6 6'/>"
 };
 const A={},ALIAS={"arrow-start":"arrow-left"};
 const NS="http://www.w3.org/2000/svg";

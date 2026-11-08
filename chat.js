@@ -2,7 +2,7 @@
 let _ch=null;
 let _rt=null;
 function stopChat(){if(_ch&&SC.sb){SC.sb.removeChannel(_ch);_ch=null}if(_rt){clearInterval(_rt);_rt=null}document.body.classList.remove("inchat")}
-function openChat(id,name){SC.view="chat";SC.cid=id;SC.cname=name;render();window.scrollTo(0,0)}
+function openChat(id,name){SC.view="chat";SC.cid=id;SC.cname=name;SC.chatLimit=0;SC.jump=null;render();window.scrollTo(0,0)}
 // ---- أدوات عرض مشتركة للمحادثات ----
 const isGrp=n=>(n||"").startsWith("👥");                       // منطق التعرّف على المجموعة محفوظ كما كان
 const cleanName=n=>(n||"").replace(/^👥\s*/,"");
@@ -33,16 +33,32 @@ async function chatList(v){
 async function chatRoom(v){
  if(!SC.user){SC.view="feed";return authModal()}
  document.body.classList.add("inchat");
- let peer=null,peerRead=0;const cid=SC.cid,P={},seen=new Set(),isG=isGrp(SC.cname),title=cleanName(SC.cname),list=h("div",{class:"msgs",role:"log","aria-live":"polite"}),
+ let peer=null,peerRead=0;const cid=SC.cid,P={},seen=new Set(),isG=isGrp(SC.cname),title=cleanName(SC.cname),list=h("div",{class:"msgs no-swipe",role:"log","aria-live":"polite"}),
   inp=h("input",{class:"cin cmsg",placeholder:"اكتب رسالة…",maxlength:"2000",enterkeyhint:"send",autocomplete:"off"}),
   sendB=h("button",{class:"sendb dis","aria-label":"إرسال",title:"إرسال"},ic("send")),subEl=h("span",{class:"csub"},isG?"":(ar()?"محادثة خاصة":"Direct message"));
+ if(window.xMention)xMention(inp);
  let prev=null,lastDay="";                                  // آخر رسالة معروضة (لتجميع الرسائل المتتالية)
+ // ---- v20: الرد على رسالة محددة (اقتباس) ----
+ let replyTo=null;const MSG={},QC={},X=(k,o)=>window.xt?xt(k,o):k;
+ const snip=o=>o?(o.body?o.body.replace(/\s+/g," ").slice(0,140):(o.file_type||"").startsWith("image/")?"🖼 "+X("photo"):"📎 "+(o.file_name||X("file"))):"";
+ const nameOf=u=>u===SC.user.id?X("you"):((P[u]&&P[u].name)||"…");
+ const rbar=h("div",{class:"replybar",hidden:true});
+ const clearReply=()=>{replyTo=null;rbar.hidden=true;rbar.replaceChildren()};
+ const setReply=m=>{replyTo=m;rbar.hidden=false;rbar.replaceChildren(ic("reply"),h("div",{class:"rtxt"},h("b",{dir:"auto"},X("replyingTo",{name:nameOf(m.user_id)})),h("span",{dir:"auto"},snip(m))),
+  h("button",{class:"ibtn",type:"button","aria-label":X("cancelReply"),title:X("cancelReply"),onclick:clearReply},ic("x")));inp.focus()};
+ const jumpTo=id=>{const row=list.querySelector('[data-mid="'+id+'"]');
+  if(row){row.scrollIntoView({block:"center",behavior:"smooth"});row.classList.remove("flash");void row.offsetWidth;row.classList.add("flash");setTimeout(()=>row.classList.remove("flash"),1900);return}
+  if((SC.chatLimit||100)>=1000)return toast(X("origFar"));SC.jump=id;SC.chatLimit=1000;render()};
+ const fillQuote=(el,m)=>{const paint=o=>{el.classList.toggle("gone",!o);el.replaceChildren(h("b",{dir:"auto"},o?nameOf(o.user_id):""),h("span",{dir:"auto"},o?snip(o):X("deletedMsg")))};
+  if(MSG[m.reply_to])return paint(MSG[m.reply_to]);
+  (QC[m.reply_to]=QC[m.reply_to]||SC.sb.from("messages").select("id,user_id,body,file_name,file_type").eq("id",m.reply_to).eq("conv_id",cid).maybeSingle().then(r=>r.data||null,()=>null)).then(paint)};
+ const quoteEl=m=>{if(!m.reply_to)return null;const el=h("button",{class:"mquote",type:"button","aria-label":X("goOriginal"),title:X("goOriginal"),onclick:()=>el.classList.contains("gone")?toast(X("deletedMsg")):jumpTo(m.reply_to)},h("span",{},"…"));fillQuote(el,m);return el};
  const near=()=>list.scrollHeight-list.scrollTop-list.clientHeight<140,toEnd=()=>{list.scrollTop=list.scrollHeight};
  const who=id=>P[id]||(P[id]={name:"…"});
  const tickFor=m=>!isG&&peerRead&&new Date(m.created_at).getTime()<=peerRead?"seen":"sent";
  const paintTick=(el,m)=>{const k=tickFor(m);el.className="tick "+k;el.replaceChildren(ic(k==="seen"?"checks":"check",{w:2.2}));el.setAttribute("aria-label",k==="seen"?(ar()?"تمت القراءة":"Seen"):(ar()?"أُرسلت":"Sent"))};
  const ticks=[];
- const add=m=>{if(seen.has(m.id))return;seen.add(m.id);const me=m.user_id===SC.user.id;if(!me&&SC.blocked.has(m.user_id))return;
+ const add=m=>{if(seen.has(m.id))return;seen.add(m.id);MSG[m.id]=m;const me=m.user_id===SC.user.id;if(!me&&SC.blocked.has(m.user_id))return;
   if(!me&&!P[m.user_id]){P[m.user_id]={name:"…"};SC.sb.from("profiles").select("name,username,avatar_url").eq("id",m.user_id).maybeSingle().then(r=>{const d=r.data;P[m.user_id]=d?{name:d.name||d.username,username:d.username,avatar_url:d.avatar_url}:{name:"?"};list.querySelectorAll('[data-u="'+m.user_id+'"] .mname').forEach(e=>e.textContent=P[m.user_id].name);list.querySelectorAll('[data-u="'+m.user_id+'"] .mav').forEach(e=>e.replaceChildren(av(P[m.user_id],30)))})}
   const stick=near()||me,day=dkey(new Date(m.created_at));
   if(day!==lastDay){lastDay=day;list.append(h("div",{class:"dsep"},h("span",{},dayLabel(m.created_at))));prev=null}
@@ -50,18 +66,29 @@ async function chatRoom(v){
   if(prev&&cont)prev.el.classList.remove("last");
   const tro=h("div",{class:"trout",dir:"auto"}),pf=who(m.user_id),tk=me?h("span",{class:"tick"}):null,fb=fileBox(m);if(tk){paintTick(tk,m);ticks.push([tk,m])}
   const tb=m.body?trBtn(()=>m.body,tro,"flag"):null;if(tb){tb.setAttribute("aria-label","ترجمة");tb.title="ترجمة"}
+  const rb=h("button",{class:"flag rbtn",type:"button","aria-label":X("reply"),title:X("reply"),onclick:()=>setReply(m)},ic("reply"));
   const rp=me?null:h("button",{class:"flag","aria-label":"إبلاغ",title:"إبلاغ",onclick:()=>reportModal({message_id:m.id,target_user:m.user_id})},ic("flag"));
-  const row=h("div",{class:"mrow"+(me?" me":"")+(cont?"":" first")+" last","data-u":m.user_id},
+  const row=h("div",{class:"mrow"+(me?" me":"")+(cont?"":" first")+" last","data-u":m.user_id,"data-mid":m.id},
    me?null:h("div",{class:"mav"},av(pf,30)),
    h("div",{class:"bub"},(!me&&isG)?h("div",{class:"mname",dir:"auto"},pf.name):null,
-    m.body?h("div",{class:"mtxt",dir:"auto"},m.body):null,tro,fb,
-    h("div",{class:"mmeta"},tb,rp,h("time",{},fmtTime(m.created_at)),tk)));
+    quoteEl(m),m.body?h("div",{class:"mtxt",dir:"auto"},window.mentionize?mentionize(m.body):m.body):null,tro,fb,
+    h("div",{class:"mmeta"},rb,tb,rp,h("time",{},fmtTime(m.created_at)),tk)));
   list.append(row);prev={u:m.user_id,t:new Date(m.created_at),el:row};
   const im=row.querySelector("img.cimg");if(im)im.addEventListener("load",()=>{if(stick)toEnd()});
   if(stick)toEnd()};
- const send=async()=>{const b=inp.value.trim();if(!b)return;inp.value="";sendB.classList.add("dis");const r=await SC.sb.from("messages").insert({conv_id:cid,user_id:SC.user.id,body:b});if(r.error){toast("تعذّر الإرسال (قد يكون هناك حظر بينكما)");inp.value=b;sendB.classList.remove("dis")}};
- inp.onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing)send()};inp.oninput=()=>sendB.classList.toggle("dis",!inp.value.trim());sendB.onclick=send;
- const fi=h("input",{type:"file",style:"display:none",accept:"image/jpeg,image/png,image/webp,.pdf,.txt,.csv,.docx,.xlsx",onchange:e=>{const f=e.target.files[0];e.target.value="";if(f)sendFile(cid,f,inp)}});
+ const send=async()=>{const b=inp.value.trim();if(!b)return;inp.value="";sendB.classList.add("dis");const row={conv_id:cid,user_id:SC.user.id,body:b};if(replyTo)row.reply_to=replyTo.id;
+  let r=await SC.sb.from("messages").insert(row);
+  if(r.error&&row.reply_to&&/reply_to/i.test(r.error.message||"")&&/column|schema cache/i.test(r.error.message||"")){delete row.reply_to;r=await SC.sb.from("messages").insert(row);if(!r.error)toast(X("needMigration"))}
+  if(r.error){toast(/reply target/i.test(r.error.message||"")?X("replyGone"):X("sendFail"));if(/reply target/i.test(r.error.message||""))clearReply();inp.value=b;sendB.classList.remove("dis")}else clearReply()};
+ inp.onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing)send();else if(e.key==="Escape"&&replyTo)clearReply()};inp.oninput=()=>sendB.classList.toggle("dis",!inp.value.trim());sendB.onclick=send;
+ {let sx=0,sy=0,row=null,on=false,dx=0;
+  list.addEventListener("touchstart",e=>{row=e.touches.length===1?e.target.closest(".mrow[data-mid]"):null;if(!row)return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;on=false;dx=0},{passive:true});
+  list.addEventListener("touchmove",e=>{if(!row)return;const x=e.touches[0].clientX-sx,y=e.touches[0].clientY-sy;
+   if(!on){if(Math.abs(x)>14&&Math.abs(x)>Math.abs(y)*1.6){on=true;row.style.transition="none"}else if(Math.abs(y)>14){row=null;return}}
+   if(on){dx=Math.max(-90,Math.min(90,x));row.style.transform="translateX("+dx+"px)"}},{passive:true});
+  const end=()=>{if(!row)return;row.style.transition="";row.style.transform="";if(on&&Math.abs(dx)>=60&&MSG[row.dataset.mid])setReply(MSG[row.dataset.mid]);row=null;on=false};
+  list.addEventListener("touchend",end);list.addEventListener("touchcancel",end)}
+ const fi=h("input",{type:"file",style:"display:none",accept:"image/jpeg,image/png,image/webp,.pdf,.txt,.csv,.docx,.xlsx",onchange:e=>{const f=e.target.files[0];e.target.value="";if(f)sendFile(cid,f,inp,replyTo&&replyTo.id).then(ok=>{if(ok)clearReply()})}});
  // قائمة الخيارات (حظر / إضافة عضو / مغادرة) — نفس الإجراءات القديمة في مكان ثابت واحد
  const menu=h("div",{class:"cmenu",hidden:true,role:"menu"}),closeMenu=()=>{menu.hidden=true;document.removeEventListener("click",outside,true)},
   outside=e=>{if(!menu.contains(e.target)&&!moreB.contains(e.target))closeMenu()};
@@ -76,14 +103,15 @@ async function chatRoom(v){
    h("div",{class:"ctitle"},h("b",{dir:"auto"},title),subEl),
    h("div",{class:"cops"},showCall?h("button",{class:"ibtn","aria-label":"مكالمة صوتية",title:"مكالمة صوتية",onclick:()=>startCall(cid,SC.cname,false)},ic("phone")):null,
     showCall?h("button",{class:"ibtn","aria-label":"مكالمة فيديو",title:"مكالمة فيديو",onclick:()=>startCall(cid,SC.cname,true)},ic("video")):null,moreB),menu),
-  list,
+  list,rbar,
   h("div",{class:"composer"},h("button",{class:"ibtn att","aria-label":"إرفاق ملف",title:"إرفاق ملف",onclick:()=>fi.click()},ic("paperclip")),fi,inp,sendB)));
  const ms=((await SC.sb.from("members").select("profiles(id,name,username,avatar_url)").eq("conv_id",cid)).data||[]);
  ms.forEach(x=>{const q=x.profiles;if(q){P[q.id]={name:q.name||q.username,username:q.username,avatar_url:q.avatar_url};if(q.id!==SC.user.id)peer=q.id}});
  if(isG)subEl.textContent=ms.length+(ar()?" عضو":" members");else if(peer&&P[peer]){hAv.replaceChildren(av(P[peer],40))}
  // حالة القراءة (علامتان) للمحادثات الخاصة: قراءة فقط من members.last_read إن وُجد؛ أي فشل يُتجاهل ويبقى الظاهر «أُرسلت»
  const readState=async()=>{if(isG||!peer)return;try{const r=await SC.sb.from("members").select("last_read").eq("conv_id",cid).eq("user_id",peer).maybeSingle();const t=r&&r.data&&r.data.last_read?new Date(r.data.last_read).getTime():0;if(t!==peerRead){peerRead=t;ticks.forEach(([e,m])=>paintTick(e,m))}}catch(e){}};
- const {data}=await SC.sb.from("messages").select("*").eq("conv_id",cid).order("created_at",{ascending:false}).limit(100);await readState();(data||[]).reverse().forEach(add);markRead(cid);toEnd();
+ const {data}=await SC.sb.from("messages").select("*").eq("conv_id",cid).order("created_at",{ascending:false}).limit(SC.chatLimit||100);await readState();(data||[]).reverse().forEach(add);markRead(cid);toEnd();
+ if(SC.jump){const j=SC.jump;SC.jump=null;setTimeout(()=>jumpTo(j),80)}
  stopChat();document.body.classList.add("inchat");_rt=setInterval(readState,15000);
  _ch=SC.sb.channel("room-"+cid).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"conv_id=eq."+cid},p=>{add(p.new);markRead(cid);readState()}).subscribe()}
 function newGroupModal(){const ti=h("input",{class:"cin",placeholder:"اسم المجموعة: مثال، بحث التكيّف المناخي",maxlength:"80"}),pub=h("input",{type:"checkbox",checked:true});
@@ -118,12 +146,14 @@ try{if(window.SUPA&&SUPA.url&&SUPA.key&&Object.keys(localStorage).some(k=>/^sb-.
 
 // ---- صور وملفات في الدردشة ----
 const fitImg=(f,mx)=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>{const k=Math.min(1,mx/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext("2d").drawImage(i,0,0,c.width,c.height);c.toBlob(ok,"image/jpeg",.85)};i.onerror=no;i.src=URL.createObjectURL(f)});
-async function sendFile(cid,f,inp){if(f.size>10*1048576)return toast("الحد الأقصى للملف 10 ميغابايت");toast("⏳ جارٍ الرفع…");
+async function sendFile(cid,f,inp,replyId){if(f.size>10*1048576){toast("الحد الأقصى للملف 10 ميغابايت");return false}toast("⏳ جارٍ الرفع…");
  try{let blob=f,type=f.type,ext=(f.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,5)||"bin";
   if(/^image\/(jpeg|png|webp)$/.test(f.type)){blob=await fitImg(f,1600);type="image/jpeg";ext="jpg"}
-  const path=cid+"/"+crypto.randomUUID()+"."+ext,up=await SC.sb.storage.from("chat").upload(path,blob,{contentType:type});if(up.error)return toast(up.error.message);
-  const r=await SC.sb.from("messages").insert({conv_id:cid,user_id:SC.user.id,body:inp.value.trim()||null,file_path:path,file_name:f.name.slice(0,100),file_type:type,file_size:blob.size});
-  if(r.error)return toast("تعذّر الإرسال");inp.value=""}catch(e){toast("⚠ تعذّر رفع الملف")}}
+  const path=cid+"/"+crypto.randomUUID()+"."+ext,up=await SC.sb.storage.from("chat").upload(path,blob,{contentType:type});if(up.error){toast(up.error.message);return false}
+  const row={conv_id:cid,user_id:SC.user.id,body:inp.value.trim()||null,file_path:path,file_name:f.name.slice(0,100),file_type:type,file_size:blob.size};if(replyId)row.reply_to=replyId;
+  let r=await SC.sb.from("messages").insert(row);
+  if(r.error&&row.reply_to&&/reply_to/i.test(r.error.message||"")&&/column|schema cache/i.test(r.error.message||"")){delete row.reply_to;r=await SC.sb.from("messages").insert(row);if(!r.error&&window.xt)toast(xt("needMigration"))}
+  if(r.error){toast("تعذّر الإرسال");return false}inp.value="";return true}catch(e){toast("⚠ تعذّر رفع الملف");return false}}
 function fileBox(m){if(!m.file_path)return null;const b=m.file_size,sz=b?" ("+(b>1048576?(b/1048576).toFixed(1)+" MB":Math.max(1,Math.round(b/1024))+" KB")+")":"";
  const url=()=>SC.sb.storage.from("chat").createSignedUrl(m.file_path,3600).then(r=>r.data&&r.data.signedUrl);
  if((m.file_type||"").startsWith("image/")){const img=h("img",{class:"cimg",alt:"",loading:"lazy"});url().then(u=>{if(u)img.src=u});img.onclick=async()=>{const u=await url();if(u)window.open(u,"_blank","noopener")};return img}

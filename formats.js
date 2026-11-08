@@ -55,7 +55,7 @@ const FIELD_SUG=["الطب","الصيدلة","طب الأسنان","التمري
 const cleanTopic=s=>String(s||"").replace(/^[#\s]+/,"").replace(/\s+/g," ").trim().slice(0,60);
 function fieldDl(){if(!document.getElementById("fieldsDl")){const d=document.createElement("datalist");d.id="fieldsDl";FIELD_SUG.forEach(x=>{const o=document.createElement("option");o.value=x;d.append(o)});document.body.append(d)}return "fieldsDl"}
 postModal=function(){
- const kinds=[["post","💬 منشور"],["question","❓ سؤال"],["deck","🃏 حزمة بطاقات"],["research","📄 بحث"],["experience","🧪 تجربة"],["video","🎬 فيديو"],["board","🖼 لوحة"],["attachment","📎 مرفق"],["map","🗺 خريطة"]];if(SC.me&&SC.me.is_teacher)kinds.push(["lesson","🎓 مادة تعليمية"]);
+ const kinds=[["post","💬 منشور"],["question","❓ سؤال"],["deck","🃏 حزمة بطاقات"],["research","📄 بحث"],["experience","🧪 تجربة"],["video","🎬 فيديو"],["board","🖼 لوحة"],["attachment","📎 مرفق"],["map","🗺 خريطة"]];if(SC.me&&SC.me.is_teacher)kinds.push(["lesson","🎓 مادة تعليمية"]);if(window.xt&&window.XF&&XF.ready!==false)kinds.splice(2,0,["thread","🧵 "+xt("thread")]);
  const kind=h("select",{class:"cin",onchange:()=>show()},kinds.map(([k,n])=>h("option",{value:k},n)));
  const ti=h("input",{class:"cin",placeholder:"العنوان",maxlength:"150"}),bd=h("textarea",{class:"cta",placeholder:"لخّص بحثك أو اشرح تجربتك…",maxlength:"3000"}),
  vd=h("input",{class:"cin",dir:"ltr",placeholder:"رابط فيديو يوتيوب (اختياري)"}),
@@ -64,14 +64,16 @@ postModal=function(){
  la=h("input",{class:"cin",dir:"ltr",type:"number",step:"any",placeholder:"خط العرض lat"}),ln=h("input",{class:"cin",dir:"ltr",type:"number",step:"any",placeholder:"خط الطول lng"}),
  gps=h("button",{class:"btn",onclick:()=>{if(!navigator.geolocation)return toast("غير مدعوم");navigator.geolocation.getCurrentPosition(x=>{la.value=x.coords.latitude.toFixed(5);ln.value=x.coords.longitude.toFixed(5)},()=>toast("تعذّر تحديد موقعك"))}},"📍 استخدم موقعي"),
  sv=h("select",{class:"cin",onchange:()=>{const s=S.saved[sv.value-1];if(s){ti.value=s.title||""}}},h("option",{value:0},"أرفق من مصادري المحفوظة…"),S.saved.map((s,i)=>h("option",{value:i+1},(s.title||"").slice(0,60)))),
+ tw=window.xThreadWidget?xThreadWidget():null,
  fw=h("div",{},h("div",{class:"meta"},"الملف (حتى 50MB. الفيديو الأكبر يُضغط تلقائيًا حتى 1GB قبل الضغط؛ وللفيديو الطويل جدًا استخدم رابط يوتيوب). ارفع فقط ما تملك حقوقه أو المسموح بنشره؛ لا ترفع كتبًا أو مقالات محمية بحقوق النشر."),file),mw=h("div",{},pl,la,ln,gps),rw=h("div",{},sv),vw=h("div",{},vd);
  const dks=(S.decks||[]).filter(d=>d&&Array.isArray(d.cards)&&d.cards.length),
   dk=h("select",{class:"cin"},dks.map((d,i)=>h("option",{value:i},(d.emoji||"📘")+" "+String(d.title||"").slice(0,50)+" · "+Math.min(d.cards.length,40)+" بطاقة"))),
   dw=h("div",{},h("div",{class:"meta"},dks.length?"اختر الحزمة التي تريد مشاركتها (حتى 40 بطاقة). سيعاينها الآخرون ويضيفونها إلى حزمهم، وتبقى مصادر بطاقاتك معها.":"لا توجد لديك حزم بعد. أنشئ حزمة من تبويب «حزمي» ثم عُد لمشاركتها."),dks.length?dk:null);
- const show=()=>{const k=kind.value;dw.style.display=k==="deck"?"":"none";fw.style.display=k==="board"||k==="attachment"?"":"none";mw.style.display=k==="map"?"":"none";rw.style.display=k==="research"?"":"none";vw.style.display=(k==="research"||k==="experience"||k==="video"||k==="lesson")?"":"none";
+ const show=()=>{const k=kind.value;if(tw){tw.el.style.display=k==="thread"?"":"none";ti.style.display=bd.style.display=k==="thread"?"none":""}dw.style.display=k==="deck"?"":"none";fw.style.display=k==="board"||k==="attachment"?"":"none";mw.style.display=k==="map"?"":"none";rw.style.display=k==="research"?"":"none";vw.style.display=(k==="research"||k==="experience"||k==="video"||k==="lesson")?"":"none";
   const gen=k==="post"||k==="question";bd.placeholder=k==="question"?"اكتب سؤالك…":gen?"ماذا تريد أن تشاركه؟":(k==="research"||k==="lesson")?"لخّص بحثك أو درسك…":"شارك تجربتك أو ما تعلمته…";ti.placeholder=(gen||k==="deck")?"العنوان (اختياري)":"العنوان";if(k==="deck")bd.placeholder="لمن تصلح هذه الحزمة؟ وماذا تغطي؟ (اختياري)";
-  file.accept=k==="board"?"image/*":".pdf,.docx,.xlsx,.txt,.csv,image/*,video/mp4,video/webm"};show();
- const m=modal(h("h3",{},"＋ منشور جديد"),kind,ti,bd,dw,fw,mw,rw,vw,h("div",{class:"meta"},"🏷 التخصص حر الاختيار — يساعد الآخرين في إيجاد منشورك"),tp,h("button",{class:"pri",onclick:async e=>{const btn=e.target,k=kind.value,vu=vd.value.trim();
+  file.accept=k==="board"?"image/*":".pdf,.docx,.xlsx,.txt,.csv,image/*,video/mp4,video/webm"};show();if(window.xMention)xMention(bd);
+ const m=modal(h("h3",{},"＋ منشور جديد"),kind,ti,bd,tw?tw.el:null,dw,fw,mw,rw,vw,h("div",{class:"meta"},"🏷 التخصص حر الاختيار — يساعد الآخرين في إيجاد منشورك"),tp,h("button",{class:"pri",onclick:async e=>{const btn=e.target,k=kind.value,vu=vd.value.trim();
+  if(k==="thread")return xPublishThread(btn,tw.get(),cleanTopic(tp.value),()=>{m.remove();SC.view="feed";render()});
   const DK=k==="deck"?dks[+dk.value]:null;if(k==="deck"&&!DK)return toast("اختر حزمة أولًا");
   const T=(ti.value.trim()||((k==="post"||k==="question")?bd.value.trim().replace(/\s+/g," ").slice(0,80):(DK?String(DK.title||"حزمة بطاقات"):""))).slice(0,150);if(!T)return toast(k==="post"||k==="question"?"اكتب شيئًا لتشاركه":"اكتب عنوانًا");if(vu&&!okU(vu))return toast("الرابط يجب أن يبدأ بـ https://");
   const tpv=cleanTopic(tp.value);if(tpv&&tpv.length<2)return toast("التخصص حرفان على الأقل أو اتركه فارغًا");

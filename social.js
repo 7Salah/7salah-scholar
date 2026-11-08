@@ -41,11 +41,12 @@ function vid(u){const m=(u||"").match(/^https:\/\/(?:www\.|m\.)?(?:youtube\.com\
 async function loadPosts(box,f){
  // البحث يشمل التخصص (topic)؛ وإن لم يُشغَّل v19m-topic.sql بعد نعيد المحاولة بدونه كي لا ينكسر البحث
  const mk=tp=>{let q=SC.sb.from("posts").select("*,likes(count),comments(count)").order("created_at",{ascending:false}).limit(f.limit||30);
-  if(f.kind)q=q.eq("kind",f.kind);if(f.ids)q=q.in("id",f.ids);if(f.uid)q=q.eq("user_id",f.uid);if(f.uids)q=q.in("user_id",f.uids.length?f.uids:["00000000-0000-0000-0000-000000000000"]);if(f.q)q=q.or("title.ilike.*"+f.q+"*,body.ilike.*"+f.q+"*"+(tp?",topic.ilike.*"+f.q+"*":""));return q};
+  if(f.kind)q=f.kind==="post"?q.in("kind",["post","quote"]):q.eq("kind",f.kind);if(f.q)q=q.neq("kind","repost");if(f.ids)q=q.in("id",f.ids);if(f.uid)q=q.eq("user_id",f.uid);if(f.uids)q=q.in("user_id",f.uids.length?f.uids:["00000000-0000-0000-0000-000000000000"]);if(f.q)q=q.or("title.ilike.*"+f.q+"*,body.ilike.*"+f.q+"*"+(tp?",topic.ilike.*"+f.q+"*":""));return q};
  let {data,error}=await mk(true);if(error&&f.q&&/topic/i.test(error.message||""))({data,error}=await mk(false));
  if(error){box.append(h("div",{class:"card"},"⚠ "+error.message));return}
  if(f.rank)data=f.rank(data).slice(0,30);
  {const ids=[...new Set(data.map(p=>p.user_id))];if(ids.length){const pr=await SC.sb.from("profiles").select("id,username,name,avatar_url,verified,is_teacher").in("id",ids),m={};(pr.data||[]).forEach(x=>m[x.id]=x);data.forEach(p=>p.profiles=m[p.user_id]||null)}}
+ if(window.xPrep){try{await xPrep(data)}catch(e){}data=data.filter(p=>!(p.thread_pos>1&&!f.q)&&!p._hide)}
  const mine=new Set();if(SC.user&&data.length)((await SC.sb.from("likes").select("post_id").eq("user_id",SC.user.id).in("post_id",data.map(p=>p.id))).data||[]).forEach(x=>mine.add(x.post_id));
  if(!data.length)box.append(h("div",{class:"meta",style:"text-align:center;padding:20px"},"لا منشورات بعد. كن أول من ينشر!"));
  data.filter(p=>!SC.blocked.has(p.user_id)).forEach(p=>{const c=postCard(p,mine.has(p.id));if(p._why)c.prepend(h("div",{class:"meta",style:"font-size:12px;opacity:.75;margin-bottom:4px"},p._why));box.append(c)})}
@@ -56,12 +57,12 @@ function postCard(p,liked){const a=p.profiles||{},cnt=x=>(p[x]&&p[x][0]&&p[x][0]
   if(r.error){lked=!lked;lk+=lked?1:-1;paint()}};
  const own=SC.user&&SC.user.id===p.user_id,K={post:["message","منشور"],question:["help","سؤال"],deck:["cards","حزمة"],research:["file-text","بحث"],experience:["flask","تجربة"],video:["video","فيديو"],lesson:["cap","مادة تعليمية"]},kk=K[p.kind];
  const tb=trBtn(()=>p.title+(p.body?"\n\n"+p.body:""),tr,"pbtn");tb.setAttribute("aria-label","ترجمة");tb.title="ترجمة";
- return h("article",{class:"card post"},
+ return h("article",{class:"card post","data-pid":p.id},
   h("div",{class:"phead"},h("div",{class:"phd",onclick:()=>openProf(a.id)},av(a,44),h("div",{class:"pwho"},h("b",{dir:"auto"},(a.name||a.username||"?"),a.verified?h("span",{class:"premium-badge","aria-label":"حساب مميز موثّق",title:"حساب مميز موثّق"},ic("check",{w:2.6})):null,a.is_teacher?h("span",{class:"teacher-badge"},ic("cap"),"أستاذ"):null),h("div",{class:"meta"},h("span",{class:"ltr-handle"},"@"+(a.username||""))," · "+new Date(p.created_at).toLocaleDateString(S.lang)))),
    h("span",{class:"kchip"},kk?[ic(kk[0]),kk[1]]:p.kind)),
   h("h3",{dir:"auto"},p.title),p.body?h("div",{class:"pbody",dir:"auto"},p.body):null,tr,
   p.doi?h("div",{class:"btns"},h("a",{class:"btn",href:"https://doi.org/"+encodeURI(p.doi),target:"_blank",rel:"noopener noreferrer"},ic("link"),"DOI: "+p.doi)):null,vid(p.video_url),
-  h("div",{class:"pfoot"},h("div",{class:"pacts"},lb,h("button",{class:"pbtn","aria-label":"التعليقات",onclick:()=>cb.childNodes.length?cb.replaceChildren():loadComments(p,cb)},ic("message"),h("span",{},String(cnt("comments")))),tb),
+  h("div",{class:"pfoot"},h("div",{class:"pacts"},lb,h("button",{class:"pbtn","data-k":"com","aria-label":"التعليقات",onclick:()=>cb.childNodes.length?cb.replaceChildren():loadComments(p,cb)},ic("message"),h("span",{},String(cnt("comments")))),tb),
    own?h("button",{class:"pbtn danger","aria-label":"حذف المنشور",title:"حذف المنشور",onclick:async()=>{if(confirm("حذف المنشور؟")){if(p.file_path)await SC.sb.storage.from("posts").remove([p.file_path]);await SC.sb.from("posts").delete().eq("id",p.id);render()}}},ic("trash")):
    h("button",{class:"pbtn","aria-label":"إبلاغ",title:"إبلاغ",onclick:()=>reportModal({post_id:p.id,target_user:p.user_id})},ic("flag"))),cb)}
 async function loadComments(p,box){

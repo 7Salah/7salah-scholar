@@ -54,12 +54,14 @@ en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",nLibrary:"
  how2:"Where do cards come from?",
  pts2:"Review a card +1 · Quiz +15 · Create a deck +8 · Challenge +20 · Perfect quiz +25"}};
 const T={ar:{...T0.ar,...N.ar},en:{...T0.en,...N.en}};
+// v20: الفرنسية. شاشات الدراسة القديمة تعود للنصوص الإنجليزية إلى أن تُترجم؛ ميزات المجتمع الجديدة (x.js) مترجمة بالكامل.
+T.fr={...T.en,dn:["dim.","lun.","mar.","mer.","jeu.","ven.","sam."]};T0.fr=T.fr;
 // ===================== النواة: الحالة والتخزين =====================
-const APP_VER="19q.5 · 2026-11-07";
+const APP_VER="20.0 · 2026-11-07";
 const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,
  rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"📚",col:0,goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
 const LS={get(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x==null?d:x}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-try{const x=LS.get("7s_saved",[]);if(Array.isArray(x))S.saved=x;const l=localStorage.getItem("7s_lang");if(l==="en"||l==="ar")S.lang=l}catch(e){}
+try{const x=LS.get("7s_saved",[]);if(Array.isArray(x))S.saved=x;const l=localStorage.getItem("7s_lang");if(l==="en"||l==="ar"||l==="fr")S.lang=l}catch(e){}
 {const r=LS.get("7s_rem",[]);if(Array.isArray(r))S.rem=r;const d=LS.get("7s_decks",[]);if(Array.isArray(d))S.decks=d.filter(x=>x&&Array.isArray(x.cards));
  const p=LS.get("7s_prof",{});if(p&&typeof p==="object")Object.assign(S.prof,p);if(!S.prof.av||/[🦊🐼🦉🐯🐸🦁🐙🦄🐧🦅🐬🐢]/u.test(S.prof.av))S.prof.av="📚";if(typeof S.prof.col!=="number"||S.prof.col<0||S.prof.col>5)S.prof.col=0;const v=LS.get("7s_riv",[]);if(Array.isArray(v))S.riv=v}
 const t=k=>{const v=T[S.lang][k];if(v==null){console.warn("missing i18n:",k);return k}return v};
@@ -866,14 +868,16 @@ function renderLibrary(v){
 }
 
 // ===================== العرض والتشغيل =====================
+// v20: الفرنسية تعود للإنجليزية في الجداول التي تُفهرَس بـ S.lang
+GT.fr=GT.en;IT.fr=IT.en;HT.fr=HT.en;BD.forEach(b=>{b.fr=b.en});
 const VIEWS={home:renderHome,decks:renderDecks,deck:renderDeck,study:renderStudy,library:renderLibrary,res:renderResearch,play:renderPlay,quiz:renderQuiz,me:renderMe,help:renderHelp};
 function render(){
  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==="ar"?"rtl":"ltr";
- $("lang").textContent=S.lang==="ar"?"EN":"ع";$("help").setAttribute("aria-label",S.lang==="ar"?"مساعدة":"Help");
+ $("lang").textContent=S.lang==="ar"?"EN":S.lang==="en"?"FR":"ع";$("lang").setAttribute("aria-label",({ar:"Language: English",en:"Langue : français",fr:"اللغة: العربية"})[S.lang]);$("help").setAttribute("aria-label",S.lang==="ar"?"مساعدة":"Help");
  document.body.classList.remove("focus","inchat");if(S.tab!=="quiz")stopTimer();
  buildTabs();updChip();updInst();
  const v=$("view");v.replaceChildren();(VIEWS[S.tab]||renderHome)(v)}
-$("lang").onclick=()=>{S.lang=S.lang==="ar"?"en":"ar";persist();render()};
+$("lang").onclick=()=>{S.lang=S.lang==="ar"?"en":S.lang==="en"?"fr":"ar";persist();render()};
 $("gchip").onclick=()=>{S.me="s";go("me")};
 $("help").onclick=()=>go("help");
 window.addEventListener("hashchange",handleHash);

@@ -30,6 +30,8 @@
 17. `v19o-deck-adds.sql` (عدّاد الإضافات والحزم الرائجة 🔥؛ جدول `deck_adds`)
 18. `v19p-stories.sql` (القصص ⏳؛ جدولا `stories` و`story_reports`). **لم يُشغَّل على PostgreSQL أثناء التطوير، فجرّبه أولًا على مشروع تجريبي.**
 
+19. `v20-interactive.sql` (الرد على الرسائل، إعادة النشر، الاقتباس، السلاسل، الردود المتفرعة). إضافي بالكامل وداخل معاملة واحدة؛ يتحقق من وجود `v19m-topic.sql` أولًا. قبل تشغيله تعمل الميزات القديمة كما هي.
+
 ثم: انسخ `Project URL` و`anon/publishable key` من **Project Settings ← API** إلى `config.js` (لا تضع `service_role` أبدًا)، وفي **Authentication ← URL Configuration** ضع رابط موقعك في Site URL وRedirect URLs. تأكد أن `call_signals` ضمن `supabase_realtime`.
 عدّل `APP.contact` في `config.js` إلى بريدك الحقيقي: يُستخدم مع الترجمة المجانية، ومع OpenAlex وCrossref لتحسين السرعة وتقليل الحجب.
 
