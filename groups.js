@@ -33,7 +33,7 @@ async function openMentors(){
   body.append(T("أنت مؤهل لتكون مرشدًا"),h("label",{class:"meta",style:"display:flex;gap:6px;align-items:center"},on,"أتيح نفسي لاستقبال طلبات الإرشاد"),tp,
    h("button",{class:"btn",onclick:async()=>{const r=await SC.sb.rpc("set_mentor",{opn:on.checked,topics:tp.value});if(r.error)return toast(r.error.message);Object.assign(SC.me,{mentor_open:on.checked,mentor_topics:tp.value});toast("✅ تم الحفظ")}},"حفظ"));
   const rq=await SC.sb.rpc("my_mentor_requests");
-  if(!rq.error&&(rq.data||[]).length)body.append(T("📥 طلبات واردة"),rq.data.map(x=>h("div",{class:"card"},h("b",{dir:"auto"},(x.name||x.username)+" · "+lvName(x.academic_level)),h("div",{class:"meta",dir:"auto"},x.msg||""),
+  if(!rq.error&&(rq.data||[]).length)body.append(T("📥 طلبات واردة"),...rq.data.map(x=>h("div",{class:"card"},h("b",{dir:"auto"},(x.name||x.username)+" · "+lvName(x.academic_level)),h("div",{class:"meta",dir:"auto"},x.msg||""),
    h("div",{class:"btns"},[true,false].map(a=>h("button",{class:"btn",onclick:async()=>{const r=await SC.sb.rpc("answer_mentor",{req:x.rid,accept:a});if(r.error)return toast(r.error.message);
     if(a&&r.data){m.remove();openChat(r.data,x.name||x.username)}else{toast("تم");m.remove();openMentors()}}},a?"✅ قبول":"رفض"))))))}
  else if(["m1","m2","phd"].includes(me.academic_level))body.append(h("div",{class:"meta"},"وثّق مستواك (✓) لتصبح مرشدًا: من تبويب الإنجازات اطلب التوثيق."));

@@ -8,7 +8,7 @@ function userRow(p,fw){const sub=[p.field,p.university].filter(Boolean).join(" �
   h("div",{},h("b",{dir:"auto"},(p.name||p.username)+(p.verified?" ✅":"")),h("div",{class:"meta",dir:"auto"},"@"+p.username+(sub?" · "+sub:"")))));
  if(fw&&SC.user)row.append(h("button",{class:"btn",onclick:async e=>{e.stopPropagation();const r=await SC.sb.from("follows").insert({follower:SC.user.id,followee:p.id});if(r.error)return toast(r.error.message);row.remove()}},"＋ متابعة"));return row}
 async function sugBox(v){const box=h("div",{});v.append(box);const r=await SC.sb.rpc("suggested_users"),l=((r.data)||[]).filter(p=>!SC.blocked.has(p.id)).slice(0,4);if(r.error||!l.length)return;
- box.append(h("div",{class:"meta",style:"padding:8px 16px 0;font-weight:700"},"✨ باحثون قد تهتم بمتابعتهم"),l.map(p=>userRow(p,true)))}
+ box.append(h("div",{class:"meta",style:"padding:8px 16px 0;font-weight:700"},"✨ باحثون قد تهتم بمتابعتهم"),...l.map(p=>userRow(p,true)))}
 async function searchView(v){const q=SC.q;v.append(searchBar());const pb=h("div",{}),xb=h("div",{}),T=x=>h("div",{class:"meta",style:"padding:8px 16px 0;font-weight:700"},x);
  v.append(T("👤 باحثون"),pb,T("📄 منشورات"),xb);
  const w="*"+q+"*",pr=await SC.sb.from("profiles").select("*").or("username.ilike."+w+",name.ilike."+w+",field.ilike."+w+",university.ilike."+w+(/^\d{6,12}$/.test(q)?",researcher_uid.eq."+q:"")).limit(20),rows=(pr.data||[]).filter(p=>!SC.blocked.has(p.id));
