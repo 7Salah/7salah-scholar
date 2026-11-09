@@ -48,7 +48,8 @@ async function transcribe(db: any, uid: string, lec: any, ci: number) {
   const total = (used || []).reduce((a: number, r: any) => a + (r.duration_sec || 0), 0);
   if (total >= DAILY && !ch.done) fail("limit", 429);
 
-  await db.from("lectures").update({ status: "transcribing", error: null }).eq("id", lec.id);
+  const markProcessing = await db.from("lectures").update({ status: "transcribing", error: null }).eq("id", lec.id);
+  if (markProcessing.error) { console.error("lecture status update", markProcessing.error); fail("db", 500); }
   const dl = await db.storage.from("lectures").download(ch.path);
   if (dl.error || !dl.data) fail("no_audio", 404);
   if (dl.data.size > MAX_BYTES) fail("too_big", 413);
@@ -89,7 +90,8 @@ async function transcribe(db: any, uid: string, lec: any, ci: number) {
   const done = chunks.filter((c: any) => c.done).length;
   const dur = Math.round(chunks.reduce((a: number, c: any) => a + (Number(c.dur) || 0), 0));
   const status = done === chunks.length ? "ready" : "transcribing";
-  await db.from("lectures").update({ chunks, duration_sec: dur, status }).eq("id", lec.id);
+  const saved = await db.from("lectures").update({ chunks, duration_sec: dur, status }).eq("id", lec.id);
+  if (saved.error) { console.error("lecture chunks update", saved.error); fail("db", 500); }
   return { done, total: chunks.length, status, segments: rows.length };
 }
 

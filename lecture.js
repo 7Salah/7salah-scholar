@@ -103,8 +103,9 @@ const extOf=(type,name)=>{const m=(name||"").match(/\.(\w{2,5})$/);if(m)return m
 const mimeOf=(type,ext)=>{type=(type||"").split(";")[0];if(/^(audio|video)\//.test(type))return type;return({m4a:"audio/mp4",mp3:"audio/mpeg",wav:"audio/wav",ogg:"audio/ogg",aac:"audio/aac",flac:"audio/flac",webm:"audio/webm"})[ext]||"audio/webm"};
 async function putChunk(lec,n,blob,name){const c=await sb(),ext=extOf(blob.type,name),path=SC.user.id+"/"+lec.id+"/c"+n+"."+ext;
  const r=await c.storage.from("lectures").upload(path,blob,{contentType:mimeOf(blob.type,ext),upsert:true});if(r.error)throw r.error;return{path,offset:0,dur:0,done:false}}
-async function uploadFile(lec,file){LEC.recUI={lec,msg:lt("upl"),file:true};render();
- try{const ch=await putChunk(lec,0,file,file.name);const c=await sb();await c.from("lectures").update({chunks:[ch]}).eq("id",lec.id);lec.chunks=[ch];await process(lec)}catch(e){fin(lec,"failed")}}
+async function uploadFile(lec,file){LEC.recUI={lec,msg:lt("upl"),file:true};render();let ch=null;
+ try{ch=await putChunk(lec,0,file,file.name);const c=await sb();const saved=await c.from("lectures").update({chunks:[ch]}).eq("id",lec.id).select("id").single();if(saved.error)throw saved.error;lec.chunks=[ch];await process(lec)}
+ catch(e){console.error("[lecture-upload]",e);if(ch&&ch.path){try{await(await sb()).storage.from("lectures").remove([ch.path])}catch(cleanErr){console.warn("[lecture-upload-cleanup]",cleanErr)}}toast(lt("eGen"));fin(lec,"failed")}}
 async function process(lec){const c=await sb();let chunks=lec.chunks;
  try{for(let i=0;i<chunks.length;i++){if(chunks[i].done)continue;LEC.recUI={lec,msg:lt("trn",{a:i+1,b:chunks.length}),file:true};if(S.tab==="lec"&&!LEC.id)render();
    const r=await call({action:"transcribe",lecture_id:lec.id,chunk:i});if(r.status==="ready")break}
@@ -126,7 +127,7 @@ async function startRec(lec){
  R.toggle=()=>{if(R.paused){R.mr.resume();R.paused=false}else{R.mr.pause();R.paused=true}render()};
  R.stop=async()=>{clearInterval(R.tick);R.msg=lt("upl");await new Promise(res=>{const o=R.mr.onstop;R.mr.onstop=()=>{o();res()};if(R.mr.state!=="inactive")R.mr.stop();else res()});stream.getTracks().forEach(t=>t.stop());try{R.wl&&R.wl.release()}catch(e){}R.stopped=true;render();
   try{await Promise.all(R.ups);const chunks=R.chunks.filter(Boolean);if(R.act<3||!chunks.length){await(await sb()).from("lectures").delete().eq("id",lec.id);LEC.recUI=null;return render()}
-   await(await sb()).from("lectures").update({chunks}).eq("id",lec.id);lec.chunks=chunks;await process(lec)}catch(e){fin(lec,"failed")}};
+   const c=await sb();const saved=await c.from("lectures").update({chunks}).eq("id",lec.id).select("id").single();if(saved.error)throw saved.error;lec.chunks=chunks;await process(lec)}catch(e){console.error("[lecture-record-save]",e);const paths=R.chunks.filter(Boolean).map(x=>x.path);if(paths.length){try{await(await sb()).storage.from("lectures").remove(paths)}catch(cleanErr){console.warn("[lecture-record-cleanup]",cleanErr)}}toast(lt("eGen"));fin(lec,"failed")}};
  if(S.tab!=="lec")go("lec");else render()}
 function recPanel(){const R=LEC.recUI;
  if(R.file||R.stopped)return h("div",{class:"card lec-rec"},h("div",{class:"lec-spin"}),h("b",{},R.msg||lt("proc")),h("div",{class:"meta"},R.lec.title));
