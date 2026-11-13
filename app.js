@@ -65,6 +65,7 @@ try{const x=LS.get("7s_saved",[]);if(Array.isArray(x))S.saved=x;const l=localSto
 {const r=LS.get("7s_rem",[]);if(Array.isArray(r))S.rem=r;const d=LS.get("7s_decks",[]);if(Array.isArray(d))S.decks=d.filter(x=>x&&Array.isArray(x.cards));
  const p=LS.get("7s_prof",{});if(p&&typeof p==="object")Object.assign(S.prof,p);if(!S.prof.av||/[🦊🐼🦉🐯🐸🦁🐙🦄🐧🦅🐬🐢]/u.test(S.prof.av))S.prof.av="📚";if(typeof S.prof.col!=="number"||S.prof.col<0||S.prof.col>5)S.prof.col=0;const v=LS.get("7s_riv",[]);if(Array.isArray(v))S.riv=v}
 const t=k=>{const v=T[S.lang][k];if(v==null){console.warn("missing i18n:",k);return k}return v};
+const tr=(a,e)=>S.lang==="ar"?a:e; // مساعد عام للنصوص الثنائية (كان معرّفًا محليًا فقط فيُسقط نشر الملف للمكتبة)
 const tf=(k,o)=>t(k).replace(/\{(\w+)\}/g,(m,x)=>o[x]);
 const persist=()=>{try{localStorage.setItem("7s_saved",JSON.stringify(S.saved));localStorage.setItem("7s_lang",S.lang);localStorage.setItem("7s_rem",JSON.stringify(S.rem));
  localStorage.setItem("7s_decks",JSON.stringify(S.decks));localStorage.setItem("7s_prof",JSON.stringify(S.prof));localStorage.setItem("7s_riv",JSON.stringify(S.riv))}catch(e){}};

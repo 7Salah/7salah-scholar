@@ -1,3 +1,10 @@
+function authMsg(err){const m=String((err&&err.message)||err||"").toLowerCase(),c=err&&(err.status||err.code);
+ if(c===429||/rate limit|too many|over_email|security purposes/.test(m))return "تجاوزتَ عدد المحاولات المسموح مؤقتًا. انتظر بضع دقائق ثم حاول مجددًا.";
+ if(/invalid login|invalid credentials/.test(m))return "البريد أو كلمة المرور غير صحيحة.";
+ if(/not confirmed/.test(m))return "لم يُؤكَّد بريدك بعد. افتح رسالة التأكيد في بريدك ثم سجّل الدخول.";
+ if(/already registered|already been registered|user_already_exists/.test(m))return "هذا البريد مسجّل من قبل. جرّب تسجيل الدخول.";
+ if(/password/.test(m)&&/(short|least|weak|characters)/.test(m))return "كلمة المرور ضعيفة أو قصيرة. استخدم 8 أحرف على الأقل.";
+ return (err&&err.message)||"تعذّر إكمال العملية.";}
 // المجتمع الأكاديمي: حسابات وصفحات ومنشورات (Supabase). يُحمَّل بعد app.js ويشاركه الدوال العامة.
 const SC={blocked:new Set(),sb:null,user:null,me:null,view:"feed",kind:"",uid:null};
 Object.assign(T.ar,{nCom:"المجتمع"});Object.assign(T.en,{nCom:"Community"});
@@ -122,6 +129,6 @@ function authModal(){let up=false;const I=(ph,o)=>h("input",Object.assign({class
  sw.onclick=()=>{up=!up;ex.style.display=up?"":"none";go.textContent=up?"إنشاء حساب":"دخول";sw.textContent=up?"لديك حساب؟ ادخل":"ليس لديك حساب؟ سجّل"};
  go.onclick=async()=>{const e=em.value.trim(),p=pw.value;if(!e||p.length<8)return toast("أدخل بريدًا صحيحًا وكلمة مرور من 8 أحرف على الأقل");
   if(up){if(!ag.checked)return toast("يجب الموافقة على الشروط وسياسة الخصوصية");const u=un.value.trim().toLowerCase();if(!/^[a-z0-9_]{3,20}$/.test(u))return toast("اسم المستخدم: 3–20 حرفًا إنجليزيًا أو أرقامًا أو _");
-   const r=await SC.sb.auth.signUp({email:e,password:p,options:{data:{username:u,name:nm.value.trim()||u},emailRedirectTo:location.origin+location.pathname}});if(r.error)return toast(r.error.message);if(!r.data.session){toast("أرسلنا رابط تأكيد إلى بريدك الإلكتروني. افتح الرسالة وأكّد الحساب قبل تسجيل الدخول.");return}}
-  else{const r=await SC.sb.auth.signInWithPassword({email:e,password:p});if(r.error)return toast(r.error.message)}m.remove()};
+   const r=await SC.sb.auth.signUp({email:e,password:p,options:{data:{username:u,name:nm.value.trim()||u},emailRedirectTo:location.origin+location.pathname}});if(r.error)return toast(authMsg(r.error));if(!r.data.session){toast("أرسلنا رابط تأكيد إلى بريدك الإلكتروني. افتح الرسالة وأكّد الحساب قبل تسجيل الدخول.");return}}
+  else{const r=await SC.sb.auth.signInWithPassword({email:e,password:p});if(r.error)return toast(authMsg(r.error))}m.remove()};
  const m=modal(h("h3",{},"👤 حسابك الأكاديمي"),em,pw,ex,go,h("div",{class:"meta"},"بالتسجيل توافق أن ملفك ومنشوراتك عامة."),h("div",{class:"acts"},sw,h("button",{class:"btn",onclick:()=>m.remove()},t("cancel"))))}
