@@ -14,6 +14,7 @@ header{display:flex;align-items:center;gap:6px;padding:12px 16px;position:sticky
 .hbtn{width:34px;height:34px;padding:0!important;border-radius:50%;font-weight:700;flex:none}
 .gchip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 10px;font-size:13px;font-weight:700}
 @media (max-width:370px){.brand{font-size:14px}.gchip{padding:5px 8px;font-size:12px}}
+@media (max-width:430px){.brand span:last-child{display:none}}
 .hero{background:linear-gradient(135deg,#0f4c81,#17639f);color:#fff;padding:20px 16px 22px;margin:0 0 4px;border-radius:0 0 22px 22px}
 .eyebrow{color:var(--teal);font-size:12px;letter-spacing:.08em;font-weight:700}
 .hero h1{margin:6px 0 14px;font-size:25px;line-height:1.35}
@@ -848,3 +849,152 @@ body.inchat .nbask{display:none!important}
 @media(max-width:700px){.lib-classifier{margin-inline:16px}.lib-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.lib-meta-grid{grid-template-columns:1fr}}
 @media(min-width:901px){.lib-classifier{margin-inline:0}}
+
+/* =========================================================
+   7Salah Scholar v21 — Official & Fun
+   رسمي: شعار بختم ذهبي، نقش هندسي هادئ، شارات موثّقة، أرقام منتظمة.
+   ممتع: حركات قصيرة تستجيب للمس، احتفال بالإجابة الصحيحة والشارات.
+   إضافة فقط: لا يغيّر المحتوى ولا JavaScript.
+   ========================================================= */
+body{font-family:"IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif}
+.ring>div,.score,.pst b,.stats b,.dash-stat b,.qhud,.ctime{font-variant-numeric:tabular-nums}
+
+/* ---------- الطابع الرسمي ---------- */
+header{border-bottom:1px solid transparent;background-image:linear-gradient(90deg,transparent,rgba(217,173,69,.55),transparent);background-repeat:no-repeat;background-size:100% 1px;background-position:bottom}
+.brand .logo{box-shadow:0 0 0 2px var(--card),0 0 0 3.5px var(--gold),0 5px 14px rgba(12,43,86,.22)}
+.hero{position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;opacity:.07;pointer-events:none;background:
+  conic-gradient(from 45deg at 50% 50%,#fff 0 12.5%,transparent 0 25%,#fff 0 37.5%,transparent 0 50%,#fff 0 62.5%,transparent 0 75%,#fff 0 87.5%,transparent 0) 0 0/44px 44px}
+.hero>*{position:relative}
+.hero h1{font-weight:800}
+.card h3{font-weight:800}
+.sec::after{content:"";flex:1;height:1px;margin-inline-start:12px;background:linear-gradient(90deg,var(--line),transparent)}
+.teacher-badge::before{content:"✓";font-weight:900;margin-inline-end:4px;color:#0d8a6a}
+.premium-badge::before{content:"★";margin-inline-end:4px}
+.score{background:linear-gradient(145deg,#f5d77f,#c8962a);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.pcard,.bd:not(.lock){border-top:3px solid var(--gold)}
+.bd:not(.lock){background:linear-gradient(180deg,var(--gold-soft),var(--card) 62%)}
+.gchip{background:linear-gradient(145deg,var(--gold-soft),var(--card));border-color:rgba(217,173,69,.5)}
+
+/* ---------- لمسات ممتعة ---------- */
+.btn:active,.pri:active,.big-btn:active,.sb button:active,.chip:active,.tchip:active,.pbtn:active{transform:scale(.96)}
+.rate button{box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .12s,box-shadow .12s}
+.rate button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.bar>i,.mini>i,.tbar i{background-size:200% 100%}
+.pbtn.like.on .ic{color:#e5484d;fill:currentColor}
+
+@media (prefers-reduced-motion:no-preference){
+  .fc,.qq{animation:v21In .32s cubic-bezier(.2,.8,.3,1)}
+  .opt{animation:v21In .28s both}
+  .opt:nth-of-type(2){animation-delay:.04s}.opt:nth-of-type(3){animation-delay:.08s}.opt:nth-of-type(4){animation-delay:.12s}
+  .opt.ok{animation:v21Ok .45s}
+  .opt.bad{animation:v21Shake .38s}
+  .toast{animation:v21Drop .35s cubic-bezier(.2,.9,.3,1.2)}
+  #tabbar button.on svg{animation:v21Bounce .45s}
+  .bar>i,.mini>i,.tbar i{background-image:linear-gradient(90deg,#d9ad45 0,#f6e2a0 50%,#d9ad45 100%);animation:v21Shine 3s linear infinite}
+  .bd:not(.lock){position:relative;overflow:hidden}
+  .bd:not(.lock)::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-120%);animation:v21Sweep 4.5s ease-in-out infinite}
+  .bd:not(.lock) b .ic{animation:v21Float 3s ease-in-out infinite}
+  .ring{animation:v21Glow 3.2s ease-in-out infinite}
+  .score{animation:v21Pop .6s cubic-bezier(.2,.9,.3,1.3)}
+  .gchip:active .ic{animation:v21Wobble .4s}
+}
+@keyframes v21In{from{opacity:0;transform:translateY(12px) scale(.98)}}
+@keyframes v21Ok{40%{transform:scale(1.04);box-shadow:0 0 0 6px rgba(31,157,99,.18)}}
+@keyframes v21Shake{25%{transform:translateX(-7px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+@keyframes v21Drop{from{opacity:0;transform:translateY(-24px)}}
+@keyframes v21Bounce{40%{transform:translateY(-5px) scale(1.12)}}
+@keyframes v21Shine{to{background-position:-200% 0}}
+@keyframes v21Sweep{0%,60%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@keyframes v21Float{50%{transform:translateY(-3px) rotate(-4deg)}}
+@keyframes v21Glow{50%{box-shadow:0 0 18px rgba(217,173,69,.45)}}
+@keyframes v21Pop{0%{transform:scale(.6);opacity:0}}
+@keyframes v21Wobble{25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+
+/* =========================================================
+   7Salah Scholar v22 — Glass (iOS + Windows Fluent) — قابل للتحكم
+   المستخدم يتحكم عبر glass.js: --g-a (الكثافة) و --g-px (الضبابية)
+   و body.lite (وضع التوفير). يتراجع تلقائيًا للون عادي إن لم يدعم الجهاز
+   الضبابية أو طلب المستخدم تقليل الشفافية.
+   ========================================================= */
+:root{--g-rgb:255,255,255;--g-a:.58;--g-px:14;--g-brd:rgba(255,255,255,.8);--g-in:rgba(255,255,255,.6);
+  --g-sh:0 8px 28px rgba(16,48,91,.09);--g-hi:inset 0 1px 0 rgba(255,255,255,.85);
+  --a1:rgba(120,170,235,.40);--a2:rgba(226,184,79,.24);--a3:rgba(90,150,215,.26);
+  --g-bg:rgba(var(--g-rgb),var(--g-a));--g-bg2:rgba(var(--g-rgb),calc(var(--g-a) + .2));
+  --g-blur:blur(calc(var(--g-px) * 1px)) saturate(160%);--g-blur-hi:blur(calc(var(--g-px) * 1.8px)) saturate(190%)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--g-rgb:30,42,58;--g-a:.52;--g-brd:rgba(255,255,255,.10);--g-in:rgba(0,0,0,.22);--g-sh:0 10px 30px rgba(0,0,0,.28);--g-hi:inset 0 1px 0 rgba(255,255,255,.08);--a1:rgba(60,110,190,.30);--a2:rgba(226,184,79,.12);--a3:rgba(50,100,180,.22)}}
+:root[data-theme=dark]{--g-rgb:30,42,58;--g-a:.52;--g-brd:rgba(255,255,255,.10);--g-in:rgba(0,0,0,.22);--g-sh:0 10px 30px rgba(0,0,0,.28);--g-hi:inset 0 1px 0 rgba(255,255,255,.08);--a1:rgba(60,110,190,.30);--a2:rgba(226,184,79,.12);--a3:rgba(50,100,180,.22)}
+body.lite{--g-blur:none;--g-blur-hi:none;--g-bg:var(--card);--g-bg2:var(--card)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:root{--g-bg:var(--card);--g-bg2:var(--card)}}
+@media(prefers-reduced-transparency:reduce){:root{--g-bg:var(--card);--g-bg2:var(--card);--g-blur:none;--g-blur-hi:none}}
+
+/* خلفية هادئة تظهر من خلف الزجاج */
+html{background:var(--bg)}
+body{background:transparent!important}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(60rem 40rem at 8% -6%,var(--a1),transparent 60%),radial-gradient(50rem 36rem at 96% 6%,var(--a2),transparent 55%),radial-gradient(46rem 40rem at 50% 106%,var(--a3),transparent 60%)}
+
+/* الأسطح الزجاجية */
+.card,.fc,.qq,.opt:not(.ok):not(.bad),.bd,.qa button,.inst,.dash-panel,.dash-stat,.cnav,.clist,.pstats,.cmenu{
+  background-color:var(--g-bg)!important;border:1px solid var(--g-brd)!important;border-radius:20px;
+  box-shadow:var(--g-sh),var(--g-hi)!important;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.qa button{background-image:none!important}
+.bd:not(.lock){background-image:linear-gradient(180deg,rgba(248,236,199,.75),transparent 72%)!important}
+.pcard{overflow:hidden}
+.in,.cin,.cta{background-color:var(--g-in)!important;border-color:var(--g-brd)!important}
+
+/* الأشرطة */
+header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-blur-hi);backdrop-filter:var(--g-blur-hi);border-bottom:1px solid var(--g-brd)}
+#tabbar{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-blur-hi);backdrop-filter:var(--g-blur-hi);border-color:var(--g-brd)!important}
+.chead,.composer{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-blur-hi);backdrop-filter:var(--g-blur-hi)}
+.modal{background:rgba(10,22,40,.38);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.modal .box{background-color:var(--g-bg2)!important;border:1px solid var(--g-brd);border-radius:26px;-webkit-backdrop-filter:var(--g-blur-hi);backdrop-filter:var(--g-blur-hi)}
+.toast{border-radius:18px;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.hero{border-radius:0 0 30px 30px}
+
+/* شريط التبويب العائم على الهاتف (على غرار iOS) */
+@media(max-width:899px){
+  #tabbar{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));max-width:536px;margin-inline:auto;padding:4px;border:1px solid var(--g-brd);border-radius:28px;box-shadow:var(--g-sh),var(--g-hi)}
+  #tabbar button{border-top:0!important;border-radius:22px;padding:7px 2px 6px}
+  #tabbar button.on{background:rgba(18,54,107,.10)!important;color:var(--blue)}
+  :root[data-theme=dark] #tabbar button.on{background:rgba(255,255,255,.12)!important}
+  .app{padding-bottom:124px}
+}
+/* الحاسوب: شريط جانبي زجاجي (على غرار Mica في ويندوز) */
+@media(min-width:900px){#tabbar{border-radius:0}#tabbar button.on{background:var(--g-bg)!important;border-radius:12px}}
+
+/* لوحة التحكم في المظهر */
+.gc input[type=range]{width:100%;margin:4px 0 12px;accent-color:#b98a25}
+.gc .lbl{display:flex;justify-content:space-between}
+.gc .chips{padding:6px 0 0}
+
+/* v22.1 — زر الإعدادات الصغير في أعلى الملف الشخصي (يسار في العربية، ويمين في الإنجليزية) */
+.pcard{position:relative}
+.pset{position:absolute;top:12px;inset-inline-end:12px;z-index:2;width:38px;height:38px;padding:0;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);-webkit-backdrop-filter:blur(10px) saturate(160%);backdrop-filter:blur(10px) saturate(160%);box-shadow:0 2px 8px rgba(0,0,0,.18);transition:transform .16s,background .16s}
+.pset .ic{width:20px;height:20px;margin:0}
+.pset:active{transform:scale(.92);background:rgba(255,255,255,.3)}
+
+/* =========================================================
+   7Salah Scholar v23 — نبراس الجديد: يتفاعل بأربع حالات
+   happy · celebrate · think · sad  (data-mood على عنصر svg.nb)
+   ========================================================= */
+.nb .n-shut,.nb .m-smile,.nb .m-open,.nb .m-flat,.nb .m-sad,.nb .th,.nb .tear,.nb .brow-s,.nb .n-sparkles{display:none}
+.nb[data-mood=happy] .m-smile{display:block}
+.nb[data-mood=celebrate] .n-shut,.nb[data-mood=celebrate] .m-open,.nb[data-mood=celebrate] .n-sparkles{display:block}
+.nb[data-mood=celebrate] .n-open{display:none}
+.nb[data-mood=think] .m-flat,.nb[data-mood=think] .th{display:block}
+.nb[data-mood=sad] .m-sad,.nb[data-mood=sad] .tear,.nb[data-mood=sad] .brow-s{display:block}
+.nb .n-look{transition:transform .3s}
+.nb[data-mood=think] .n-look{transform:translate(2.4px,-3px)}
+.nb[data-mood=sad] .n-look{transform:translate(0,2.5px)}
+.nrow{display:flex;align-items:center;gap:8px;margin:10px 16px}
+.nbslot{width:92px;flex:none;cursor:pointer;-webkit-user-select:none;user-select:none}
+.nbslot svg{display:block;width:100%;height:auto}
+.nbub{position:relative;flex:1;min-width:0;padding:12px 14px;border-radius:18px;line-height:1.75;font-size:14.5px;font-weight:600;background-color:var(--g-bg2,var(--card));border:1px solid var(--g-brd,var(--line));box-shadow:var(--g-sh,var(--sh));-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+.nbub::before{content:"";position:absolute;top:26px;inset-inline-start:-13px;border:7px solid transparent;border-inline-end-color:var(--g-bg2,var(--card))}
+@media(prefers-reduced-motion:no-preference){
+  .nb .n-open{animation:nbBlink 5.5s infinite;transform-box:fill-box;transform-origin:center}
+  .nbslot.pop{animation:nbPop .5s}
+}
+@keyframes nbBlink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+@keyframes nbPop{30%{transform:scale(1.18) rotate(-6deg)}60%{transform:scale(.96) rotate(4deg)}}

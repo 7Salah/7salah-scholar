@@ -1,0 +1,20 @@
+<!-- 1) الزر: ضعه داخل بطاقة الملف الشخصي .pcard مباشرة بعد <div class="pcover"></div> -->
+<button class="pset" id="setb" aria-label="الإعدادات"><svg class="ic"><use href="#i-gear"/></svg></button>
+
+<!-- 2) نافذة الإعدادات: ضعها في آخر الصفحة (تحتاج glass.js وأيقونة i-gear) -->
+<div class="modal" id="setm" hidden><div class="box gc">
+  <h3><svg class="ic"><use href="#i-gear"/></svg>الإعدادات</h3>
+  <div class="sec" style="padding:6px 0">مظهر التطبيق</div>
+  <div class="chips"><button class="chip" data-glass-preset="glass">زجاجي</button><button class="chip" data-glass-preset="balanced">متوازن</button><button class="chip" data-glass-preset="solid">صلب</button></div>
+  <label class="lbl">الشفافية <span data-glass-out="t"></span></label><input type="range" min="0" max="100" data-glass="t">
+  <label class="lbl">قوة الضبابية <span data-glass-out="b"></span></label><input type="range" min="0" max="30" data-glass="b">
+  <label class="sel"><input type="checkbox" data-glass="lite"><span>وضع التوفير: بدون ضبابية، أخف على البطارية</span></label>
+  <div class="acts"><button class="btn" data-glass-reset>استعادة الافتراضي</button><button class="ok" id="setx">تم</button></div>
+</div></div>
+<script>
+(function(){var m=document.getElementById("setm");
+  document.getElementById("setb").onclick=function(){m.hidden=false};
+  document.getElementById("setx").onclick=function(){m.hidden=true};
+  m.addEventListener("click",function(e){if(e.target===m)m.hidden=true});
+})();
+</script>
