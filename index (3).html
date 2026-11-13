@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#120a2b">
+<title>7Salah — المحاضرات الذكية</title>
+<style>
+:root{--bg1:#120a2b;--bg2:#27104f;--pink:#ff7eb6;--cyan:#5ee7ff;--violet:#8b7bff;--gold:#ffd36e;--ok:#5dffb0;--bad:#ff6b8a;--text:#f5f2ff;--muted:#b9b1dc;--glass:rgba(255,255,255,.07);--glass2:rgba(255,255,255,.13);--line:rgba(255,255,255,.15);--r:22px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{font-family:"Segoe UI",Tahoma,"Noto Sans Arabic","Noto Naskh Arabic",system-ui,sans-serif;color:var(--text);background:linear-gradient(160deg,var(--bg1),var(--bg2));min-height:100vh;line-height:1.65;padding-bottom:env(safe-area-inset-bottom)}
+.bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(520px 420px at 15% 8%,rgba(255,126,182,.28),transparent 70%),radial-gradient(560px 460px at 90% 92%,rgba(94,231,255,.22),transparent 70%),radial-gradient(400px 300px at 80% 20%,rgba(139,123,255,.25),transparent 70%)}
+.bg::before,.bg::after{content:"✦";position:absolute;color:#fff;opacity:.5;font-size:14px;animation:tw 3.2s ease-in-out infinite}
+.bg::before{top:14%;inset-inline-start:12%}
+.bg::after{top:62%;inset-inline-end:10%;animation-delay:1.4s;font-size:11px}
+@keyframes tw{0%,100%{opacity:.15;transform:scale(.8)}50%{opacity:.85;transform:scale(1.2)}}
+#app{max-width:560px;margin:0 auto;padding:0 16px 40px}
+.screen{animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{font:inherit;color:var(--text);background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(94,231,255,.2)}
+select option{color:#222}
+label{display:block;font-size:.9rem;color:var(--muted);margin:12px 0 6px}
+.top{display:flex;align-items:center;gap:10px;padding:max(14px,env(safe-area-inset-top)) 0 10px}
+.title{font-size:1.15rem;margin:0;flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logo{font-weight:800;font-size:1.25rem;background:linear-gradient(90deg,var(--pink),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.spacer{flex:1}
+.icon-btn{width:42px;height:42px;border-radius:50%;background:var(--glass2);border:1px solid var(--line);font-size:1.2rem}
+.chip{padding:6px 14px;border-radius:999px;background:var(--glass2);border:1px solid var(--line);font-size:.85rem}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin:14px 0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.hero{text-align:center;padding:26px 18px}
+.hero h2{margin:0 0 6px;font-size:1.35rem}
+.hero p{margin:0;color:var(--muted)}
+.mascot{font-size:2.6rem;display:inline-block;animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.btn{display:block;width:100%;padding:15px 18px;border-radius:18px;font-weight:700;text-align:center;transition:transform .15s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(90deg,var(--pink),var(--violet));box-shadow:0 8px 24px rgba(255,126,182,.3)}
+.btn.cyan{background:linear-gradient(90deg,var(--violet),var(--cyan));color:#0b0720;box-shadow:0 8px 24px rgba(94,231,255,.25)}
+.btn.ghost{background:var(--glass2);border:1px solid var(--line)}
+.btn.danger{background:rgba(255,107,138,.18);border:1px solid rgba(255,107,138,.5)}
+.row{display:flex;gap:10px;margin:12px 0}
+.row>*{flex:1}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+h3.sec{margin:22px 4px 6px;font-size:1.05rem}
+.msg{margin-top:10px;font-size:.9rem;min-height:1.2em}
+.msg.err{color:var(--bad)}
+.msg.ok{color:var(--ok)}
+.check{display:flex;gap:10px;align-items:flex-start;margin:14px 0 4px;font-size:.88rem;color:var(--muted)}
+.check input{width:22px;height:22px;flex:none;margin-top:3px;accent-color:var(--pink)}
+/* library */
+.lcard{display:flex;gap:10px;align-items:center;background:var(--glass);border:1px solid var(--line);border-radius:18px;padding:14px;margin:10px 0}
+.lc-main{flex:1;min-width:0}
+.lc-main[role=button]{cursor:pointer}
+.lc-title{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lc-meta{font-size:.8rem;color:var(--muted)}
+.lc-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.badge{font-size:.72rem;padding:2px 10px;border-radius:999px;background:var(--glass2)}
+.badge.ready{background:rgba(93,255,176,.2);color:var(--ok)}
+.badge.failed{background:rgba(255,107,138,.2);color:var(--bad)}
+.badge.transcribing,.badge.uploading,.badge.new{background:rgba(255,211,110,.2);color:var(--gold)}
+.mini{font-size:.78rem;padding:4px 10px;border-radius:10px;background:var(--glass2);border:1px solid var(--line)}
+.mini.del{color:var(--bad)}
+/* recording */
+.stage{text-align:center;padding:8px 0}
+.orb{width:150px;height:150px;border-radius:50%;margin:18px auto;background:radial-gradient(circle at 35% 30%,#fff3,transparent 40%),linear-gradient(135deg,var(--pink),var(--violet) 55%,var(--cyan));display:grid;place-items:center;font-size:3rem;box-shadow:0 0 0 0 rgba(255,126,182,.5)}
+.orb.live{animation:pulse 1.8s infinite}
+.orb.paused{filter:grayscale(.6);opacity:.8}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,126,182,.55)}70%{box-shadow:0 0 0 28px rgba(255,126,182,0)}100%{box-shadow:0 0 0 0 rgba(255,126,182,0)}}
+.timer{font-size:2.6rem;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:1px}
+.eq{display:flex;gap:6px;justify-content:center;align-items:center;height:44px;margin:8px 0}
+.eq span{width:7px;height:36px;border-radius:6px;background:linear-gradient(var(--cyan),var(--pink));transform:scaleY(.15);transition:transform .08s}
+.warn{background:rgba(255,211,110,.15);border:1px solid rgba(255,211,110,.5);color:var(--gold);border-radius:14px;padding:8px 12px;font-size:.85rem;margin:8px 0}
+.ctrl{display:flex;gap:12px;margin-top:14px}
+.ctrl .btn{flex:1}
+/* processing */
+.proc{text-align:center;padding:60px 10px}
+.bar{height:12px;border-radius:999px;background:var(--glass2);overflow:hidden;margin:22px 0 12px}
+.bar-fill{height:100%;width:2%;border-radius:999px;background:linear-gradient(90deg,var(--pink),var(--cyan));transition:width .5s}
+/* viewer */
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:4px 0 10px;margin:0 -16px;padding-inline:16px;position:sticky;top:0;z-index:5;background:linear-gradient(var(--bg1),rgba(18,10,43,.85))}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:8px 16px;border-radius:999px;background:var(--glass2);border:1px solid var(--line);font-size:.9rem;white-space:nowrap}
+.tab.on{background:linear-gradient(90deg,var(--pink),var(--violet));border-color:transparent;font-weight:700}
+.seg-ctl{display:flex;gap:6px;background:var(--glass);border-radius:14px;padding:4px;margin-bottom:12px}
+.seg-ctl button{flex:1;padding:8px;border-radius:10px;font-size:.88rem}
+.seg-ctl button.on{background:var(--glass2);font-weight:700}
+.prose p{margin:0 0 12px}
+.ol h4{margin:14px 0 4px;color:var(--cyan)}
+.ol ul{margin:0;padding-inline-start:22px;color:var(--text)}
+.term{padding:12px 0;border-bottom:1px solid var(--line)}
+.term b{color:var(--pink)}
+.fc{min-height:210px;display:grid;place-items:center;text-align:center;padding:22px;border-radius:var(--r);background:linear-gradient(145deg,rgba(255,126,182,.18),rgba(94,231,255,.14));border:1px solid var(--line);font-size:1.12rem;cursor:pointer;margin:12px 0}
+.fc small{display:block;color:var(--muted);margin-bottom:8px}
+.fc.back{background:linear-gradient(145deg,rgba(139,123,255,.25),rgba(93,255,176,.12))}
+.q-text{margin:6px 0 14px;font-size:1.1rem}
+.opt{display:block;width:100%;text-align:start;padding:13px 14px;margin:8px 0;border-radius:14px;background:var(--glass2);border:1px solid var(--line)}
+.opt.ok{background:rgba(93,255,176,.2);border-color:var(--ok)}
+.opt.bad{background:rgba(255,107,138,.2);border-color:var(--bad)}
+.explain{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--glass);font-size:.9rem;color:var(--muted)}
+.score{text-align:center;padding:20px 0}
+.score .big{font-size:3rem;font-weight:800}
+.mind{text-align:center}
+.mind-root{display:inline-block;padding:14px 26px;border-radius:999px;font-weight:800;background:linear-gradient(90deg,var(--pink),var(--violet));box-shadow:0 8px 26px rgba(139,123,255,.4);margin-bottom:18px}
+.mind-branch{text-align:start;margin:10px 0;padding:12px 14px;border-radius:16px;background:var(--glass);border:1px solid var(--line);border-inline-start:5px solid var(--c)}
+.mind-branch h4{margin:0 0 8px;color:var(--c)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips .chip{font-size:.8rem}
+.seg{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ts{flex:none;font-size:.75rem;color:var(--cyan);font-variant-numeric:tabular-nums;padding-top:4px;min-width:42px}
+.st{margin:0;flex:1;cursor:pointer}
+.seg.unclear .st{border-bottom:1px dotted var(--gold)}
+.search{margin-bottom:6px}
+#toast{position:fixed;inset-inline:16px;bottom:max(18px,env(safe-area-inset-bottom));max-width:520px;margin:auto;padding:12px 16px;border-radius:16px;background:#2b1a58;border:1px solid var(--line);text-align:center;opacity:0;pointer-events:none;transition:opacity .25s;z-index:20}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<main id="app"></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+/* ====== الإعدادات ====== */
+const SUPABASE_URL = 'https://opmsdiiosexrfdokmokc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_c41vzhSEWibnXHfWPLSF2Q_K2KACzhu'; // مفتاح عام مخصّص للواجهات
+const CHUNK_SECONDS = 600;          // طول كل جزء صوتي
+const MAX_SECONDS = 3 * 3600;       // أقصى طول للمحاضرة
+const MAX_CHUNK_BYTES = 12 * 1024 * 1024;
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const app = document.getElementById('app');
+const state = { user: null, current: null, tab: 'summary' };
+
+/* ====== أدوات صغيرة ====== */
+// بناء عناصر آمن: كل النصوص تدخل كنص عادي وليس HTML (حماية من XSS)
+function h(tag, props, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else if (k === 'style' && typeof v === 'object') {
+      for (const [sk, sv] of Object.entries(v)) {
+        if (sk.startsWith('--')) el.style.setProperty(sk, sv); else el.style[sk] = sv;
+      }
+    } else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : String(kid));
+  }
+  return el;
+}
+function render(node) { app.replaceChildren(node); window.scrollTo(0, 0); }
+function fmtTime(sec) {
+  sec = Math.max(0, Math.round(Number(sec) || 0));
+  const hh = Math.floor(sec / 3600), mm = Math.floor((sec % 3600) / 60), ss = sec % 60;
+  const p = (n) => String(n).padStart(2, '0');
+  return hh ? `${hh}:${p(mm)}:${p(ss)}` : `${mm}:${p(ss)}`;
+}
+let toastTimer;
+function toast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 3200);
+}
+const ERR = {
+  unauthorized: 'انتهت الجلسة، سجّل الدخول من جديد',
+  daily_limit: 'وصلت إلى الحد اليومي (10 محاضرات). جرّب غداً',
+  chunk_too_large: 'الجزء الصوتي كبير جداً (الحد 12MB)',
+  unsupported_audio: 'صيغة الصوت غير مدعومة',
+  server_not_configured: 'لم يُضبط مفتاح Gemini في Supabase بعد',
+  gemini_429: 'الخدمة مزدحمة الآن، أعد المحاولة بعد دقيقة',
+  gemini_400: 'تعذّرت قراءة الصوت (قد تكون الصيغة غير مدعومة)',
+  gemini_401: 'مفتاح Gemini غير صالح',
+  gemini_403: 'مفتاح Gemini غير صالح أو محجوب',
+  gemini_network: 'مشكلة اتصال بخدمة Gemini، أعد المحاولة',
+  bad_ai_json: 'ردّ غير مكتمل من الذكاء الاصطناعي، أعد المحاولة',
+  empty_ai_response: 'ردّ فارغ من الذكاء الاصطناعي، أعد المحاولة',
+  no_transcript: 'لم يُسمع كلام في التسجيل',
+  too_long: 'المحاضرة أطول من 3 ساعات',
+  consent_required: 'يلزم الموافقة أولاً',
+  not_found: 'المحاضرة غير موجودة',
+  no_audio_chunks: 'لا توجد أجزاء صوتية لهذه المحاضرة',
+  download_failed: 'تعذّر قراءة الملف الصوتي المحفوظ',
+  save_failed: 'تعذّر حفظ النتائج، أعد المحاولة',
+};
+function errText(e) {
+  const code = (e && e.message) ? e.message : String(e);
+  if (ERR[code]) return ERR[code];
+  if (/gemini_5\d\d/.test(code)) return 'خدمة Gemini تعاني من خلل مؤقت، أعد المحاولة لاحقاً';
+  if (/Invalid login/i.test(code)) return 'البريد أو كلمة المرور غير صحيحة';
+  if (/already registered|already been registered/i.test(code)) return 'هذا البريد مسجّل من قبل، جرّب الدخول';
+  if (/Password should be/i.test(code)) return 'كلمة المرور قصيرة (6 أحرف على الأقل)';
+  if (/Failed to fetch|NetworkError/i.test(code)) return 'لا يوجد اتصال بالإنترنت';
+  return 'حدث خطأ: ' + code;
+}
+
+/* ====== طبقة الاتصال بالمحاضرات ====== */
+async function createLecture({ title, subject, lectureLang, outputLang, consent }) {
+  if (consent !== true) throw new Error('consent_required');
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth || !auth.user) throw new Error('unauthorized');
+  const { data, error } = await sb.from('lectures').insert({
+    user_id: auth.user.id, title, subject: subject || null,
+    lecture_lang: lectureLang, output_lang: outputLang, consent: true, status: 'uploading',
+  }).select('id').single();
+  if (error) throw error;
+  return data.id;
+}
+async function uploadChunks(lectureId, items, onItem) {
+  const { data: auth } = await sb.auth.getUser();
+  if (!auth || !auth.user) throw new Error('unauthorized');
+  const chunks = [];
+  for (let i = 0; i < items.length; i++) {
+    const { blob, offset_sec, duration_sec } = items[i];
+    if (blob.size > MAX_CHUNK_BYTES) throw new Error('chunk_too_large');
+    const mime = (blob.type || 'audio/webm').split(';')[0];
+    const ext = (mime.split('/')[1] || 'webm').replace('mpeg', 'mp3');
+    const path = `${auth.user.id}/${lectureId}/${i}.${ext}`;
+    const { error } = await sb.storage.from('lectures').upload(path, blob, { contentType: mime, upsert: true });
+    if (error) throw error;
+    chunks.push({ path, mime, offset_sec, duration_sec });
+    if (onItem) onItem(i);
+  }
+  const total = chunks.reduce((s, c) => s + (Number(c.duration_sec) || 0), 0);
+  const { error: ue } = await sb.from('lectures').update({ chunks, duration_sec: Math.round(total) }).eq('id', lectureId);
+  if (ue) throw ue;
+}
+async function callFn(body) {
+  const { data, error } = await sb.functions.invoke('process-lecture', { body });
+  if (error) {
+    let code = error.message;
+    try { const j = await error.context.json(); if (j && j.error) code = j.error; } catch (_) {}
+    throw new Error(code);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+async function processLecture(lectureId, onProgress) {
+  const { data: lec, error } = await sb.from('lectures').select('id, chunks').eq('id', lectureId).single();
+  if (error) throw error;
+  const total = (lec.chunks || []).length;
+  if (!total) throw new Error('no_audio_chunks');
+  for (let i = 0; i < total; i++) {
+    onProgress({ step: 'transcribe', done: i, total });
+    await callFn({ lecture_id: lectureId, action: 'transcribe', chunk: i });
+  }
+  onProgress({ step: 'outputs', done: total, total });
+  await callFn({ lecture_id: lectureId, action: 'outputs' });
+}
+async function loadLecture(id) {
+  const [lec, segs, outs] = await Promise.all([
+    sb.from('lectures').select('*').eq('id', id).single(),
+    sb.from('lecture_segments').select('id, chunk, idx, start_sec, end_sec, text, unclear, edited')
+      .eq('lecture_id', id).order('chunk').order('idx'),
+    sb.from('lecture_outputs').select('kind, lang, content, edited').eq('lecture_id', id),
+  ]);
+  if (lec.error) throw lec.error;
+  return {
+    lecture: lec.data,
+    segments: segs.data || [],
+    outputs: Object.fromEntries((outs.data || []).map((o) => [o.kind, o.content])),
+  };
+}
+
+/* ====== المسجّل الصوتي ====== */
+function pickMime() {
+  const c = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4;codecs=mp4a.40.2', 'audio/mp4', 'audio/ogg;codecs=opus'];
+  if (!window.MediaRecorder) return '';
+  return c.find((m) => MediaRecorder.isTypeSupported(m)) || '';
+}
+class Recorder {
+  constructor({ onTick, onLevel, onSilence, onAutoStop }) {
+    Object.assign(this, { onTick, onLevel, onSilence, onAutoStop });
+    this.chunks = []; this.activeMs = 0; this.lastResume = 0; this.running = false;
+    this.rotating = false; this.lastLoud = Date.now();
+  }
+  elapsed() { return this.activeMs + (this.running ? performance.now() - this.lastResume : 0); }
+  async start() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+      throw new Error('المتصفح لا يدعم التسجيل (يلزم اتصال https)');
+    }
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+    this.mime = pickMime();
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AC();
+      const src = this.ctx.createMediaStreamSource(this.stream);
+      this.an = this.ctx.createAnalyser(); this.an.fftSize = 256;
+      src.connect(this.an);
+      this.buf = new Uint8Array(this.an.fftSize);
+      this.levelTimer = setInterval(() => this._level(), 90);
+    } catch (_) { /* العدّاد البصري اختياري */ }
+    this.running = true; this.lastResume = performance.now();
+    this._startSeg();
+    this.tickTimer = setInterval(() => this._tick(), 500);
+    await this._wake();
+    this._vis = () => { if (document.visibilityState === 'visible' && this.running) this._wake(); };
+    document.addEventListener('visibilitychange', this._vis);
+    window.onbeforeunload = (e) => { e.preventDefault(); e.returnValue = ''; };
+  }
+  async _wake() {
+    try { if ('wakeLock' in navigator) this.wl = await navigator.wakeLock.request('screen'); } catch (_) {}
+  }
+  _level() {
+    if (!this.an || !this.running) { this.onLevel && this.onLevel(0); return; }
+    this.an.getByteTimeDomainData(this.buf);
+    let sum = 0;
+    for (let i = 0; i < this.buf.length; i++) { const v = (this.buf[i] - 128) / 128; sum += v * v; }
+    const lvl = Math.min(1, Math.sqrt(sum / this.buf.length) * 4);
+    if (lvl > 0.03) { this.lastLoud = Date.now(); this.onSilence && this.onSilence(false); }
+    this.onLevel && this.onLevel(lvl);
+  }
+  _startSeg() {
+    const opts = { audioBitsPerSecond: 32000 };
+    if (this.mime) opts.mimeType = this.mime;
+    const rec = new MediaRecorder(this.stream, opts);
+    const parts = [];
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) parts.push(e.data); };
+    this.rec = rec; this.parts = parts; this.segStart = this.elapsed();
+    rec.start(5000);
+  }
+  _endSeg() {
+    return new Promise((resolve) => {
+      const rec = this.rec, parts = this.parts, segStart = this.segStart;
+      if (!rec || rec.state === 'inactive') return resolve();
+      const dur = Math.max(0, (this.elapsed() - segStart) / 1000);
+      rec.onstop = () => {
+        const type = (rec.mimeType || this.mime || 'audio/webm').split(';')[0];
+        const blob = new Blob(parts, { type });
+        if (blob.size > 0 && dur > 0.5) {
+          this.chunks.push({ blob, offset_sec: Math.round(segStart / 1000), duration_sec: Math.round(dur) });
+        }
+        resolve();
+      };
+      rec.stop();
+    });
+  }
+  async _tick() {
+    const el = this.elapsed();
+    this.onTick && this.onTick(el / 1000);
+    if (this.running && Date.now() - this.lastLoud > 15000) this.onSilence && this.onSilence(true);
+    if (this.running && !this.rotating && el >= MAX_SECONDS * 1000) {
+      this.onAutoStop && this.onAutoStop(); return;
+    }
+    if (this.running && !this.rotating && el - this.segStart >= CHUNK_SECONDS * 1000) {
+      this.rotating = true;
+      await this._endSeg();
+      if (this.running) this._startSeg();
+      this.rotating = false;
+    }
+  }
+  pause() {
+    if (!this.running) return;
+    this.activeMs += performance.now() - this.lastResume; this.running = false;
+    if (this.rec && this.rec.state === 'recording') this.rec.pause();
+  }
+  resume() {
+    if (this.running) return;
+    this.running = true; this.lastResume = performance.now();
+    if (this.rec && this.rec.state === 'paused') this.rec.resume();
+    this.lastLoud = Date.now();
+  }
+  async stop() {
+    while (this.rotating) await new Promise((r) => setTimeout(r, 50));
+    await this._endSeg();
+    this.running = false;
+    this.cleanup();
+    return this.chunks;
+  }
+  cleanup() {
+    clearInterval(this.tickTimer); clearInterval(this.levelTimer);
+    if (this.stream) this.stream.getTracks().forEach((t) => t.stop());
+    if (this.ctx && this.ctx.close) this.ctx.close().catch(() => {});
+    if (this.wl && this.wl.release) this.wl.release().catch(() => {});
+    if (this._vis) document.removeEventListener('visibilitychange', this._vis);
+    window.onbeforeunload = null;
+  }
+}
+
+/* ====== الشاشات ====== */
+function header(title, { back = true } = {}) {
+  return h('header', { class: 'top' },
+    back ? h('button', { class: 'icon-btn', 'aria-label': 'رجوع', onclick: goHome }, '→') : h('span', { class: 'logo' }, '7Salah ✦'),
+    h('h1', { class: 'title' }, title || ''),
+    h('span', { class: 'spacer' }));
+}
+function goHome() {
+  if (recorder) {
+    if (!confirm('إنهاء التسجيل وتجاهله؟')) return;
+    recorder.running = false; recorder.cleanup(); recorder = null;
+  }
+  renderHome();
+}
+
+/* --- تسجيل الدخول --- */
+function renderAuth() {
+  const email = h('input', { type: 'email', placeholder: 'البريد الإلكتروني', autocomplete: 'email', dir: 'ltr' });
+  const pass = h('input', { type: 'password', placeholder: 'كلمة المرور', autocomplete: 'current-password', dir: 'ltr' });
+  const msg = h('p', { class: 'msg' });
+  const say = (t, cls) => { msg.textContent = t; msg.className = 'msg ' + (cls || ''); };
+  const inBtn = h('button', { class: 'btn primary' }, 'دخول');
+  const upBtn = h('button', { class: 'btn ghost' }, 'إنشاء حساب جديد');
+  async function go(kind) {
+    if (!email.value || !pass.value) return say('اكتب البريد وكلمة المرور', 'err');
+    inBtn.disabled = upBtn.disabled = true; say('لحظة…');
+    try {
+      if (kind === 'in') {
+        const { error } = await sb.auth.signInWithPassword({ email: email.value.trim(), password: pass.value });
+        if (error) throw error;
+      } else {
+        const { data, error } = await sb.auth.signUp({ email: email.value.trim(), password: pass.value });
+        if (error) throw error;
+        if (!data.session) { say('تم إنشاء الحساب. افتح رابط التأكيد في بريدك ثم ادخل.', 'ok'); return; }
+      }
+      const { data: s } = await sb.auth.getSession();
+      state.user = s.session && s.session.user; renderHome();
+    } catch (e) { say(errText(e), 'err'); }
+    finally { inBtn.disabled = upBtn.disabled = false; }
+  }
+  inBtn.onclick = () => go('in'); upBtn.onclick = () => go('up');
+  pass.addEventListener('keydown', (e) => { if (e.key === 'Enter') go('in'); });
+  render(h('section', { class: 'screen' },
+    h('div', { class: 'card hero' }, h('div', { class: 'mascot' }, '🌸'), h('h2', {}, 'مرحباً بك في 7Salah'),
+      h('p', {}, 'سجّل الدخول لتحوّل محاضراتك إلى ملخصات واختبارات')),
+    h('div', { class: 'card' }, email, h('div', { style: { height: '10px' } }), pass, msg,
+      h('div', { class: 'row' }, inBtn, upBtn))));
+}
+
+/* --- الرئيسية والمكتبة --- */
+const STATUS = { new: 'ناقصة', uploading: 'ناقصة', transcribing: 'قيد المعالجة', ready: 'جاهزة', failed: 'فشلت' };
+async function renderHome() {
+  state.current = null;
+  const list = h('div', {}, h('p', { class: 'muted' }, 'جاري التحميل…'));
+  render(h('section', { class: 'screen' },
+    h('header', { class: 'top' }, h('span', { class: 'logo' }, '7Salah ✦'), h('span', { class: 'spacer' }),
+      h('button', { class: 'chip', onclick: async () => { await sb.auth.signOut(); state.user = null; renderAuth(); } }, 'خروج')),
+    h('div', { class: 'card hero' }, h('div', { class: 'mascot' }, '🎧'), h('h2', {}, 'محاضراتك الذكية'),
+      h('p', {}, 'سجّل الدرس، ونحوّله إلى ملخص وبطاقات واختبار ✨')),
+    h('button', { class: 'btn primary', onclick: () => renderSetup('record') }, '🎙️ سجّل محاضرة جديدة'),
+    h('div', { style: { height: '10px' } }),
+    h('button', { class: 'btn ghost', onclick: () => renderSetup('file') }, '📁 ارفع ملفاً صوتياً'),
+    h('h3', { class: 'sec' }, 'محاضراتي'), list));
+  const { data, error } = await sb.from('lectures')
+    .select('id,title,subject,status,error,duration_sec,created_at,chunks')
+    .order('created_at', { ascending: false }).limit(50);
+  if (error) { list.replaceChildren(h('p', { class: 'msg err' }, errText(error))); return; }
+  if (!data.length) { list.replaceChildren(h('p', { class: 'muted' }, 'لا توجد محاضرات بعد. ابدأ بأول تسجيل 🌟')); return; }
+  list.replaceChildren(...data.map(lectureCard));
+}
+function lectureCard(l) {
+  const ready = l.status === 'ready';
+  const resumable = !ready && Array.isArray(l.chunks) && l.chunks.length > 0;
+  const meta = [l.subject, l.duration_sec ? fmtTime(l.duration_sec) : null,
+    new Date(l.created_at).toLocaleDateString('ar')].filter(Boolean).join(' · ');
+  return h('article', { class: 'lcard' },
+    h('div', { class: 'lc-main', role: ready ? 'button' : null, tabindex: ready ? '0' : null, onclick: ready ? () => openLecture(l.id) : null },
+      h('div', { class: 'lc-title' }, l.title),
+      h('div', { class: 'lc-meta' }, meta),
+      l.status === 'failed' && l.error ? h('div', { class: 'lc-meta' }, errText(new Error(l.error))) : null),
+    h('div', { class: 'lc-side' },
+      h('span', { class: 'badge ' + l.status }, STATUS[l.status] || l.status),
+      resumable ? h('button', { class: 'mini', onclick: () => runResume(l.id) }, 'أكمل المعالجة') : null,
+      h('button', { class: 'mini del', onclick: () => removeLecture(l) }, 'حذف')));
+}
+async function removeLecture(l) {
+  if (!confirm('حذف هذه المحاضرة نهائياً مع الصوت والملخصات؟')) return;
+  try {
+    const paths = (l.chunks || []).map((c) => c.path).filter(Boolean);
+    if (paths.length) await sb.storage.from('lectures').remove(paths);
+    const { error } = await sb.from('lectures').delete().eq('id', l.id);
+    if (error) throw error;
+    toast('تم الحذف'); renderHome();
+  } catch (e) { toast(errText(e)); }
+}
+
+/* --- إعداد محاضرة جديدة (تسجيل أو ملف) --- */
+function renderSetup(mode) {
+  const title = h('input', { type: 'text', maxlength: '160', placeholder: 'مثال: مدخل إلى علم النفس — المحاضرة 1' });
+  const subject = h('input', { type: 'text', maxlength: '80', placeholder: 'المادة (اختياري)' });
+  const lang = (id, def) => h('select', { id }, ['ar|العربية', 'en|English', 'fr|Français'].map((o) => {
+    const [v, t] = o.split('|'); return h('option', { value: v, selected: v === def }, t);
+  }));
+  const lecLang = lang('l1', 'ar'), outLang = lang('l2', 'ar');
+  const consent = h('input', { type: 'checkbox' });
+  const msg = h('p', { class: 'msg' });
+  const file = mode === 'file' ? h('input', { type: 'file', accept: 'audio/*,video/mp4,video/webm' }) : null;
+  const go = h('button', { class: 'btn primary' }, mode === 'record' ? 'ابدأ التسجيل 🎙️' : 'ارفع وابدأ المعالجة');
+
+  go.onclick = async () => {
+    if (!title.value.trim()) return (msg.textContent = 'اكتب عنواناً للمحاضرة', msg.className = 'msg err');
+    if (!consent.checked) return (msg.textContent = 'يلزم الموافقة على الشروط أولاً', msg.className = 'msg err');
+    const meta = { title: title.value.trim(), subject: subject.value.trim(), lectureLang: lecLang.value, outputLang: outLang.value, consent: true };
+    if (mode === 'record') return renderRecording(meta);
+    const f = file.files[0];
+    if (!f) return (msg.textContent = 'اختر ملفاً صوتياً', msg.className = 'msg err');
+    if (f.size > MAX_CHUNK_BYTES) return (msg.textContent = 'الملف أكبر من 12MB. اضغطه أو قسّمه أولاً، أو سجّله مباشرة هنا', msg.className = 'msg err');
+    const dur = await audioDuration(f);
+    runNew(meta, [{ blob: f, offset_sec: 0, duration_sec: dur }]);
+  };
+  render(h('section', { class: 'screen' }, header(mode === 'record' ? 'تسجيل محاضرة' : 'رفع ملف صوتي'),
+    h('div', { class: 'card' },
+      h('label', {}, 'عنوان المحاضرة'), title, h('label', {}, 'المادة'), subject,
+      h('div', { class: 'row' }, h('div', {}, h('label', {}, 'لغة المحاضرة'), lecLang), h('div', {}, h('label', {}, 'لغة الملخص'), outLang)),
+      file ? [h('label', {}, 'الملف'), file] : null,
+      h('label', { class: 'check' }, consent,
+        h('span', {}, 'أوافق على إرسال الصوت إلى خدمة Google Gemini لتفريغه وتلخيصه، وأؤكد أن لدي إذن بتسجيل هذه المحاضرة.')),
+      msg, h('div', { style: { height: '8px' } }), go)));
+}
+function audioDuration(file) {
+  return new Promise((resolve) => {
+    const a = new Audio(); const url = URL.createObjectURL(file);
+    const done = (d) => { URL.revokeObjectURL(url); resolve(Number.isFinite(d) ? Math.round(d) : 0); };
+    a.preload = 'metadata'; a.onloadedmetadata = () => done(a.duration); a.onerror = () => done(0); a.src = url;
+  });
+}
+
+/* --- شاشة التسجيل --- */
+let recorder = null;
+async function renderRecording(meta) {
+  const orb = h('div', { class: 'orb' }, '🎙️');
+  const timer = h('div', { class: 'timer' }, '0:00');
+  const bars = Array.from({ length: 9 }, () => h('span'));
+  const eq = h('div', { class: 'eq' }, bars);
+  const warn = h('div', { class: 'warn', hidden: true }, 'لا أسمع صوتاً… تأكد من الميكروفون وقرّبه من المتحدث.');
+  const stage = h('div', { class: 'stage' });
+  const msg = h('p', { class: 'msg' });
+  render(h('section', { class: 'screen' }, header(meta.title), h('div', { class: 'card' }, stage, msg)));
+
+  recorder = new Recorder({
+    onTick: (s) => { timer.textContent = fmtTime(s); },
+    onLevel: (l) => bars.forEach((b, i) => { b.style.transform = `scaleY(${0.12 + l * (0.5 + 0.5 * Math.abs(Math.sin(i * 1.7 + Date.now() / 160)))})`; }),
+    onSilence: (on) => { warn.hidden = !on; },
+    onAutoStop: () => finish(),
+  });
+  try { await recorder.start(); }
+  catch (e) {
+    const denied = e && e.name === 'NotAllowedError';
+    msg.textContent = denied ? 'لم تُمنح صلاحية الميكروفون. فعّلها من إعدادات المتصفح.' : errText(e);
+    msg.className = 'msg err'; recorder.cleanup(); recorder = null; return;
+  }
+  orb.classList.add('live');
+  const pauseBtn = h('button', { class: 'btn ghost' }, '⏸ إيقاف مؤقت');
+  const stopBtn = h('button', { class: 'btn primary' }, '⏹ إنهاء');
+  pauseBtn.onclick = () => {
+    if (recorder.running) { recorder.pause(); orb.classList.replace('live', 'paused'); pauseBtn.textContent = '▶ متابعة'; }
+    else { recorder.resume(); orb.classList.replace('paused', 'live'); pauseBtn.textContent = '⏸ إيقاف مؤقت'; }
+  };
+  let finishing = false;
+  async function finish() {
+    if (finishing || !recorder) return; finishing = true;
+    stopBtn.disabled = pauseBtn.disabled = true;
+    const chunks = await recorder.stop(); recorder = null;
+    if (!chunks.length) { msg.textContent = 'لم يُسجَّل أي صوت.'; msg.className = 'msg err'; return; }
+    renderReview(meta, chunks);
+  }
+  stopBtn.onclick = finish;
+  stage.replaceChildren(orb, timer, eq, warn,
+    h('p', { class: 'muted small' }, 'اترك الشاشة مفتوحة أثناء التسجيل. يُحفظ الصوت على أجزاء كل 10 دقائق.'),
+    h('div', { class: 'ctrl' }, pauseBtn, stopBtn));
+}
+function renderReview(meta, chunks) {
+  const total = chunks.reduce((s, c) => s + c.duration_sec, 0);
+  const size = chunks.reduce((s, c) => s + c.blob.size, 0);
+  render(h('section', { class: 'screen' }, header('انتهى التسجيل'),
+    h('div', { class: 'card hero' }, h('div', { class: 'mascot' }, '🎉'), h('h2', {}, meta.title),
+      h('p', {}, `المدة ${fmtTime(total)} · ${chunks.length} جزء · ${(size / 1048576).toFixed(1)}MB`)),
+    h('button', { class: 'btn cyan', onclick: () => runNew(meta, chunks) }, '✨ احفظ وابدأ المعالجة'),
+    h('div', { style: { height: '10px' } }),
+    h('button', { class: 'btn danger', onclick: () => { if (confirm('تجاهل هذا التسجيل؟')) goHome(); } }, 'تجاهل التسجيل')));
+}
+
+/* --- المعالجة --- */
+function renderProcessing() {
+  const fill = h('div', { class: 'bar-fill' });
+  const label = h('p', { style: { fontWeight: '700' } }, 'نجهّز كل شيء…');
+  render(h('section', { class: 'screen proc' }, h('div', { class: 'mascot' }, '🌸'), h('h2', {}, 'لحظات ونجهّز محاضرتك'),
+    h('div', { class: 'bar' }, fill), label,
+    h('p', { class: 'muted small' }, 'قد يستغرق الأمر عدة دقائق. لا تغلق الصفحة.')));
+  return (pct, text) => { fill.style.width = Math.max(2, Math.min(100, pct)) + '%'; label.textContent = text; };
+}
+function showFail(e, id) {
+  render(h('section', { class: 'screen proc' }, h('div', { class: 'mascot' }, '😿'), h('h2', {}, 'تعثّرت العملية'),
+    h('p', { class: 'msg err' }, errText(e)),
+    h('p', { class: 'muted small' }, id ? 'المحاضرة محفوظة في مكتبتك، ويمكنك إكمال المعالجة لاحقاً بزر «أكمل المعالجة».' : 'لم تُحفظ المحاضرة.'),
+    h('button', { class: 'btn primary', onclick: goHome }, 'العودة إلى المكتبة')));
+}
+async function runNew(meta, chunks) {
+  const n = chunks.length, total = n * 2 + 1;
+  const set = renderProcessing(); let id = null;
+  try {
+    set(2, 'نحفظ المحاضرة…');
+    id = await createLecture(meta);
+    await uploadChunks(id, chunks, (i) => set(((i + 1) / total) * 100, `نرفع الصوت ${i + 1}/${n}`));
+    await processLecture(id, (p) => {
+      if (p.step === 'transcribe') set(((n + p.done) / total) * 100, `نفرّغ الكلام ${p.done + 1}/${n}`);
+      else set(((n * 2) / total) * 100, 'نصنع الملخصات والاختبار…');
+    });
+    set(100, 'تمّ! 🎉'); await openLecture(id);
+  } catch (e) { showFail(e, id); }
+}
+async function runResume(id) {
+  const set = renderProcessing();
+  try {
+    await processLecture(id, (p) => {
+      if (p.step === 'transcribe') set((p.done / (p.total + 1)) * 100, `نفرّغ الكلام ${p.done + 1}/${p.total}`);
+      else set((p.total / (p.total + 1)) * 100, 'نصنع الملخصات والاختبار…');
+    });
+    set(100, 'تمّ! 🎉'); await openLecture(id);
+  } catch (e) { showFail(e, id); }
+}
+
+/* --- عرض المحاضرة --- */
+async function openLecture(id) {
+  render(h('section', { class: 'screen' }, header('…'), h('p', { class: 'muted' }, 'جاري التحميل…')));
+  try {
+    state.current = await loadLecture(id);
+    const o = state.current.outputs;
+    state.tab = (o.summary1 || o.summary2 || o.summary3) ? 'summary' : 'text';
+    renderViewer();
+  } catch (e) { toast(errText(e)); renderHome(); }
+}
+function availableTabs(d) {
+  const o = d.outputs;
+  return [
+    ['summary', 'ملخص', o.summary1 || o.summary2 || o.summary3],
+    ['outline', 'مخطط', o.outline], ['terms', 'مصطلحات', o.terms],
+    ['cards', 'بطاقات', o.flashcards], ['quiz', 'اختبار', o.quiz],
+    ['mind', 'خريطة ذهنية', o.mindmap], ['text', 'النص', true],
+  ].filter((t) => t[2]);
+}
+function renderViewer() {
+  const d = state.current;
+  const body = h('div', { class: 'card' });
+  const tabsBox = h('nav', { class: 'tabs' });
+  const drawTabs = () => tabsBox.replaceChildren(...availableTabs(d).map(([k, t]) =>
+    h('button', { class: 'tab' + (state.tab === k ? ' on' : ''), onclick: () => { state.tab = k; drawTabs(); drawBody(); } }, t)));
+  const drawBody = () => body.replaceChildren(tabContent(d, state.tab));
+  drawTabs(); drawBody();
+  render(h('section', { class: 'screen' }, header(d.lecture.title),
+    h('p', { class: 'muted small', style: { margin: '0 4px 6px' } },
+      [d.lecture.subject, fmtTime(d.lecture.duration_sec)].filter(Boolean).join(' · ')), tabsBox, body));
+}
+function tabContent(d, tab) {
+  const o = d.outputs;
+  if (tab === 'summary') return summaryTab(o);
+  if (tab === 'outline') return h('div', { class: 'ol' }, o.outline.items.map((i) => [h('h4', {}, i.title), h('ul', {}, i.points.map((p) => h('li', {}, p)))]));
+  if (tab === 'terms') return termsTab(o.terms.items);
+  if (tab === 'cards') return cardsTab(o.flashcards.items);
+  if (tab === 'quiz') return quizTab(o.quiz.items);
+  if (tab === 'mind') return mindTab(o.mindmap);
+  return textTab(d.segments);
+}
+function summaryTab(o) {
+  const levels = [['summary1', 'قصير'], ['summary2', 'متوسط'], ['summary3', 'مفصّل']].filter(([k]) => o[k]);
+  let cur = levels.find(([k]) => k === 'summary2') ? 'summary2' : levels[0][0];
+  const box = h('div', { class: 'prose' }); const ctl = h('div', { class: 'seg-ctl' });
+  const draw = () => {
+    ctl.replaceChildren(...levels.map(([k, t]) => h('button', { class: k === cur ? 'on' : '', onclick: () => { cur = k; draw(); } }, t)));
+    box.replaceChildren(...String(o[cur].text).split(/\n{1,}/).filter(Boolean).map((p) => h('p', {}, p)));
+  };
+  draw();
+  const copy = h('button', { class: 'btn ghost', onclick: async () => {
+    try { await navigator.clipboard.writeText(o[cur].text); toast('تم النسخ ✓'); } catch (_) { toast('تعذّر النسخ'); }
+  } }, 'نسخ الملخص');
+  return h('div', {}, ctl, box, copy);
+}
+function termsTab(items) {
+  const list = h('div'); const q = h('input', { class: 'search', type: 'search', placeholder: 'ابحث في المصطلحات…' });
+  const draw = () => {
+    const s = q.value.trim().toLowerCase();
+    const f = items.filter((i) => !s || (i.term + ' ' + i.definition).toLowerCase().includes(s));
+    list.replaceChildren(...f.map((i) => h('div', { class: 'term' }, h('b', {}, i.term), h('div', {}, i.definition))));
+  };
+  q.addEventListener('input', draw); draw();
+  return h('div', {}, q, list);
+}
+function cardsTab(items) {
+  let i = 0, back = false; const box = h('div');
+  const draw = () => {
+    const it = items[i];
+    box.replaceChildren(
+      h('p', { class: 'muted small' }, `بطاقة ${i + 1} من ${items.length} · اضغط على البطاقة لقلبها`),
+      h('div', { class: 'fc' + (back ? ' back' : ''), onclick: () => { back = !back; draw(); } },
+        h('div', {}, h('small', {}, back ? 'الجواب' : 'السؤال'), back ? it.a : it.q)),
+      h('div', { class: 'row' },
+        h('button', { class: 'btn ghost', onclick: () => { i = (i - 1 + items.length) % items.length; back = false; draw(); } }, 'السابقة'),
+        h('button', { class: 'btn ghost', onclick: () => { i = (i + 1) % items.length; back = false; draw(); } }, 'التالية')));
+  };
+  draw(); return box;
+}
+function quizTab(items) {
+  let i = 0, score = 0; const box = h('div');
+  const draw = () => {
+    if (i >= items.length) {
+      const r = score / items.length;
+      box.replaceChildren(h('div', { class: 'score' }, h('div', { class: 'big' }, `${score}/${items.length}`),
+        h('p', {}, r >= 0.8 ? '🌟 ممتاز! أتقنت المحاضرة' : r >= 0.5 ? '👍 جيد، راجع النقاط الناقصة' : '📚 راجع الملخص ثم أعد المحاولة'),
+        h('button', { class: 'btn primary', onclick: () => { i = 0; score = 0; draw(); } }, 'أعد الاختبار')));
+      return;
+    }
+    const q = items[i]; let answered = false;
+    const explain = h('div', { class: 'explain', hidden: true });
+    const next = h('button', { class: 'btn cyan', hidden: true, onclick: () => { i++; draw(); } }, i === items.length - 1 ? 'عرض النتيجة' : 'السؤال التالي');
+    const opts = q.choices.map((c, idx) => h('button', { class: 'opt', onclick: () => {
+      if (answered) return; answered = true;
+      opts[q.answer].classList.add('ok');
+      if (idx === q.answer) score++; else opts[idx].classList.add('bad');
+      if (q.explain) { explain.textContent = q.explain; explain.hidden = false; }
+      next.hidden = false;
+    } }, c));
+    box.replaceChildren(h('p', { class: 'muted small' }, `سؤال ${i + 1} من ${items.length}`), h('h3', { class: 'q-text' }, q.q), ...opts, explain, h('div', { style: { height: '10px' } }), next);
+  };
+  draw(); return box;
+}
+function mindTab(m) {
+  const colors = ['#ff7eb6', '#5ee7ff', '#8b7bff', '#ffd36e', '#5dffb0', '#ff9a76'];
+  return h('div', { class: 'mind' }, h('div', { class: 'mind-root' }, m.root),
+    m.branches.map((b, k) => h('div', { class: 'mind-branch', style: { '--c': colors[k % colors.length] } },
+      h('h4', {}, b.title), h('div', { class: 'chips' }, b.children.map((c) => h('span', { class: 'chip' }, c))))));
+}
+function textTab(segs) {
+  if (!segs.length) return h('p', { class: 'muted' }, 'لا يوجد نص مفرَّغ.');
+  const list = h('div');
+  const draw = () => list.replaceChildren(...segs.map(segRow));
+  function segRow(s) {
+    const p = h('p', { class: 'st', onclick: () => edit(s, row) }, s.text + (s.unclear ? ' ⚠️' : '') + (s.edited ? ' ✎' : ''));
+    const row = h('div', { class: 'seg' + (s.unclear ? ' unclear' : '') }, h('span', { class: 'ts' }, fmtTime(s.start_sec)), p);
+    return row;
+  }
+  function edit(s, row) {
+    const ta = h('textarea', { rows: '3', maxlength: '4000' }); ta.value = s.text;
+    const save = h('button', { class: 'mini' }, 'حفظ'), cancel = h('button', { class: 'mini' }, 'إلغاء');
+    cancel.onclick = draw;
+    save.onclick = async () => {
+      const v = ta.value.trim(); if (!v) return toast('النص لا يمكن أن يكون فارغاً');
+      save.disabled = true;
+      const { error } = await sb.from('lecture_segments').update({ text: v }).eq('id', s.id);
+      if (error) { save.disabled = false; return toast(errText(error)); }
+      s.text = v; s.edited = true; s.unclear = false; toast('تم الحفظ ✓'); draw();
+    };
+    row.replaceChildren(h('span', { class: 'ts' }, fmtTime(s.start_sec)),
+      h('div', { style: { flex: '1' } }, ta, h('div', { class: 'row' }, save, cancel)));
+  }
+  draw();
+  return h('div', {}, h('p', { class: 'muted small' }, 'المقاطع المعلّمة ⚠️ غير واضحة. اضغط على أي سطر لتصحيحه.'), list);
+}
+
+/* ====== التشغيل ====== */
+(async function boot() {
+  sb.auth.onAuthStateChange((evt, session) => {
+    state.user = session ? session.user : null;
+    if (evt === 'SIGNED_OUT') renderAuth();
+  });
+  const { data } = await sb.auth.getSession();
+  state.user = data.session ? data.session.user : null;
+  if (state.user) renderHome(); else renderAuth();
+})();
+</script>
+</body>
+</html>
