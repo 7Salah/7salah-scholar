@@ -1,12 +1,12 @@
 const T0={
  ar:{tabR:"التذكيرات",remEye:"لا تنسَ بحثك",remH:"ذكّرني ببحثي",remTopic:"موضوع البحث",remTopicPh:"مثال: مراجعة أدبيات التكيّف المناخي",remDays:"اختر الأيام",remTime:"الوقت",remAdd:"حفظ التذكير",remPick:"اكتب الموضوع واختر يومًا واحدًا على الأقل.",remSaved:"تم حفظ التذكير ✓ — لتذكير مضمون أضِفه إلى التقويم",remNone:"لا توجد تذكيرات بعد.",remCal:"إضافة إلى التقويم",remOn:"مفعّل ✓",remOff:"متوقف",remNotifT:"إشعارات المتصفح",remNotif:"تفعيل الإشعارات",remNotifOn:"الإشعارات مفعّلة ✓",remNoSupport:"متصفحك لا يدعم الإشعارات. استخدم «إضافة إلى التقويم».",remDenied:"الإشعارات محظورة. فعّلها من إعدادات الموقع في المتصفح.",remNotifTitle:"تذكير بالبحث",remNote:"تظهر الإشعارات والتطبيق مفتوح أو في الخلفية فقط. لتذكير يصلك حتى والتطبيق مغلق، اضغط «إضافة إلى التقويم» فيذكّرك تقويم هاتفك كل أسبوع.",dn:["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"],eye:"معرفة بلا حدود",h:"اتبع الأدلة.",ph:"مثال: التكيّف مع تغيّر المناخ",go:"ابحث",oa:"الوصول المفتوح فقط",yr:"السنة",rel:"الأهمية",
- cite:"اقتباس (APA)",save:"حفظ",saved:"محفوظ",tabS:"البحث",tabV:"المحفوظة",none:"لا توجد نتائج.",empty:"ابدأ بكتابة موضوع البحث.",
+ cite:"اقتباس",save:"حفظ",saved:"محفوظ",tabS:"البحث",tabV:"المحفوظة",none:"لا توجد نتائج.",empty:"ابدأ بكتابة موضوع البحث.",
  emptySaved:"لم تحفظ أي مصدر بعد.",load:"جارٍ البحث…",oaB:"وصول مفتوح",ai:"اقتراح ذكي — تحقّق من الـ DOI",verify:"تحقّق",copy:"نسخ",copied:"تم النسخ ✓",
- err:"تعذّر الاتصال بمصادر البحث. تأكد من الإنترنت، وافتح الموقع من رابطه على الإنترنت لا من معاينة الملف.",more:"عرض المزيد",src1:"المصادر: OpenAlex · DOAJ · Crossref · Open Library · Google Books · Internet Archive",src2:"النتائج من Claude وقد تحتوي أخطاءً. تحقّق من كل مصدر قبل الاعتماد عليه.",rm:"إزالة",siteB:"اختيار الموقع",siteNote:"النتائج الموسومة «مكتبة الموقع» اختارها القائمون على الموقع يدويًا، وتظهر قبل نتائج الفهارس.",aboutT:"عن الموقع وشفافية البيانات",aboutB:["كل النتائج تأتي مباشرة من فهارس مفتوحة: OpenAlex و DOAJ و Crossref (بحوث ومقالات)، و Open Library و Google Books (كتب)، و Internet Archive (نصوص برخص مفتوحة)، ويُكتب مصدر كل نتيجة عليها. لا يضيف الموقع أي ورقة من عنده.","زر «تحقّق» يفتح صفحة الورقة عند الناشر (أو بحثًا عنها إن لم يوجد رابط).","بيانات الاقتباس (APA) تُولَّد آليًا من بيانات الفهرس وقد تنقصها تفاصيل، فراجعها قبل الاستخدام.","الفهرس يغطي العربية بدرجة أقل من الإنجليزية، فقد تكون نتائج البحث العربي محدودة.","لا يتتبّع الموقع المستخدمين، والمصادر المحفوظة تبقى على جهازك فقط."]},
+ err:"تعذّر الاتصال بمصادر البحث. تأكد من الإنترنت، وافتح الموقع من رابطه على الإنترنت لا من معاينة الملف.",more:"عرض المزيد",src1:"المصادر: OpenAlex · DOAJ · Crossref · Open Library · Google Books · Internet Archive",src2:"النتائج من Claude وقد تحتوي أخطاءً. تحقّق من كل مصدر قبل الاعتماد عليه.",rm:"إزالة",siteB:"اختيار الموقع",siteNote:"النتائج الموسومة «مكتبة الموقع» اختارها القائمون على الموقع يدويًا، وتظهر قبل نتائج الفهارس.",aboutT:"عن الموقع وشفافية البيانات",aboutB:["كل النتائج تأتي مباشرة من فهارس مفتوحة: OpenAlex و DOAJ و Crossref (بحوث ومقالات)، و Open Library و Google Books (كتب)، و Internet Archive (نصوص برخص مفتوحة)، ويُكتب مصدر كل نتيجة عليها. لا يضيف الموقع أي ورقة من عنده.","زر «تحقّق» يفتح صفحة الورقة عند الناشر (أو بحثًا عنها إن لم يوجد رابط).","بيانات الاقتباس (APA و MLA و Chicago) تُولَّد آليًا من بيانات الفهرس وقد تنقصها تفاصيل، فراجعها قبل الاستخدام.","الفهرس يغطي العربية بدرجة أقل من الإنجليزية، فقد تكون نتائج البحث العربي محدودة.","لا يتتبّع الموقع المستخدمين، والمصادر المحفوظة تبقى على جهازك فقط."]},
  en:{tabR:"Reminders",remEye:"DON'T LOSE YOUR RESEARCH",remH:"Remind me to research",remTopic:"Research topic",remTopicPh:"e.g. climate adaptation literature review",remDays:"Choose days",remTime:"Time",remAdd:"Save reminder",remPick:"Enter a topic and choose at least one day.",remSaved:"Reminder saved ✓ — add it to your calendar to be sure",remNone:"No reminders yet.",remCal:"Add to calendar",remOn:"On ✓",remOff:"Paused",remNotifT:"Browser notifications",remNotif:"Enable notifications",remNotifOn:"Notifications enabled ✓",remNoSupport:"Your browser does not support notifications. Use “Add to calendar”.",remDenied:"Notifications are blocked. Enable them in the browser's site settings.",remNotifTitle:"Research reminder",remNote:"Notifications appear only while the app is open or in the background. For a reminder that reaches you even when it is closed, tap “Add to calendar”: your phone's calendar will remind you every week.",dn:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],eye:"KNOWLEDGE WITHOUT BORDERS",h:"Follow the evidence.",ph:"e.g. climate change adaptation",go:"Search",oa:"Open access only",yr:"Year",rel:"Relevance",
- cite:"Cite (APA)",save:"Save",saved:"Saved",tabS:"Search",tabV:"Saved",none:"No results.",empty:"Type a research topic to begin.",
+ cite:"Cite",save:"Save",saved:"Saved",tabS:"Search",tabV:"Saved",none:"No results.",empty:"Type a research topic to begin.",
  emptySaved:"No saved sources yet.",load:"Searching…",oaB:"Open access",ai:"AI suggestion — verify the DOI",verify:"Verify",copy:"Copy",copied:"Copied ✓",
- err:"Could not reach the search sources. Check your connection and open the site from its online link, not a file preview.",more:"Show more",src1:"Sources: OpenAlex · DOAJ · Crossref · Open Library · Google Books · Internet Archive",src2:"Results come from Claude and may contain errors. Verify every source before relying on it.",rm:"Remove",siteB:"Curated by the site",siteNote:"Results labelled “Site library” were hand-picked by the site’s editors and appear before index results.",aboutT:"About this site & data transparency",aboutB:["All results come directly from open indexes: OpenAlex, DOAJ and Crossref (papers), Open Library and Google Books (books), and Internet Archive (openly licensed texts), and each result shows its source. This site adds no papers of its own.","The Verify button opens the paper at its publisher (or a search for it when no link exists).","APA citations are generated automatically from index metadata and may be incomplete. Check them before use.","Arabic coverage in the index is weaker than English, so Arabic searches may return fewer results.","The site does not track users. Saved sources stay on your device only."]}
+ err:"Could not reach the search sources. Check your connection and open the site from its online link, not a file preview.",more:"Show more",src1:"Sources: OpenAlex · DOAJ · Crossref · Open Library · Google Books · Internet Archive",src2:"Results come from Claude and may contain errors. Verify every source before relying on it.",rm:"Remove",siteB:"Curated by the site",siteNote:"Results labelled “Site library” were hand-picked by the site’s editors and appear before index results.",aboutT:"About this site & data transparency",aboutB:["All results come directly from open indexes: OpenAlex, DOAJ and Crossref (papers), Open Library and Google Books (books), and Internet Archive (openly licensed texts), and each result shows its source. This site adds no papers of its own.","The Verify button opens the paper at its publisher (or a search for it when no link exists).","Citations (APA, MLA, Chicago) are generated automatically from index metadata and may be incomplete. Check them before use.","Arabic coverage in the index is weaker than English, so Arabic searches may return fewer results.","The site does not track users. Saved sources stay on your device only."]}
 };
 const N={
 ar:{nHome:"الرئيسية",nDecks:"حزمي",nRes:"بحث",nPlay:"تحدّي",nMe:"أنا",nLibrary:"المكتبة",
@@ -20,7 +20,9 @@ ar:{nHome:"الرئيسية",nDecks:"حزمي",nRes:"بحث",nPlay:"تحدّي",
  dT:"حزمي",dNew:"حزمة جديدة",dCreate:"إنشاء",dName:"اسم الحزمة",dEmoji:"الرمز",dImp:"استيراد",dImpPh:"الصق رابط أو رمز حزمة / تحدٍّ",dNone:"لا توجد حزم بعد.",
  dDue:"مستحقة",dNewC:"جديدة",dMast:"متقنة",dEv:"موثّقة",dStudy:"ادرس",dCram:"مراجعة حرّة",dQuiz:"اختبار",dShare:"مشاركة",dBib:"المراجع",dBack:"رجوع",dAdd:"بطاقة جديدة",dEdit:"تعديل",dDel:"حذف",dDelQ:"حذف هذه الحزمة نهائيًا؟",dDelC:"حذف البطاقة؟",dNoC:"لا بطاقات في هذه الحزمة.",dExam:"موعد الامتحان",dExamClr:"إزالة",
  cF:"السؤال أو النص",cB:"الجواب",cSrc:"المصدر",cNoSrc:"بلا مصدر",cLink:"ربط بمصدر محفوظ",cSave:"حفظ",cAdded:"تمت الإضافة ✓",cNeed:"اكتب السؤال والجواب.",
- ev3:"موثّق · DOI",ocrBtn:"صورة (استخراج نص)",ocrLoad:"جارٍ تحميل أداة القراءة وتحليل الصورة… قد يستغرق دقيقة في أول مرة",ocrNone:"لم أجد نصًا واضحًا. جرّب صورة أوضح ومستقيمة ومطبوعة.",ocrDone:"استُخرج النص. صحّح أي أخطاء قبل إنشاء البطاقات.",ocrFail:"تعذّر الاستخراج. تحقق من الإنترنت وحاول مرة أخرى.",evW:"تمهيدي · غير محكَّم",wikiT:"تضمين ويكيبيديا (للتمهيد فقط، وتُستخرج مراجعها الموثّقة)",ev2:"مصدر بالرابط",ev1:"ملاحظاتي",ev0:"بلا مصدر",evShow:"المصدر",evBibT:"مراجع الحزمة (APA)",evAll:"نسخ الكل",evNone:"لا مراجع بعد.",evMeter:"نسبة التوثيق",
+ ev3:"محكَّم · موثّق DOI",ocrBtn:"صورة (استخراج نص)",ocrLoad:"جارٍ تحميل أداة القراءة وتحليل الصورة… قد يستغرق دقيقة في أول مرة",ocrNone:"لم أجد نصًا واضحًا. جرّب صورة أوضح ومستقيمة ومطبوعة.",ocrDone:"استُخرج النص. صحّح أي أخطاء قبل إنشاء البطاقات.",ocrFail:"تعذّر الاستخراج. تحقق من الإنترنت وحاول مرة أخرى.",evW:"تمهيدي · غير محكَّم",wikiT:"تضمين ويكيبيديا (للتمهيد فقط، وتُستخرج مراجعها الموثّقة)",ev2:"مصدر مفهرس · رابط",ev1:"ملاحظاتي / محاضرة",ev0:"غير موثّق · بلا مصدر",evShow:"المصدر",evBibT:"مراجع الحزمة",evAll:"نسخ الكل",evNone:"لا مراجع بعد.",evMeter:"نسبة التوثيق",
+ citeFmt:"صيغة التوثيق",verifHi:"موثّق · DOI",verifMid:"مفهرس · رابط",verifLow:"غير موثّق",
+ srsLearn:"قيد التعلّم",srsWeak:"بحاجة لتقوية",srsMastRate:"الإتقان",srsAuto:"المسار التكيفي التلقائي",srsWeakFound:"تم رصد {n} نقطة ضعف تحتاج مراجعة مركّزة:",srsWeakGo:"تقوية نقاط الضعف",srsWeakQuiz:"اختبار تكيفي",srsDeep:"تعمّق بحثي",srsDeepT:"التعمّق البحثي في المفهوم",srsDeepD:"مفاهيم تحتاج ترسيخًا بناءً على نتائج المراجعة والاختبارات:",srsDeepSearch:"ابحث عن أوراق محكّمة",srsDeepCards:"البطاقات ذات الصلة",srsNeedQuiz:"تكفي بطاقتان متاحتان على الأقل لبدء اختبار تكيفي.",
  sShow:"أظهر الإجابة",s0:"نسيتها",s1:"صعبة",s2:"جيدة",s3:"سهلة",sDone:"انتهت الجلسة 🎉",sRev:"بطاقة تمت مراجعتها",sOk:"إجابات ناجحة",sBack:"العودة",sMore:"راجع المزيد",sCram:"وضع حرّ: لا يغيّر الجدولة",sNone:"لا بطاقات مستحقة الآن 🎉",sM:"د",sD:"ي",sMo:"ش",
  pT:"العب وتحدَّ",pSub:"اختبارات سريعة وتحدّيات بين الأصدقاء بلا حساب ولا خادم",pDeck:"اختبار من حزمة",pAll:"اختبار مختلط من كل حزمي",pNeed:"تحتاج إلى حزمة فيها بطاقتان على الأقل.",pRiv:"منافسوك",pRivNone:"لا تحدّيات بعد. العب اختبارًا ثم أرسل الرابط لصديق.",pHow:"كيف يعمل التحدّي؟",pHowT:"تلعب اختبارًا فتحصل على رابط. يفتحه صديقك فيلعب الأسئلة نفسها ويقارن نتيجته بنتيجتك، ثم يردّ عليك برابط جديد. لا حساب ولا خادم، ويعمل عبر واتساب وأي تطبيق مراسلة.",pCodeT:"عندك رمز تحدٍّ؟",pGo:"افتح",pBad:"الرمز غير صالح.",pRound:"{n} سؤال · 20 ثانية لكل سؤال",
  qOf:"من",qSc:"النقاط",qCombo:"تتابع",qNext:"التالي",qFin:"النتيجة",qOk:"صحيح! 👏",qBad:"خطأ",qTime:"انتهى الوقت ⏱",qRes:"نتيجتك",qAcc:"الدقة",qBest:"أفضل نتيجة",qNB:"رقم قياسي جديد! 🏆",qShare:"تحدَّ صديقًا بنتيجتي",qAgain:"العب مجددًا",qMiss:"ادرس أخطائي",qWin:"فزت على",qLose:"خسرت أمام",qTie:"تعادلتَ مع",qTheirs:"نتيجته",qMine:"نتيجتك",qSaveD:"احفظ الحزمة",qRem:"المصدر",qDeckSaved:"حُفظت الحزمة ✓",qQuit:"الخروج من الاختبار؟",
@@ -42,7 +44,9 @@ en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",nLibrary:"
  dT:"My decks",dNew:"New deck",dCreate:"Create",dName:"Deck name",dEmoji:"Icon",dImp:"Import",dImpPh:"Paste a deck / challenge link or code",dNone:"No decks yet.",
  dDue:"Due",dNewC:"New",dMast:"Mastered",dEv:"Cited",dStudy:"Study",dCram:"Free review",dQuiz:"Quiz",dShare:"Share",dBib:"References",dBack:"Back",dAdd:"New card",dEdit:"Edit",dDel:"Delete",dDelQ:"Delete this deck permanently?",dDelC:"Delete this card?",dNoC:"No cards in this deck.",dExam:"Exam date",dExamClr:"Clear",
  cF:"Question or text",cB:"Answer",cSrc:"Source",cNoSrc:"No source",cLink:"Link a saved source",cSave:"Save",cAdded:"Added ✓",cNeed:"Enter a question and an answer.",
- ev3:"Cited · DOI",ocrBtn:"Image (extract text)",ocrLoad:"Loading the reader and analysing the image… the first run can take a minute",ocrNone:"No clear text found. Try a sharper, straight, printed image.",ocrDone:"Text extracted. Fix any mistakes before making cards.",ocrFail:"Extraction failed. Check your connection and try again.",evW:"Preliminary · not peer-reviewed",wikiT:"Include Wikipedia (intro only; its cited papers are pulled in)",ev2:"Linked source",ev1:"My notes",ev0:"No source",evShow:"Source",evBibT:"Deck references (APA)",evAll:"Copy all",evNone:"No references yet.",evMeter:"Citation rate",
+ ev3:"Peer-Reviewed · DOI",ocrBtn:"Image (extract text)",ocrLoad:"Loading the reader and analysing the image… the first run can take a minute",ocrNone:"No clear text found. Try a sharper, straight, printed image.",ocrDone:"Text extracted. Fix any mistakes before making cards.",ocrFail:"Extraction failed. Check your connection and try again.",evW:"Preliminary · Not Peer-Reviewed",wikiT:"Include Wikipedia (intro only; its cited papers are pulled in)",ev2:"Indexed · URL Verified",ev1:"My Notes / Lecture",ev0:"Unverified · No Source",evShow:"Source",evBibT:"Deck References",evAll:"Copy all",evNone:"No references yet.",evMeter:"Citation rate",
+ citeFmt:"Citation format",verifHi:"DOI Verified",verifMid:"Indexed · URL",verifLow:"Unverified",
+ srsLearn:"Learning",srsWeak:"Weak",srsMastRate:"Mastery",srsAuto:"Autonomous Adaptive Path",srsWeakFound:"{n} weak concepts detected for targeted reinforcement:",srsWeakGo:"Reinforce weak areas",srsWeakQuiz:"Adaptive follow-up quiz",srsDeep:"Concept deep-dive",srsDeepT:"Concept Deep-Dive",srsDeepD:"Topics prioritized from lapses and low-ease reviews:",srsDeepSearch:"Search peer-reviewed papers",srsDeepCards:"Related cards",srsNeedQuiz:"At least 2 cards are needed for an adaptive quiz.",
  sShow:"Show answer",s0:"Forgot",s1:"Hard",s2:"Good",s3:"Easy",sDone:"Session complete 🎉",sRev:"cards reviewed",sOk:"successful answers",sBack:"Back",sMore:"Review more",sCram:"Free mode: scheduling is unchanged",sNone:"Nothing due right now 🎉",sM:"m",sD:"d",sMo:"mo",
  pT:"Play & challenge",pSub:"Quick quizzes and friend challenges, with no account and no server",pDeck:"Quiz from a deck",pAll:"Mixed quiz from all my decks",pNeed:"You need a deck with at least two cards.",pRiv:"Your rivals",pRivNone:"No challenges yet. Play a quiz, then send the link to a friend.",pHow:"How do challenges work?",pHowT:"Play a quiz and you get a link. Your friend opens it, plays the same questions and compares their score with yours, then replies with a new link. No account or server needed, and it works over WhatsApp or any messenger.",pCodeT:"Got a challenge code?",pGo:"Open",pBad:"The code is not valid.",pRound:"{n} questions · 20 seconds each",
  qOf:"of",qSc:"Score",qCombo:"Streak",qNext:"Next",qFin:"Result",qOk:"Correct! 👏",qBad:"Wrong",qTime:"Time's up ⏱",qRes:"Your score",qAcc:"Accuracy",qBest:"Best score",qNB:"New record! 🏆",qShare:"Challenge a friend with my score",qAgain:"Play again",qMiss:"Study my mistakes",qWin:"You beat",qLose:"You lost to",qTie:"You tied with",qTheirs:"Their score",qMine:"Your score",qSaveD:"Save deck",qRem:"Source",qDeckSaved:"Deck saved ✓",qQuit:"Leave the quiz?",
@@ -54,20 +58,31 @@ en:{nHome:"Home",nDecks:"Decks",nRes:"Research",nPlay:"Play",nMe:"Me",nLibrary:"
  how2:"Where do cards come from?",
  pts2:"Review a card +1 · Quiz +15 · Create a deck +8 · Challenge +20 · Perfect quiz +25"}};
 const T={ar:{...T0.ar,...N.ar},en:{...T0.en,...N.en}};
-// v20: الفرنسية. شاشات الدراسة القديمة تعود للنصوص الإنجليزية إلى أن تُترجم؛ ميزات المجتمع الجديدة (x.js) مترجمة بالكامل.
-T.fr={...T.en,dn:["dim.","lun.","mar.","mer.","jeu.","ven.","sam."]};T0.fr=T.fr;
+T.fr={...T.en,
+ nHome:"Accueil",nDecks:"Paquets",nRes:"Recherche",nPlay:"Défi",nMe:"Profil",nLibrary:"Bibliothèque",
+ hi:"Bonjour",tag:"Étudier avec preuves",tagD:"Fiches intelligentes liées à leurs sources scientifiques. Aucun fait sans référence.",
+ homePh:"Que voulez-vous étudier aujourd'hui ?",homeGo:"Commencer",
+ qNotes:"Mes notes",qFile:"Fichier",qCode:"Code défi",qSaved:"Mes sources",today:"Aujourd'hui",goalT:"Objectif du jour",cards:"cartes",dueNow:"cartes à réviser",studyNow:"Réviser maintenant",nothingDue:"Rien à réviser pour l'instant. Bravo ! 🎉",
+ tabS:"Recherche",tabV:"Enregistrées",cite:"Citer",save:"Enregistrer",saved:"Enregistré",oa:"Accès libre uniquement",yr:"Année",rel:"Pertinence",
+ citeFmt:"Format de citation",verifHi:"Évalué par pairs · DOI",verifMid:"Indexé · Lien",verifLow:"Non vérifié",
+ ev3:"Évalué par pairs · DOI",ev2:"Source indexée · Lien",ev1:"Mes notes / Cours",evW:"Préliminaire · Non évalué",ev0:"Non vérifié · Sans source",evBibT:"Références du paquet",evAll:"Tout copier",evNone:"Aucune référence.",evMeter:"Taux de citation",
+ wikiT:"Inclure Wikipédia (intro uniquement ; ses références DOI sont extraites)",
+ srsLearn:"En cours",srsWeak:"Fragiles",srsMastRate:"Maîtrise",srsAuto:"Parcours adaptatif autonome",srsWeakFound:"{n} notions fragiles détectées pour révision ciblée :",srsWeakGo:"Renforcer les points faibles",srsWeakQuiz:"Quiz adaptatif",srsDeep:"Approfondir",srsDeepT:"Approfondissement conceptuel",srsDeepD:"Notions à consolider selon vos révisions et quiz :",srsDeepSearch:"Chercher des articles évalués",srsDeepCards:"Cartes associées",srsNeedQuiz:"Au moins 2 cartes sont nécessaires pour un quiz adaptatif.",
+ sShow:"Afficher la réponse",s0:"Oublié",s1:"Difficile",s2:"Bien",s3:"Facile",sDone:"Session terminée 🎉",sBack:"Retour",sMore:"Réviser plus",
+ ok:"OK",cancel:"Annuler",close:"Fermer",dn:["dim.","lun.","mar.","mer.","jeu.","ven.","sam."]
+};T0.fr=T.fr;
 // ===================== النواة: الحالة والتخزين =====================
-const APP_VER="21.1 · 2026-11-14";
-const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,
+const APP_VER="22.0 · 2026-11-14";
+const S={lang:"ar",tab:"home",sub:"res",me:"s",q:"",oa:false,sort:"rel",res:null,loading:false,err:false,saved:[],open:{},show:20,citeStyle:"apa",
  rem:[],remDraft:{topic:"",days:[],time:"20:00",pre:0},decks:[],prof:{name:"",av:"📚",col:0,goal:20},riv:[],deckId:null,study:null,quiz:null,hq:"",busy:false,dp:null};
 const LS={get(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x==null?d:x}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-try{const x=LS.get("7s_saved",[]);if(Array.isArray(x))S.saved=x;const l=localStorage.getItem("7s_lang");if(l==="en"||l==="ar"||l==="fr")S.lang=l}catch(e){}
+try{const x=LS.get("7s_saved",[]);if(Array.isArray(x))S.saved=x;const l=localStorage.getItem("7s_lang");if(l==="en"||l==="ar"||l==="fr")S.lang=l;const cs=localStorage.getItem("7s_cite");if(cs==="apa"||cs==="mla"||cs==="chicago")S.citeStyle=cs}catch(e){}
 {const r=LS.get("7s_rem",[]);if(Array.isArray(r))S.rem=r;const d=LS.get("7s_decks",[]);if(Array.isArray(d))S.decks=d.filter(x=>x&&Array.isArray(x.cards));
  const p=LS.get("7s_prof",{});if(p&&typeof p==="object")Object.assign(S.prof,p);if(!S.prof.av||/[🦊🐼🦉🐯🐸🦁🐙🦄🐧🦅🐬🐢]/u.test(S.prof.av))S.prof.av="📚";if(typeof S.prof.col!=="number"||S.prof.col<0||S.prof.col>5)S.prof.col=0;const v=LS.get("7s_riv",[]);if(Array.isArray(v))S.riv=v}
 const t=k=>{const v=T[S.lang][k];if(v==null){console.warn("missing i18n:",k);return k}return v};
 const tr=(a,e)=>S.lang==="ar"?a:e; // مساعد عام للنصوص الثنائية (كان معرّفًا محليًا فقط فيُسقط نشر الملف للمكتبة)
 const tf=(k,o)=>t(k).replace(/\{(\w+)\}/g,(m,x)=>o[x]);
-const persist=()=>{try{localStorage.setItem("7s_saved",JSON.stringify(S.saved));localStorage.setItem("7s_lang",S.lang);localStorage.setItem("7s_rem",JSON.stringify(S.rem));
+const persist=()=>{try{localStorage.setItem("7s_saved",JSON.stringify(S.saved));localStorage.setItem("7s_lang",S.lang);localStorage.setItem("7s_cite",S.citeStyle);localStorage.setItem("7s_rem",JSON.stringify(S.rem));
  localStorage.setItem("7s_decks",JSON.stringify(S.decks));localStorage.setItem("7s_prof",JSON.stringify(S.prof));localStorage.setItem("7s_riv",JSON.stringify(S.riv))}catch(e){}};
 // يمنع javascript: و data: وأي بروتوكول خطِر في الروابط القادمة من فهارس خارجية أو روابط مشاركة
 const safeUrl=(u,img)=>{u=String(u==null?"":u).trim();if(!u)return"";const c=u.replace(/[\u0000-\u0020\u00AD\u200B-\u200F\u2028\u2029\uFEFF]/g,"");
@@ -85,14 +100,20 @@ const EMO=["📘","🧠","🏛️","🌍","⚖️","📊","🔬","📜","🧬","
 
 // ===================== المصدر والتوثيق (ميزة التميّز) =====================
 // كل بطاقة تحمل src: {t:عنوان, a:مؤلفون, y:سنة, j:مجلة/ناشر, d:DOI, u:رابط, k:الفهرس, own:ملاحظات شخصية}
-function srcOf(p){return{t:p.title,a:(p.authors||[]).slice(0,6),y:p.year||null,j:p.journal||"",d:p.doi||"",u:p.url||"",k:p.src||""}}
-const apaS=s=>apa({title:s.t,authors:s.a,year:s.y,journal:s.j,doi:s.d,url:s.u});
+function srcOf(p){return{t:p.title,a:(p.authors||[]).slice(0,6),y:p.year||null,j:p.journal||"",d:p.doi||"",u:p.url||"",v:p.vol||"",is:p.issue||"",pg:p.pages||"",k:p.src||""}}
+const paperOfS=s=>({title:s.t,authors:s.a,year:s.y,journal:s.j,doi:s.d,url:s.u,vol:s.v,issue:s.is,pages:s.pg});
+const apaS=s=>apa(paperOfS(s));
+const citeS=(s,st)=>formatCite(paperOfS(s),st||S.citeStyle);
 const lvl=s=>!s?0:s.own?1:s.k==="Wikipedia"?1:s.d?3:(s.u?2:1);
 const linkS=s=>s.d?"https://doi.org/"+s.d:(s.u||"https://scholar.google.com/scholar?q="+encodeURIComponent(s.t||""));
 const evBadge=s=>{if(s&&s.k==="Wikipedia")return h("span",{class:"badge ai"},t("evW"));const l=lvl(s);return h("span",{class:"badge "+(l===3?"g":l===2?"b":"n")},t("ev"+l))};
 function evRate(d){const n=d.cards.length;return n?Math.round(d.cards.filter(c=>lvl(c.src)>=2).length/n*100):0}
-function bibOf(cards){const m=new Map();cards.forEach(c=>{if(c.src&&!c.src.own&&c.src.k!=="Wikipedia"&&c.src.t){const a=apaS(c.src);if(!m.has(a))m.set(a,c.src)}});
- return[...m.entries()].sort((a,b)=>a[0].localeCompare(b[0],S.lang)).map(x=>({apa:x[0],s:x[1]}))}
+function bibOf(cards,st){const m=new Map();cards.forEach(c=>{if(c.src&&!c.src.own&&c.src.k!=="Wikipedia"&&c.src.t){const cit=citeS(c.src,st);if(!m.has(cit))m.set(cit,c.src)}});
+ return[...m.entries()].sort((a,b)=>a[0].localeCompare(b[0],S.lang)).map(x=>({apa:x[0],cit:x[0],s:x[1]}))}
+function citeSwitcher(onPick){
+ return h("div",{class:"cite-bar",role:"group","aria-label":t("citeFmt")},
+  [["apa","APA"],["mla","MLA"],["chicago","Chicago"]].map(([id,lab])=>h("button",{type:"button",class:S.citeStyle===id?"on":"",onclick:e=>{e.stopPropagation();S.citeStyle=id;persist();if(onPick)onPick(id);else render()}},lab)));
+}
 
 // ===================== توليد البطاقات من النص (بلا ذكاء اصطناعي خارجي) =====================
 const STOP2=new Set(["this","that","with","from","which","their","there","have","been","were","also","such","into","than","more","other","these","those","about","between","using","used","while","where","when","what","will","would","could","should","only","some","many","most","each","both","very","often","الذي","التي","الذين","هذا","هذه","ذلك","حيث","عندما","بينما","خلال","أيضا","أيضًا","كما","لكن","بعد","قبل","منذ","وهو","وهي","التى","اللذان","كذلك","وقد","وكان","ولكن","فيها","فيه","منها","منه","عليها","عليه","إليها","إليه","هناك","جميع","بعض","أكثر","أقل"]);
@@ -141,6 +162,73 @@ function queueFor(deckId){const now=Date.now(),day=dkey(new Date()),due=[],fresh
  due.sort((a,b)=>a[2]-b[2]);return{due:due.map(x=>[x[0],x[1]]),fresh}}
 const dueTotal=()=>{const q=queueFor();return q.due.length+q.fresh.length};
 function deckStats(d){let n=0,due=0,mast=0;const now=Date.now();d.cards.forEach(c=>{if(!c.sr)n++;else{if(c.sr.due<=now)due++;if(c.sr.i>=21)mast++}});return{n,due,mast}}
+function srsAnalyze(deckId){
+ const now=Date.now(),list=deckId?S.decks.filter(d=>d.id===deckId):S.decks;
+ let total=0,due=0,fresh=0,learning=0,mastered=0;const weak=[];
+ list.forEach(d=>d.cards.forEach(c=>{
+  total++;
+  if(!c.sr){fresh++;return}
+  if(c.sr.due<=now)due++;
+  if(c.sr.i>=21)mastered++;else learning++;
+  const lapses=c.sr.l||0,ease=c.sr.e==null?2.5:c.sr.e;
+  if(lapses>0||ease<2.25){
+   const score=lapses*3+(2.5-ease)*4+(c.sr.due<=now?1.5:0);
+   weak.push({d,c,score,lapses,ease});
+  }
+ }));
+ weak.sort((a,b)=>b.score-a.score);
+ const masteryPct=total?Math.round((mastered+learning*0.4)/total*100):0;
+ const topicSet=new Map();
+ weak.forEach(w=>{
+  const raw=(w.c.src&&w.c.src.k!=="Wikipedia"&&!w.c.src.own&&w.c.src.t)||w.d.title||"";
+  const clean=raw.replace(/\s*[—\-:].*$/,"").trim();
+  const label=clean&&clean.length>=3?clean.slice(0,55):w.c.a.slice(0,40);
+  if(label&&!topicSet.has(label))topicSet.set(label,{topic:label,deckId:w.d.id,count:1});
+  else if(label){topicSet.get(label).count++}
+ });
+ return{total,due,fresh,learning,mastered,weak,masteryPct,topics:[...topicSet.values()].slice(0,4)};
+}
+function startWeakStudy(deckId){
+ const an=srsAnalyze(deckId);
+ const refs=an.weak.map(x=>[x.d.id,x.c.id]);
+ if(!refs.length){toast(t("sNone"));return}
+ startStudy(deckId,{refs});
+}
+function startAdaptiveQuiz(deckId){
+ const an=srsAnalyze(deckId),seen=new Set(),pool=[];
+ an.weak.forEach(x=>{if(!seen.has(x.c.id)){seen.add(x.c.id);pool.push(x.c)}});
+ const list=deckId?S.decks.filter(d=>d.id===deckId):S.decks;
+ const extra=[];
+ list.forEach(d=>d.cards.forEach(c=>{if(!seen.has(c.id)&&c.q&&c.a)extra.push(c)}));
+ extra.sort((a,b)=>((a.sr&&a.sr.due)||0)-((b.sr&&b.sr.due)||0));
+ const merged=pool.concat(extra);
+ if(merged.length<2){toast(t("srsNeedQuiz"));return}
+ const dk=deckId?deckBy(deckId):null;
+ startQuiz(deckId,{cards:merged.slice(0,10),title:(dk?dk.title+" · ":"")+t("srsWeakQuiz"),emoji:dk?dk.emoji:"🧠",adaptive:true});
+}
+function conceptDeepDive(deckId){
+ const an=srsAnalyze(deckId);
+ const topics=an.topics;
+ const fallbackTopic=(deckId&&deckBy(deckId)?deckBy(deckId).title:"")||(S.decks[0]?S.decks[0].title:"");
+ const target=topics[0]?topics[0].topic:fallbackTopic;
+ const m=modal(
+  h("h3",{},ic("compass"),t("srsDeepT")),
+  h("div",{class:"meta"},t("srsDeepD")),
+  topics.length?topics.map(tp=>h("div",{class:"card",style:"margin:10px 0"},
+   h("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"},
+    h("b",{dir:"auto"},tp.topic),
+    h("span",{class:"meta"},tp.count+" "+t("cards"))),
+   h("div",{class:"btns"},
+    h("button",{class:"btn fill",onclick:()=>{m.remove();S.q=tp.topic;S.sub="res";go("res");doSearch()}},ic("search"),t("srsDeepSearch")),
+    h("button",{class:"btn",onclick:()=>{m.remove();startWeakStudy(tp.deckId)}},ic("cards"),t("srsWeakGo"))))):
+   h("div",{class:"card",style:"margin:10px 0"},
+    h("b",{dir:"auto"},target||t("nRes")),
+    target?h("div",{class:"btns"},h("button",{class:"btn fill",onclick:()=>{m.remove();S.q=target;S.sub="res";go("res");doSearch()}},ic("search"),t("srsDeepSearch"))):null),
+  an.weak.length?[h("div",{class:"lbl"},t("srsDeepCards")),
+   an.weak.slice(0,4).map(w=>h("div",{class:"cite"},h("b",{dir:"auto"},w.c.q.replace("_____","＿＿＿")),h("div",{class:"meta",dir:"auto"},"→ "+w.c.a)))]:null,
+  h("div",{class:"acts"},h("button",{class:"btn",onclick:()=>m.remove()},t("close")))
+ );
+}
 
 // ===================== المشاركة بلا خادم: رابط يحمل الحزمة والنتيجة =====================
 const b64u=u8=>{let s="";for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")};
@@ -170,6 +258,7 @@ function shareModal(url,text){const m=h("div",{class:"modal",onclick:e=>{if(e.ta
   h("button",{class:"btn",onclick:()=>m.remove()},t("close")))));document.body.append(m)}
 function fmtAuthor(n){n=(n||"").trim();if(!n)return"";let last,first;if(n.includes(",")){[last,first]=n.split(",").map(s=>s.trim())}else{const p=n.split(/\s+/);last=p.pop();first=p.join(" ")}
  const ini=(first||"").split(/[\s-]+/).filter(Boolean).map(s=>s[0].toUpperCase()+".").join(" ");return ini?last+", "+ini:last}
+function fmtAuthorFull(n){n=(n||"").trim();if(!n)return"";if(/[,،]/.test(n))return n;const p=n.split(/\s+/);if(p.length<2)return n;const last=p.pop();return last+", "+p.join(" ")}
 function apa(p){
  if(isAr(p.title||"")){const A=(p.authors||[]).map(n=>{n=(n||"").trim();if(/[,،]/.test(n))return n;const w=n.split(/\s+/);return w.length>1?w[w.length-1]+"، "+w.slice(0,-1).join(" "):n}).join(" و");
   return ((A?A+" ":"")+"("+(p.year||"د.ت")+"). "+(p.title||"").replace(/\.$/,"")+". "+(p.journal?p.journal+". ":"")+(p.doi?"https://doi.org/"+p.doi:(p.url||""))).trim()}
@@ -178,6 +267,34 @@ function apa(p){
  let s=au?au+" ("+(p.year||"n.d.")+"). "+(p.title||"").replace(/\.$/,"")+". ":(p.title||"").replace(/\.$/,"")+". ("+(p.year||"n.d.")+"). ";
  if(p.journal){s+=p.journal;if(p.vol){s+=", "+p.vol;if(p.issue)s+="("+p.issue+")"}if(p.pages)s+=", "+p.pages;s+=". "}
  if(p.doi)s+="https://doi.org/"+p.doi;else if(p.url)s+=p.url;return s.trim()}
+function mla(p){
+ const raw=(p.authors||[]).filter(Boolean),ar=isAr(p.title||"");
+ let au="";
+ if(raw.length===1)au=fmtAuthorFull(raw[0]);
+ else if(raw.length===2)au=fmtAuthorFull(raw[0])+(ar?"، و":", and ")+raw[1];
+ else if(raw.length>2)au=fmtAuthorFull(raw[0])+(ar?"، وآخرون":", et al.");
+ const title=(p.title||"").replace(/\.$/,"");
+ let s=(au?au+". ":"")+(ar?"«"+title+"». ":"\""+title+".\" ");
+ if(p.journal){s+=p.journal;if(p.vol)s+=(ar?"، مج. ":", vol. ")+p.vol;if(p.issue)s+=(ar?"، ع. ":", no. ")+p.issue}
+ if(p.year)s+=(p.journal?", ":"")+p.year;
+ if(p.pages)s+=(ar?"، ص. ":", pp. ")+p.pages;
+ s+=". ";
+ if(p.doi)s+="https://doi.org/"+p.doi;else if(p.url)s+=p.url;
+ return s.trim();
+}
+function chicago(p){
+ const raw=(p.authors||[]).filter(Boolean),ar=isAr(p.title||"");
+ let au="";
+ if(raw.length===1)au=fmtAuthorFull(raw[0]);
+ else if(raw.length===2)au=fmtAuthorFull(raw[0])+(ar?" و":", and ")+raw[1];
+ else if(raw.length>2)au=fmtAuthorFull(raw[0])+(ar?" وآخرون":", et al.");
+ const yr=p.year||(ar?"د.ت.":"n.d."),title=(p.title||"").replace(/\.$/,"");
+ let s=(au?au+". ":"")+yr+". "+(ar?"«"+title+"». ":"\""+title+".\" ");
+ if(p.journal){s+=p.journal;if(p.vol)s+=" "+p.vol;if(p.issue)s+=", no. "+p.issue;if(p.pages)s+=": "+p.pages;s+=". "}
+ if(p.doi)s+="https://doi.org/"+p.doi;else if(p.url)s+=p.url;
+ return s.trim();
+}
+function formatCite(p,st){st=st||S.citeStyle||"apa";return st==="mla"?mla(p):st==="chicago"?chicago(p):apa(p)}
 const cleanDoi=d=>{d=String(d||"").trim().replace(/^(?:https?:\/\/(?:dx\.)?doi\.org\/|doi\s*:\s*)/i,"");try{if(/%[0-9a-f]{2}/i.test(d))d=decodeURIComponent(d)}catch(e){}return d.replace(/[\s.,;]+$/,"").trim()};
 
 const isAr=s=>/[\u0600-\u06FF]/.test(s);
@@ -287,7 +404,7 @@ function previewCards(title,groups){
  const name=h("input",{class:"in",value:title}),nameBox=h("div",{},h("label",{class:"lbl"},t("pvName")),name);
  const sel=h("select",{class:"in",onchange:()=>{nameBox.style.display=sel.value?"none":""}},h("option",{value:""},"＋ "+t("dNew")),S.decks.map(d=>h("option",{value:d.id},d.emoji+" "+d.title)));
  const cnt=h("div",{class:"note",style:"padding:6px 0"}),list=h("div",{});
- groups.forEach(g=>{list.append(h("div",{class:"grp",dir:"auto"},(g.p.src==="Wikipedia"?"🌐 ":g.p.viaWiki?"🔗 ":g.p.src==="notes"?"📝 ":"📄 ")+(g.p.title||"").slice(0,90)));
+ groups.forEach(g=>{const gs=g.p.src==="notes"?{t:g.p.title,own:1}:srcOf(g.p);list.append(h("div",{class:"grp",dir:"auto",style:"display:flex;align-items:center;gap:8px;flex-wrap:wrap"},(g.p.src==="Wikipedia"?"🌐 ":g.p.viaWiki?"🔗 ":g.p.src==="notes"?"📝 ":"📄 ")+(g.p.title||"").slice(0,80),evBadge(gs)));
   g.cards.forEach(c=>{const it=all.find(x=>x.c===c);
    list.append(h("label",{class:"sel"},h("input",{type:"checkbox",checked:true,onchange:e=>{it.on=e.target.checked;upd()}}),
     h("div",{dir:"auto"},h("div",{},c.q.replace("_____","＿＿＿")),h("div",{class:"meta"},"→ "+(c.a.length>90?c.a.slice(0,90)+"…":c.a)))))})});
@@ -336,10 +453,26 @@ function cardModal(deck,card){const q=h("textarea",{class:"in",style:"min-height
    if(card){card.q=qq;card.a=aa;card.src=src}else deck.cards.push({id:uid(),t:/_____/.test(qq)?"c":"q",q:qq,a:aa,src});persist();m.remove();render()}},t("cSave")),
   h("div",{class:"acts"},h("button",{class:"btn",onclick:()=>m.remove()},t("cancel"))))}
 
-// --- مراجع الحزمة (APA) ---
-function bibModal(deck){const b=bibOf(deck.cards);
- const m=modal(h("h3",{},"📚 "+t("evBibT")),b.length?b.map(x=>h("div",{class:"cite"},x.apa,h("div",{class:"btns"},h("a",{class:"btn",href:linkS(x.s),target:"_blank",rel:"noopener noreferrer"},t("verify"))))):h("div",{class:"msg"},t("evNone")),
-  h("div",{class:"acts"},b.length?h("button",{class:"btn fill",onclick:async e=>{try{await navigator.clipboard.writeText(b.map(x=>x.apa).join("\n\n"));e.target.textContent=t("copied");award("cite")}catch(x){}}},t("evAll")):null,h("button",{class:"btn",onclick:()=>m.remove()},t("close"))))}
+// --- مراجع الحزمة (APA / MLA / Chicago) ---
+function bibModal(deck){
+ const body=h("div",{}),copyBtn=h("button",{class:"btn fill"},t("evAll"));
+ let m;
+ const paint=()=>{
+  const b=bibOf(deck.cards,S.citeStyle);
+  body.replaceChildren(...(b.length?b.map(x=>h("div",{class:"cite"},
+   x.s?h("div",{style:"margin-bottom:4px"},evBadge(x.s)):null,
+   h("div",{dir:"auto"},x.cit),
+   h("div",{class:"btns"},h("a",{class:"btn",href:linkS(x.s),target:"_blank",rel:"noopener noreferrer"},t("verify"))))):[h("div",{class:"msg"},t("evNone"))]));
+  copyBtn.style.display=b.length?"":"none";
+  copyBtn.onclick=async()=>{try{await navigator.clipboard.writeText(b.map(x=>x.cit).join("\n\n"));copyBtn.textContent=t("copied");award("cite")}catch(x){}};
+ };
+ m=modal(h("div",{style:"display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px"},
+  h("h3",{style:"margin:0"},"📚 "+t("evBibT")+" ("+S.citeStyle.toUpperCase()+")"),
+  citeSwitcher(()=>{m.querySelector("h3").textContent="📚 "+t("evBibT")+" ("+S.citeStyle.toUpperCase()+")";paint();})),
+  body,
+  h("div",{class:"acts"},copyBtn,h("button",{class:"btn",onclick:()=>m.remove()},t("close"))));
+ paint();
+}
 
 // --- استيراد رمز / رابط حزمة أو تحدٍّ ---
 async function openCode(raw){raw=(raw||"").trim();if(!raw)return;const mm=raw.match(/[#&]([cd])=([A-Za-z0-9_-]+)/),code=mm?mm[2]:raw.replace(/\s+/g,"");let o;
@@ -353,34 +486,62 @@ function challengeModal(o){const cards=o.c.slice(0,60).map(unslim),isC=o.k==="c"
    isC?h("button",{class:"ok",onclick:()=>{if(name.value.trim())S.prof.name=name.value.trim();persist();m.remove();startQuiz(null,{cards,title:o.t,emoji:o.e,chal:{n:o.n||t("friend"),av:o.av||"",sc:o.sc}})}},t("chGo")):null,
    h("button",{class:isC?"btn":"ok",onclick:()=>{const d=newDeck(o.t||t("dT"),cards,{emoji:o.e});if(o.onSave)try{o.onSave()}catch(e){}m.remove();toast(t("qDeckSaved"));if(!isC)openDeck(d.id)}},isC?t("chSave"):t("qSaveD")),
    h("button",{class:"btn",onclick:()=>m.remove()},t("chLater"))))}
-async function handleHash(){const m=location.hash.match(/^#([cd])=(.+)$/);if(!m)return;try{history.replaceState(null,"",location.pathname)}catch(e){}
+async function handleHash(){
+ const rawHash=location.hash||"";
+ const mRoom=rawHash.match(/^#room=(.+)$/);
+ if(mRoom){
+  if(typeof joinStudyRoom!=="function"){window.addEventListener("load",handleHash,{once:true});return}
+  try{history.replaceState(null,"",location.pathname)}catch(e){}
+  joinStudyRoom(decodeURIComponent(mRoom[1]));return;
+ }
+ const mUser=rawHash.match(/^#u=(.+)$/);
+ if(mUser){
+  if(typeof openProf!=="function"||typeof window.Net==="undefined"){window.addEventListener("load",handleHash,{once:true});return}
+  try{history.replaceState(null,"",location.pathname)}catch(e){}
+  const key=decodeURIComponent(mUser[1]);
+  S.tab="com";if(window.SC)SC.view="feed";render();
+  try{
+   if(window.SC&&SC.sb){
+    const byName=await SC.sb.from("profiles").select("id").eq("username",key.replace(/^@/,"")).maybeSingle();
+    if(byName&&byName.data&&byName.data.id){openProf(byName.data.id);return}
+   }
+   const r=await Net.apiGet("/api/directory/"+encodeURIComponent(key));
+   if(r&&r.profile&&r.profile.id){openProf(r.profile.id);return}
+  }catch(e){}
+  toast(S.lang==="ar"?"لم يُعثر على الباحث":"Researcher profile not found");
+  return;
+ }
+ const m=rawHash.match(/^#([cd])=(.+)$/);if(!m)return;try{history.replaceState(null,"",location.pathname)}catch(e){}
  try{const o=await unpack(m[2]);if(!o||!Array.isArray(o.c)||!o.c.length)throw 0;o.c=o.c.slice(0,60).filter(x=>x&&typeof x==="object");if(!o.c.length)throw 0;o.k=o.k||m[1];challengeModal(o)}catch(e){toast(t("pBad"))}}
 // ===================== جلسة الدراسة =====================
 function clozeNodes(c,reveal){if(c.t!=="c"||!c.q.includes("_____"))return[c.q];const ps=c.q.split("_____"),out=[];
  ps.forEach((p,i)=>{out.push(p);if(i<ps.length-1)out.push(reveal?h("mark",{},c.a):h("span",{class:"blank"},"     "))});return out}
 // صندوق المصدر: يظهر مع كل إجابة، وهذا ما يميّز التطبيق (دراسة بدليل)
 function srcBox(s,holder){if(!s)return h("div",{class:"src"},h("span",{class:"badge n"},t("ev0")));
- return h("div",{class:"src"},evBadge(s),h("div",{class:"meta",dir:"auto"},"📖 "+(s.t||"")+(s.y?" · "+s.y:"")),holder&&holder.src?h("div",{class:"cite"},apaS(s)):null,
+ return h("div",{class:"src"},evBadge(s),h("div",{class:"meta",dir:"auto"},"📖 "+(s.t||"")+(s.j?" · "+s.j:"")+(s.y?" · "+s.y:"")),
+  holder&&holder.src?h("div",{class:"cite"},h("div",{style:"margin-bottom:6px"},citeSwitcher()),citeS(s,S.citeStyle)):null,
   s.own?null:h("div",{class:"btns",style:"margin-top:4px"},
-   s.k==="Wikipedia"?null:h("button",{class:"btn",onclick:e=>{e.stopPropagation();holder.src=!holder.src;render()}},t("cite")),
+   s.k==="Wikipedia"?null:h("button",{class:"btn",onclick:e=>{e.stopPropagation();holder.src=!holder.src;render()}},t("cite")+" ("+S.citeStyle.toUpperCase()+")"),
    h("a",{class:"btn",href:linkS(s),target:"_blank",rel:"noopener noreferrer",onclick:e=>e.stopPropagation()},t("verify"))))}
 function startStudy(deckId,o){o=o||{};let q;
  if(o.refs)q=o.refs;else if(o.cram){const d=deckBy(deckId);q=shuffle(d.cards).map(c=>[d.id,c.id])}else{const x=queueFor(deckId);q=x.due.concat(x.fresh)}
  q=q.slice(0,o.cram?40:80);if(!q.length){toast(t("sNone"));return}
- S.study={q,i:0,show:false,done:0,ok:0,cram:!!o.cram,deckId,from:S.tab,src:false};S.tab="study";render();window.scrollTo(0,0)}
+ S.study={q,i:0,show:false,done:0,ok:0,missed:0,cram:!!o.cram,deckId,from:S.tab,src:false};S.tab="study";render();window.scrollTo(0,0)}
 function exitStudy(){const f=S.study&&S.study.from;S.study=null;S.tab=(f&&f!=="study")?f:"home";render()}
 function rate(r){const st=S.study,[did,cid]=st.q[st.i],d=deckBy(did),c=d&&d.cards.find(x=>x.id===cid);
  if(c&&!st.cram){const first=!c.sr;c.sr=calc(c.sr,r);d.last=Date.now();if(first){const day=dkey(new Date());d.nd=d.nd&&d.nd.d===day?{d:day,n:d.nd.n+1}:{d:day,n:1}}}
- award("review",null,true);st.done++;if(r>0)st.ok++;
+ award("review",null,true);st.done++;if(r>0)st.ok++;else st.missed=(st.missed||0)+1;
  if(r===0&&!st.cram)st.q.push([did,cid]);   // بطاقات «نسيتها» تعود في آخر الجلسة
  st.i++;st.show=false;st.src=false;persist();render()}
 function renderStudy(v){const st=S.study;if(!st){S.tab="home";return render()}
  document.body.classList.add("focus");
- if(st.i>=st.q.length){const acc=Math.round(st.ok/Math.max(1,st.done)*100),more=!st.cram&&dueTotal()>0;
+ if(st.i>=st.q.length){const acc=Math.round(st.ok/Math.max(1,st.done)*100),more=!st.cram&&dueTotal()>0,an=srsAnalyze(st.deckId);
   v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},"✓"),h("h1",{},t("sDone")),h("div",{},st.done+" "+t("sRev")+" · "+acc+"% "+t("sOk"))));
   v.append(h("div",{class:"card"},h("div",{class:"btns"},
    more?h("button",{class:"btn fill",onclick:()=>{const f=st.from,did=st.deckId;S.study=null;S.tab=f;startStudy(did)}},t("sMore")):null,
-   st.deckId?h("button",{class:"btn",onclick:()=>{S.study=null;startQuiz(st.deckId)}},"⚡ "+t("dQuiz")):null,
+   an.weak.length?h("button",{class:"btn",onclick:()=>{const did=st.deckId;S.study=null;startAdaptiveQuiz(did)}},ic("zap"),t("srsWeakQuiz")):null,
+   st.deckId&&!an.weak.length?h("button",{class:"btn",onclick:()=>{S.study=null;startQuiz(st.deckId)}},"⚡ "+t("dQuiz")):null,
+   an.weak.length?h("button",{class:"btn",onclick:()=>{const did=st.deckId;S.study=null;S.tab="home";conceptDeepDive(did)}},ic("compass"),t("srsDeep")):null,
    h("button",{class:"btn",onclick:exitStudy},t("sBack")))));return}
  const[did,cid]=st.q[st.i],d=deckBy(did),c=d&&d.cards.find(x=>x.id===cid);if(!c){st.q.splice(st.i,1);return renderStudy(v)}
  v.append(h("div",{class:"top"},h("button",{class:"x",onclick:exitStudy},"✕"),h("div",{class:"bar d"},h("i",{style:"width:"+Math.round(st.i/st.q.length*100)+"%;background:var(--teal)"})),h("div",{class:"meta"},(st.q.length-st.i)+"")));
@@ -410,7 +571,7 @@ function answer(idx){const q=S.quiz;if(!q||q.ans)return;stopTimer();const it=q.q
 function nextQ(){const q=S.quiz;q.i++;q.ans=null;q.qs0=null;q.srcH.src=false;if(q.i>=q.qs.length)finishQuiz();else render()}
 function finishQuiz(){const q=S.quiz;stopTimer();q.fin=true;const acc=q.ok/q.qs.length,d=q.deckId?deckBy(q.deckId):null;q.newBest=false;
  if(d&&q.score>(d.best||0)){q.newBest=!!d.best;d.best=q.score}
- q.missed.forEach(c=>S.decks.forEach(dd=>{const cc=dd.cards.find(x=>x.id===c.id);if(cc&&cc.sr)cc.sr.due=Math.min(cc.sr.due,Date.now())}));   // الأخطاء تعود للمراجعة فورًا
+ q.missed.forEach(c=>S.decks.forEach(dd=>{const cc=dd.cards.find(x=>x.id===c.id);if(cc){cc.sr=cc.sr?{...cc.sr,l:(cc.sr.l||0)+1,due:Math.min(cc.sr.due||Date.now(),Date.now()),e:Math.max(1.3,(cc.sr.e||2.5)-.15)}:{e:2.3,i:0,n:0,l:1,due:Date.now()}}}));   // الأخطاء تسجل نقطة ضعف وتعود للمراجعة فورًا
  if(q.chal){S.riv.unshift({n:q.chal.n,av:q.chal.av,theirs:q.chal.sc,mine:q.score,t:q.title,ts:Date.now()});S.riv=S.riv.slice(0,30)}
  persist();award("quiz",null,true);if(q.chal)award("chal",null,true);if(acc===1&&q.qs.length>=5)award("perfect");render()}
 async function shareQuiz(){const q=S.quiz;if(!S.prof.name){const n=prompt(t("chName"));if(n&&n.trim()){S.prof.name=n.trim().slice(0,24);persist()}}const url=await mkLink("c",q.title,q.emoji,q.qs.map(x=>x.c),q.score);shareLink(url,tf("shC",{t:q.title,s:q.score}))}
@@ -426,6 +587,7 @@ function renderQuiz(v){const q=S.quiz;if(!q){go("play");return}document.body.cla
    h("button",{class:"btn fill",onclick:shareQuiz},"🔥 "+t("qShare")),
    h("button",{class:"btn",onclick:()=>startQuiz(q.re[0],q.re[1])},"↻ "+t("qAgain")),
    missedRefs.length?h("button",{class:"btn",onclick:()=>{S.quiz=null;startStudy(null,{refs:missedRefs})}},"🧠 "+t("qMiss")):null,
+   missedRefs.length?h("button",{class:"btn",onclick:()=>{const did=q.deckId;S.quiz=null;conceptDeepDive(did)}},ic("compass"),t("srsDeep")):null,
    q.chal&&!S.decks.some(d=>d.title===q.title)?h("button",{class:"btn",onclick:()=>{const d=newDeck(q.title,q.qs.map(x=>({...x.c,id:uid()})),{emoji:q.emoji});toast(t("qDeckSaved"));S.quiz=null;openDeck(d.id)}},t("qSaveD")):null,
    h("button",{class:"btn",onclick:()=>exitQuiz(false)},t("sBack")))));
   v.append(h("div",{class:"sec"},"📖 "+t("qRem")));q.qs.forEach((x,i)=>{const bad=q.missed.includes(x.c);
@@ -543,16 +705,40 @@ function deckCard(d){const s=deckStats(d),ev=evRate(d);
   h("div",{class:"meta"},"🔖 "+t("evMeter")+" "+ev+"%"),h("div",{class:"mini"},h("i",{style:"width:"+ev+"%"}))))}
 
 // ---------- الرئيسية ----------
-function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=todayN("review"),goal=S.prof.goal||20,pc=Math.min(100,Math.round(done/goal*100));
+function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=todayN("review"),goal=S.prof.goal||20,pc=Math.min(100,Math.round(done/goal*100)),an=srsAnalyze();
  const inp=h("input",{type:"search",value:S.hq,placeholder:t("homePh"),enterkeyhint:"go",oninput:e=>{S.hq=e.target.value},onkeydown:e=>{if(e.key==="Enter")studyTopic(S.hq)}});
- v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},t("tag")),h("h1",{},t("hi")+(S.prof.name?" "+S.prof.name:"")+" ",h("span",{class:"avi"},S.prof.av)),h("p",{},t("tagD")),
+ v.append(h("div",{class:"hero"},
+  h("div",{class:"hero-top"},
+   h("div",{class:"hero-emblem"},h("img",{src:"/assets/aistudio/file_00000000baa482108ace7d3de05b5536_10fcdeca.png",alt:"7Salah Scholar",width:"54",height:"54"})),
+   h("div",{class:"hero-title-wrap"},h("div",{class:"eyebrow"},t("tag")),h("h1",{dir:"auto"},t("hi")+(S.prof.name?" "+S.prof.name:" 7Salah Scholar")))),
+  h("p",{},t("tagD")),
   h("div",{class:"sb"},inp,h("button",{onclick:()=>studyTopic(S.hq)},t("homeGo"))),
-  h("div",{class:"chips"},t("sugs").map(s=>h("button",{class:"chip",onclick:()=>studyTopic(s)},s))),h("label",{class:"note",style:"display:flex;gap:6px;align-items:center;margin-top:8px"},h("input",{type:"checkbox",checked:LS.get("7s_wiki",false),onchange:e=>LS.set("7s_wiki",e.target.checked)}),t("wikiT"))));
+  h("div",{class:"chips"},t("sugs").map(s=>h("button",{class:"chip",onclick:()=>studyTopic(s)},s))),
+  h("label",{class:"hero-check"},h("input",{type:"checkbox",checked:LS.get("7s_wiki",false),onchange:e=>LS.set("7s_wiki",e.target.checked)}),h("span",{},t("wikiT"))),
+  h("div",{class:"hero-ai-row"},
+   h("button",{type:"button",class:"hero-ai-cta",onclick:()=>go("ai")},
+    ic("sparkles",{s:17}),
+    h("span",{},S.lang==="ar"?"افتح المساعد البحثي الذكي (تحليل PDF · مراجع APA/MLA · خطط بحث)":S.lang==="fr"?"Ouvrir l'Assistant IA (PDF · Références · Plans)":"Open AI Research Assistant (PDF Analyzer · APA/MLA · Outlines)")
+   )
+  )));
  v.append(h("div",{class:"qa"},
   h("button",{onclick:()=>notesModal()},h("b",{},"📝"),t("qNotes")),h("button",{onclick:()=>notesModal(true)},h("b",{},"📄"),t("qFile")),
   h("button",{onclick:()=>go("play")},h("b",{},"🔗"),t("qCode")),h("button",{onclick:()=>{S.sub="sav";go("res")}},h("b",{},"📚"),t("qSaved"))));
- v.append(h("div",{class:"card"},h("div",{class:"today"},h("div",{class:"ring",style:"--p:"+pc},h("div",{},done+"/"+goal,h("small",{},t("goalT")))),
-  h("div",{style:"flex:1"},nDue?[h("div",{class:"big"},nDue+" "+t("dueNow")),h("button",{class:"btn fill",style:"margin-top:8px",onclick:()=>startStudy(null)},"🧠 "+t("studyNow"))]:h("div",{style:"line-height:1.7"},S.decks.length?t("nothingDue"):t("noDecks"))))));
+ v.append(h("div",{class:"card"},
+  h("div",{class:"today"},h("div",{class:"ring",style:"--p:"+pc},h("div",{},done+"/"+goal,h("small",{},t("goalT")))),
+   h("div",{style:"flex:1"},nDue?[h("div",{class:"big"},nDue+" "+t("dueNow")),h("button",{class:"btn fill",style:"margin-top:8px",onclick:()=>startStudy(null)},"🧠 "+t("studyNow"))]:h("div",{style:"line-height:1.7"},S.decks.length?t("nothingDue"):t("noDecks")))),
+  an.total?h("div",{class:"srs-strip"},
+   h("div",{class:"srs-cell"},h("b",{},String(an.due+an.fresh)),h("small",{},t("dDue"))),
+   h("div",{class:"srs-cell"},h("b",{},String(an.learning)),h("small",{},t("srsLearn"))),
+   h("div",{class:"srs-cell"},h("b",{},String(an.weak.length)),h("small",{},t("srsWeak"))),
+   h("div",{class:"srs-cell"},h("b",{},an.masteryPct+"%"),h("small",{},t("srsMastRate")))):null,
+  an.weak.length?h("div",{class:"srs-weak"},
+   h("div",{class:"srs-weak-title"},ic("compass")," ",t("srsAuto")),
+   h("div",{class:"srs-weak-meta"},tf("srsWeakFound",{n:an.weak.length})+(an.topics.length?" "+an.topics.map(x=>x.topic).slice(0,2).join(" · "):"")),
+   h("div",{class:"btns"},
+    h("button",{class:"btn fill",onclick:()=>startWeakStudy(null)},ic("cards"),t("srsWeakGo")),
+    an.total>=2?h("button",{class:"btn",onclick:()=>startAdaptiveQuiz(null)},ic("zap"),t("srsWeakQuiz")):null,
+    h("button",{class:"btn",onclick:()=>conceptDeepDive(null)},ic("search"),t("srsDeep")))):null));
  const ex=S.decks.filter(d=>d.exam).map(d=>({d,n:Math.ceil((new Date(d.exam+"T00:00:00")-sod(Date.now()))/DAY)})).filter(x=>x.n>=0).sort((a,b)=>a.n-b.n).slice(0,2);
  ex.forEach(x=>v.append(h("div",{class:"card dk",onclick:()=>openDeck(x.d.id)},h("div",{class:"em"},ic("target")),h("div",{class:"tx"},h("h3",{dir:"auto"},t("exam")+": "+x.d.title),h("div",{class:"meta"},(x.n?tf("inDays",{n:x.n}):t("examToday"))+" · "+tf("perDay",{n:newLimit(x.d)}))))));
  const last=S.decks.filter(d=>d.last).sort((a,b)=>b.last-a.last)[0];
@@ -560,10 +746,10 @@ function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=
  const rest=S.decks.filter(d=>d!==last).slice(0,3);if(rest.length){v.append(h("div",{class:"sec"},h("span",{},t("dT")),h("button",{class:"btn",onclick:()=>go("decks")},"›")));rest.forEach(d=>v.append(deckCard(d)))}
  renderAcademicOverview(v);}
 
-// لوحة أكاديمية إضافية: المؤشرات الدراسية من بيانات الجهاز، والمجتمع/الرسائل من Supabase فقط.
+// لوحة أكاديمية إضافية: المؤشرات الدراسية، والمجتمع الأكاديمي، وغرف الدراسة المباشرة
 function renderAcademicOverview(v){
  const totalCards=S.decks.reduce((n,d)=>n+d.cards.length,0),mastered=S.decks.reduce((n,d)=>n+d.cards.filter(c=>c.sr&&c.sr.i>=21).length,0);
- const studyBox=h("section",{class:"dash-section"},h("div",{class:"dash-head"},h("div",{},h("div",{class:"dash-kicker"},S.lang==="ar"?"مساحتك الأكاديمية":"YOUR ACADEMIC SPACE"),h("h2",{},S.lang==="ar"?"نظرة سريعة على دراستك":"Your study overview")),h("div",{class:"dash-head-actions"},h("button",{class:"dash-link",onclick:()=>go("library")},S.lang==="ar"?"مكتبتي ←":"My library →"),h("button",{class:"dash-link",onclick:()=>go("decks")},S.lang==="ar"?"كل الحزم ←":"All decks →"))),
+ const studyBox=h("section",{class:"dash-section"},h("div",{class:"dash-head"},h("div",{},h("div",{class:"dash-kicker"},S.lang==="ar"?"مساحتك الأكاديمية":"YOUR ACADEMIC SPACE"),h("h2",{},S.lang==="ar"?"نظرة سريعة على دراستك وشبكتك":"Your study & network overview")),h("div",{class:"dash-head-actions"},h("button",{class:"dash-link",onclick:()=>go("rooms")},S.lang==="ar"?"غرف الدراسة ←":"Study rooms →"),h("button",{class:"dash-link",onclick:()=>go("library")},S.lang==="ar"?"مكتبتي ←":"My library →"),h("button",{class:"dash-link",onclick:()=>go("decks")},S.lang==="ar"?"كل الحزم ←":"All decks →"))),
   h("div",{class:"dash-stats"},
    h("div",{class:"dash-stat"},h("span",{},"📚"),h("b",{},String(S.decks.length)),h("small",{},S.lang==="ar"?"حزم دراسية":"Study decks")),
    h("div",{class:"dash-stat"},h("span",{},"🗂️"),h("b",{},String(totalCards)),h("small",{},S.lang==="ar"?"بطاقات محفوظة":"Saved cards")),
@@ -572,24 +758,56 @@ function renderAcademicOverview(v){
  const resume=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"متابعة آخر دراسة":"Continue studying"),h("span",{},"↗")));
  if(last){resume.append(h("div",{class:"dash-resume"},h("div",{class:"dash-book"},last.emoji||"📘"),h("div",{class:"dash-resume-info"},h("b",{dir:"auto"},last.title),h("small",{},S.lang==="ar"?"آخر حزمة درستها":"Last studied deck")),h("button",{class:"btn fill",onclick:()=>openDeck(last.id)},S.lang==="ar"?"متابعة":"Continue")))}
  else resume.append(h("p",{class:"dash-empty"},S.lang==="ar"?"لم تبدأ دراسة حزمة بعد. أنشئ حزمة أو ابدأ بموضوع من شريط البحث.":"No recently studied deck yet. Create a deck or search for a topic."),h("button",{class:"btn",onclick:()=>go("decks")},S.lang==="ar"?"افتح مكتبتي":"Open my library"));
- const activity=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"المجتمع الجامعي":"University community"),h("button",{class:"dash-link",onclick:()=>{if(window.SC){SC.view="feed";SC.kind=""}go("com")}},S.lang==="ar"?"فتح المجتمع ←":"Open community →")),h("div",{class:"dash-live",id:"dash-live-posts"},h("p",{class:"dash-empty"},S.lang==="ar"?"جارٍ التحقق من المنشورات المتاحة…":"Checking available posts…")));
- const messages=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"الرسائل والإشعارات":"Messages & notifications")),h("div",{class:"dash-message-row",id:"dash-live-messages"},h("span",{},"✉️"),h("div",{class:"dash-resume-info"},h("b",{},S.lang==="ar"?"الرسائل الجامعية":"Academic messages"),h("small",{},S.lang==="ar"?"يتطلب تسجيل الدخول":"Sign-in required")),h("button",{class:"btn",onclick:()=>{if(window.SC){SC.view="chats"}go("com")}},S.lang==="ar"?"فتح":"Open")));
- const grid=h("div",{class:"dash-grid"},resume,activity,messages);studyBox.append(grid);v.append(studyBox);
- loadAcademicLive(activity.querySelector("#dash-live-posts"),messages.querySelector("#dash-live-messages"));
+ const activity=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"المجتمع الجامعي":"University community"),h("button",{class:"dash-link",onclick:()=>{if(window.SC){SC.view="feed";SC.kind=""}go("com")}},S.lang==="ar"?"فتح المجتمع ←":"Open community →")),h("div",{class:"dash-live",id:"dash-live-posts"},h("p",{class:"dash-empty"},S.lang==="ar"?"جارٍ تحميل أحدث النقاشات…":"Loading latest posts…")));
+ const roomsPanel=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"غرف الدراسة المباشرة":"Live Study Rooms"),h("button",{class:"dash-link",onclick:()=>go("rooms")},S.lang==="ar"?"كل الغرف ←":"All rooms →")),h("div",{class:"dash-live",id:"dash-live-rooms"},h("p",{class:"dash-empty"},S.lang==="ar"?"تواصل بالفيديو ومشاركة الشاشة مع الباحثين.":"Collaborate via live video & screen sharing.")),h("div",{class:"btns",style:"margin-top:8px"},h("button",{class:"btn fill",onclick:()=>{if(typeof openRoomCreator==="function")openRoomCreator({});else go("rooms")}},S.lang==="ar"?"بدء غرفة فيديو":"Start Video Room")));
+ const messages=h("div",{class:"dash-panel"},h("div",{class:"dash-panel-title"},h("b",{},S.lang==="ar"?"الرسائل وطلبات التواصل":"Messages & Connections")),h("div",{class:"dash-message-row",id:"dash-live-messages"},h("span",{},"✉️"),h("div",{class:"dash-resume-info"},h("b",{},S.lang==="ar"?"الرسائل والمجموعات":"Academic messages & groups"),h("small",{},S.lang==="ar"?"تواصل مع زملائك ومجموعات البحث":"Connect with peers & study groups")),h("button",{class:"btn",onclick:()=>{if(window.SC){SC.view="chats"}go("com")}},S.lang==="ar"?"فتح":"Open")));
+ const grid=h("div",{class:"dash-grid"},resume,activity,roomsPanel,messages);studyBox.append(grid);v.append(studyBox);
+ loadAcademicLive(activity.querySelector("#dash-live-posts"),messages.querySelector("#dash-live-messages"),roomsPanel.querySelector("#dash-live-rooms"));
 }
-async function loadAcademicLive(postsBox,msgBox){
+async function loadAcademicLive(postsBox,msgBox,roomsBox){
  const arUI=S.lang==="ar";
- if(!(window.SUPA&&SUPA.url&&SUPA.key)){postsBox.replaceChildren(h("p",{class:"dash-empty"},arUI?"المجتمع يحتاج إعداد اتصال Supabase.":"Community requires Supabase configuration."));return}
- try{
-  await loadSb();
-  const {data,error}=await SC.sb.from("posts").select("id,title,body,kind,created_at").order("created_at",{ascending:false}).limit(3);
-  postsBox.replaceChildren();
-  if(error)postsBox.append(h("p",{class:"dash-empty"},arUI?"تعذّر جلب المنشورات. تحقق من صلاحيات القراءة وسياسات RLS.":"Could not load posts. Check read permissions and RLS policies."));
-  else if(!data||!data.length)postsBox.append(h("p",{class:"dash-empty"},arUI?"لا توجد منشورات متاحة حالياً.":"No posts are available yet."));
-  else data.forEach(p=>postsBox.append(h("button",{class:"dash-post",onclick:()=>{SC.view="feed";SC.kind="";go("com")}},h("span",{class:"dash-post-kind"},p.kind|| (arUI?"منشور":"Post")),h("b",{dir:"auto"},(p.title||p.body|| (arUI?"منشور جامعي":"University post")).slice(0,100)),h("small",{},p.created_at?new Date(p.created_at).toLocaleDateString(S.lang):""))));
-  if(SC.user){if(typeof refreshUnread==="function")await refreshUnread();const count=typeof unreadTotal==="function"?unreadTotal():0;msgBox.replaceChildren(h("span",{},"✉️"),h("div",{class:"dash-resume-info"},h("b",{},arUI?"الرسائل غير المقروءة":"Unread messages"),h("small",{},count?String(count)+(arUI?" رسالة غير مقروءة":" unread messages"):(arUI?"لا توجد رسائل غير مقروءة":"No unread messages"))),h("button",{class:"btn",onclick:()=>{SC.view="chats";go("com")}},arUI?"فتح":"Open"));}
-  else msgBox.querySelector("small").textContent=arUI?"سجّل الدخول لعرض رسائلك وإشعاراتك.":"Sign in to view your messages and notifications.";
- }catch(e){postsBox.replaceChildren(h("p",{class:"dash-empty"},arUI?"تعذّر الاتصال بالمجتمع. ستظل أدوات الدراسة المحلية متاحة.":"Could not connect to the community. Local study tools remain available."));}
+ let posts=[];
+ if(window.Net){
+  try{
+   const nr=await Net.apiGet("/api/community/feed?limit=3");
+   if(nr&&Array.isArray(nr.posts))posts=nr.posts.map(p=>({title:p.title,body:p.body,kind:p.kind,created_at:p.createdAt}));
+  }catch(e){}
+  if(roomsBox){
+   try{
+    const rr=await Net.apiGet("/api/rooms?peerId="+encodeURIComponent(Net.ensurePeerId()));
+    const rms=(rr&&rr.rooms)||[];
+    roomsBox.replaceChildren();
+    if(!rms.length){
+     roomsBox.append(h("p",{class:"dash-empty"},arUI?"لا توجد غرف مفتوحة حاليًا — ابدأ جلسة فورية أو مجدولة.":"No open rooms right now — launch an instant or scheduled session."));
+    }else{
+     rms.slice(0,2).forEach(r=>{
+      const cnt=(r.activeParticipants&&r.activeParticipants.length)||0;
+      roomsBox.append(h("button",{class:"dash-post",onclick:()=>typeof joinStudyRoom==="function"?joinStudyRoom(r.id):go("rooms")},
+       h("span",{class:"dash-post-kind"},cnt>0?("🔴 "+cnt):(r.code||"ROOM")),
+       h("b",{dir:"auto"},r.title),
+       h("small",{},Net.discLabel(r.field))
+      ));
+     });
+    }
+   }catch(e){}
+  }
+ }
+ if(window.SUPA&&SUPA.url&&SUPA.key){
+  try{
+   await loadSb();
+   const {data}=await SC.sb.from("posts").select("id,title,body,kind,created_at").order("created_at",{ascending:false}).limit(3);
+   if(data&&data.length)posts=posts.concat(data);
+   if(SC.user){if(typeof refreshUnread==="function")await refreshUnread();const count=typeof unreadTotal==="function"?unreadTotal():0;msgBox.replaceChildren(h("span",{},"✉️"),h("div",{class:"dash-resume-info"},h("b",{},arUI?"الرسائل غير المقروءة":"Unread messages"),h("small",{},count?String(count)+(arUI?" رسالة غير مقروءة":" unread messages"):(arUI?"لا توجد رسائل غير مقروءة":"No unread messages"))),h("button",{class:"btn",onclick:()=>{SC.view="chats";go("com")}},arUI?"فتح":"Open"));}
+  }catch(e){}
+ }
+ posts.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+ posts=posts.slice(0,3);
+ postsBox.replaceChildren();
+ if(!posts.length){
+  postsBox.append(h("p",{class:"dash-empty"},arUI?"لا توجد منشورات متاحة حاليًا. شارك استفسارًا أو ملخصًا في المجتمع.":"No posts yet. Share an inquiry or study summary in the Community."));
+ }else{
+  posts.forEach(p=>postsBox.append(h("button",{class:"dash-post",onclick:()=>{if(window.SC){SC.view="feed";SC.kind=""}go("com")}},h("span",{class:"dash-post-kind"},p.kind||(arUI?"منشور":"Post")),h("b",{dir:"auto"},(p.title||p.body||(arUI?"منشور جامعي":"University post")).slice(0,100)),h("small",{},p.created_at?new Date(p.created_at).toLocaleDateString(S.lang):""))));
+ }
 }
 
 // ---------- الحزم ----------
@@ -597,19 +815,22 @@ function renderDecks(v){const code=h("input",{class:"in",placeholder:t("dImpPh")
  v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},"🃏"),h("h1",{},t("dT")),h("div",{class:"btns"},h("button",{class:"btn",style:"color:#fff;border-color:#fff",onclick:newDeckModal},"＋ "+t("dNew")),h("button",{class:"btn",style:"color:#fff;border-color:#fff",onclick:()=>notesModal()},"📝 "+t("qNotes")))));
  if(!S.decks.length)v.append(h("div",{class:"msg"},t("noDecks")));S.decks.forEach(d=>v.append(deckCard(d)));
  v.append(h("div",{class:"card"},h("div",{class:"meta"},"🔗 "+t("dImp")),code,h("div",{class:"btns"},h("button",{class:"btn",onclick:()=>openCode(code.value)},t("pGo")))))}
-function renderDeck(v){const d=deckBy(S.deckId);if(!d){go("decks");return}const s=deckStats(d),ev=evRate(d),q=queueFor(d.id),nq=q.due.length+q.fresh.length;
+function renderDeck(v){const d=deckBy(S.deckId);if(!d){go("decks");return}const s=deckStats(d),ev=evRate(d),q=queueFor(d.id),nq=q.due.length+q.fresh.length,an=srsAnalyze(d.id);
  v.append(h("div",{class:"top"},h("button",{class:"btn",onclick:()=>go("decks")},"‹ "+t("dBack")),h("div",{style:"flex:1"}),
   h("button",{class:"btn",onclick:()=>{const n=prompt(t("dName"),d.title);if(n&&n.trim()){d.title=n.trim();persist();render()}}},"✏️")));
- v.append(h("div",{class:"card"},h("div",{class:"dk"},h("div",{class:"em"},d.emoji),h("div",{class:"tx"},h("h3",{dir:"auto",style:"font-size:18px"},d.title),h("div",{class:"meta"},d.cards.length+" "+t("cards")+(d.best?" · 🏆 "+d.best:"")))),
+ v.append(h("div",{class:"card"},h("div",{class:"dk"},h("div",{class:"em"},d.emoji),h("div",{class:"tx"},h("h3",{dir:"auto",style:"font-size:18px"},d.title),h("div",{class:"meta"},d.cards.length+" "+t("cards")+(d.best?" · 🏆 "+d.best:"")+(an.total?" · "+an.masteryPct+"% "+t("srsMastRate"):"")))),
   h("div",{class:"stats"},h("div",{},h("b",{},s.due),t("dDue")),h("div",{},h("b",{},s.n),t("dNewC")),h("div",{},h("b",{},s.mast),t("dMast"))),
   h("div",{class:"btns"},
    h("button",{class:"btn fill",disabled:!nq,onclick:()=>startStudy(d.id)},"🧠 "+t("dStudy")+(nq?" ("+nq+")":"")),
+   an.weak.length?h("button",{class:"btn",onclick:()=>startWeakStudy(d.id)},ic("compass"),t("srsWeakGo")+" ("+an.weak.length+")"):null,
+   an.weak.length&&d.cards.length>=2?h("button",{class:"btn",onclick:()=>startAdaptiveQuiz(d.id)},ic("zap"),t("srsWeakQuiz")):null,
    h("button",{class:"btn",disabled:!d.cards.length,onclick:()=>startStudy(d.id,{cram:true})},"🔁 "+t("dCram")),
    h("button",{class:"btn",disabled:d.cards.length<2,onclick:()=>startQuiz(d.id)},"⚡ "+t("dQuiz")),
+   d.cards.length?h("button",{class:"btn",onclick:()=>conceptDeepDive(d.id)},ic("search"),t("srsDeep")):null,
    h("button",{class:"btn",disabled:!d.cards.length,onclick:async()=>{if(d.cards.length>40)toast(t("shBig"));const u=await mkLink("d",d.title,d.emoji,d.cards,null);shareLink(u,t("shD").replace("{t}",d.title))}},"📤 "+t("dShare")))));
  // ميزة التميّز: التوثيق
  v.append(h("div",{class:"card"},h("h3",{},"🔖 "+t("evMeter")+": "+ev+"%"),h("div",{class:"mini",style:"height:10px"},h("i",{style:"width:"+ev+"%"})),
-  h("div",{class:"btns"},h("button",{class:"btn",onclick:()=>bibModal(d)},"📚 "+t("dBib")))));
+  h("div",{class:"btns"},h("button",{class:"btn",onclick:()=>bibModal(d)},"📚 "+t("dBib")+" ("+S.citeStyle.toUpperCase()+")"))));
  const days=d.exam?Math.ceil((new Date(d.exam+"T00:00:00")-sod(Date.now()))/DAY):null;
  v.append(h("div",{class:"card"},h("label",{class:"lbl",style:"margin-top:0"},"🎯 "+t("dExam")),h("div",{style:"display:flex;gap:8px"},h("input",{class:"in",type:"date",value:d.exam||"",min:dkey(new Date()),onchange:e=>{d.exam=e.target.value||null;persist();render()}}),
   d.exam?h("button",{class:"btn",onclick:()=>{d.exam=null;persist();render()}},t("dExamClr")):null),
@@ -685,23 +906,29 @@ function renderData(v){
 // ---------- البحث العلمي (مصدر البطاقات الموثّقة) ----------
 function card(p,inSaved){
  const tro=h("div",{class:"trout",dir:"auto"}),k=keyOf(p),link=p.doi?"https://doi.org/"+p.doi:(p.url||"https://scholar.google.com/scholar?q="+encodeURIComponent(p.title));
- const box=S.open[k]?h("div",{class:"cite"},apa(p)):null;
+ const formatted=formatCite(p,S.citeStyle);
+ const box=S.open[k]?h("div",{class:"cite"},h("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px"},h("small",{class:"meta"},S.citeStyle.toUpperCase()),citeSwitcher()),formatted):null;
+ const metaParts=[(p.journal||""),p.vol?("v."+p.vol+(p.issue?"("+p.issue+")":"")):"",p.pages?("pp. "+p.pages):"",p.year,p.src].filter(Boolean).join(" · ");
  return h("div",{class:"card"},h("h3",{dir:"auto"},p.title),
   h("div",{class:"meta"},(p.authors||[]).slice(0,4).join("، ")+((p.authors||[]).length>4?" …":"")),
-  h("div",{class:"meta"},[p.journal,p.year,p.src].filter(Boolean).join(" · ")),
+  metaParts?h("div",{class:"meta"},metaParts):null,
   p.doi?h("div",{class:"meta",dir:"ltr",style:"text-align:start"},"DOI: "+p.doi):null,
-  p.site?h("span",{class:"badge"},t("siteB")):p.verified===false?h("span",{class:"badge ai"},t("ai")):(p.oa?h("span",{class:"badge"},t("oaB")):null),
+  h("div",{class:"rigor-row"},
+   p.verified===false?h("span",{class:"badge ai"},t("ai")):p.doi?h("span",{class:"badge g"},t("verifHi")):h("span",{class:"badge b"},t("verifMid")),
+   p.site?h("span",{class:"badge"},t("siteB")):null,
+   p.oa?h("span",{class:"badge"},t("oaB")):null),
   h("div",{class:"btns"},
-   h("button",{class:"btn",onclick:()=>{S.open[k]=!S.open[k];render()}},t("cite")),
+   h("button",{class:"btn",onclick:()=>{S.open[k]=!S.open[k];render()}},t("cite")+" ("+S.citeStyle.toUpperCase()+")"),
    h("button",{class:"btn",onclick:()=>toggleSave(p)},isSaved(p)?(inSaved?t("rm"):t("saved")+" ✓"):t("save")),
    p.abs&&p.abs.length>120?h("button",{class:"btn fill",onclick:()=>paperToDeck(p)},"🃏 "+t("rCards")):null,
    h("a",{class:"btn",href:link,target:"_blank",rel:"noopener noreferrer"},t("verify")),
    trBtn(()=>p.title+(p.abs&&p.abs.length>40?"\n\n"+p.abs.slice(0,1500):""),tro)),
-  tro,box,box?h("div",{class:"btns"},h("button",{class:"btn",onclick:async e=>{const b=e.target;try{await navigator.clipboard.writeText(apa(p));b.textContent=t("copied");award("cite")}catch(x){const r=document.createRange();r.selectNodeContents(box);getSelection().removeAllRanges();getSelection().addRange(r)}}},t("copy"))):null)}
+  tro,box,box?h("div",{class:"btns"},h("button",{class:"btn",onclick:async e=>{const b=e.target;try{await navigator.clipboard.writeText(formatted);b.textContent=t("copied");award("cite")}catch(x){const r=document.createRange();r.selectNodeContents(box);getSelection().removeAllRanges();getSelection().addRange(r)}}},t("copy"))):null)}
 function renderResearch(v){
  const inp=h("input",{type:"search",value:S.q,placeholder:t("ph"),enterkeyhint:"search",oninput:e=>{S.q=e.target.value},onkeydown:e=>{if(e.key==="Enter"){S.sub="res";doSearch()}}});
  v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},t("eye")),h("h1",{},t("h")),h("div",{class:"sb"},inp,h("button",{onclick:()=>{S.sub="res";doSearch()}},t("go")))));
  v.append(h("div",{class:"tabs"},h("button",{class:S.sub==="res"?"on":"",onclick:()=>{S.sub="res";render()}},t("rRes")),h("button",{class:S.sub==="sav"?"on":"",onclick:()=>{S.sub="sav";render()}},t("rSav")+(S.saved.length?" ("+S.saved.length+")":""))));
+ v.append(h("div",{class:"cite-head"},h("span",{class:"meta",style:"font-weight:700"},t("citeFmt")),citeSwitcher()));
  if(S.sub==="sav"){if(!S.saved.length)v.append(h("div",{class:"msg"},t("emptySaved")));S.saved.forEach(p=>v.append(card(p,true)));return}
  v.append(h("div",{class:"chips"},
   h("button",{class:"chip"+(S.oa?" on":""),onclick:()=>{S.oa=!S.oa;S.q.trim()?doSearch():render()}},t("oa")),
@@ -858,13 +1085,15 @@ function renderLibrary(v){
   const page=h("input",{class:"in lib-page-input",type:"number",min:"1",step:"1",value:String(d.page||1),inputmode:"numeric","aria-label":tr("رقم الصفحة","Page number")});
   const note=h("textarea",{class:"in lib-note",rows:"4",placeholder:tr("اكتب ملاحظاتك حول هذه المحاضرة…","Write notes about this lecture…")});note.value=d.note||"";
   const savePage=h("button",{class:"btn",onclick:async()=>{const n=Math.max(1,parseInt(page.value,10)||1);d.page=n;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظ موضع القراءة ✓","Reading position saved ✓"));render()}catch(e){toast(tr("تعذر حفظ موضع القراءة.","Could not save reading position."))}}},tr("حفظ الصفحة","Save page"));
+  const isPdf=!d.type||d.type==="application/pdf"||/\.pdf$/i.test(d.name||"");
   const saveNote=h("button",{class:"btn fill",onclick:async()=>{d.note=note.value;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظت الملاحظات ✓","Notes saved ✓"))}catch(e){toast(tr("تعذر حفظ الملاحظات.","Could not save notes."))}}},tr("حفظ الملاحظات","Save notes"));
+  const analyze=isPdf?h("button",{class:"btn fill",type:"button",onclick:()=>{if(window.openAiWithSource)openAiWithSource({kind:"pdf",title:d.name,blob:d.blob,autoAnalyze:true});else go("ai")}},ic("sparkles",{s:15}),tr("تحليل بالمساعد الذكي","Analyze with AI")):null;
   const download=h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download")+" "+tr("فتح / تنزيل","Open / download"));
-  const publish=h("button",{class:"btn fill",type:"button",onclick:()=>publishAcademicResource(d)},tr("إرسال للمكتبة المشتركة","Submit to shared library"));
-  const del=h("button",{class:"btn danger",onclick:async()=>{if(!confirm(tr("حذف هذا الملف وملاحظاته من هذا الجهاز؟","Delete this PDF and its notes from this device?")))return;try{await libraryDelete(d.id);LIB_OPEN_ID=null;render()}catch(e){toast(tr("تعذر حذف الملف.","Could not delete file."))}}},tr("حذف","Delete"));
-  const frame=h("iframe",{class:"lib-pdf-frame",src:LIB_OBJECT_URL+"#page="+(d.page||1)+"&view=FitH",title:tr("قارئ ملف PDF","PDF reader"),loading:"lazy"});
+  const publish=isPdf?h("button",{class:"btn",type:"button",onclick:()=>publishAcademicResource(d)},tr("إرسال للمكتبة المشتركة","Submit to shared library")):null;
+  const del=h("button",{class:"btn danger",onclick:async()=>{if(!confirm(tr("حذف هذا الملف وملاحظاته من هذا الجهاز؟","Delete this item and its notes from this device?")))return;try{await libraryDelete(d.id);LIB_OPEN_ID=null;render()}catch(e){toast(tr("تعذر حذف الملف.","Could not delete file."))}}},tr("حذف","Delete"));
+  const frame=h("iframe",{class:"lib-pdf-frame",src:isPdf?(LIB_OBJECT_URL+"#page="+(d.page||1)+"&view=FitH"):LIB_OBJECT_URL,title:tr("عارض المستند","Document viewer"),loading:"lazy"});
   const m=d.meta||{},metaLine=[m.university,m.faculty,m.department,m.level,m.semester,m.course].filter(Boolean).join(" · ");
-  reader.append(h("div",{class:"lib-reader-head"},h("div",{class:"lib-reader-name",dir:"auto"},d.name),h("div",{class:"lib-reader-actions"},download,publish,del)),metaLine?h("div",{class:"lib-reader-meta",dir:"auto"},metaLine):null,h("div",{class:"lib-pdf-wrap"},frame),h("div",{class:"lib-progress"},h("label",{},tr("آخر صفحة محفوظة","Last saved page")),page,savePage,h("small",{},tr("حدّث رقم الصفحة يدويًا ثم اضغط حفظ الصفحة؛ لا يستطيع عارض المتصفح إبلاغ التطبيق بكل انتقال داخلي.","Update the page number manually and save it; the browser viewer does not expose every internal page change."))),h("div",{class:"lib-notes"},h("label",{},tr("ملاحظات المحاضرة","Lecture notes")),note,saveNote));
+  reader.append(h("div",{class:"lib-reader-head"},h("div",{class:"lib-reader-name",dir:"auto"},d.name),h("div",{class:"lib-reader-actions"},analyze,download,publish,del)),metaLine?h("div",{class:"lib-reader-meta",dir:"auto"},metaLine):null,h("div",{class:"lib-pdf-wrap"},frame),isPdf?h("div",{class:"lib-progress"},h("label",{},tr("آخر صفحة محفوظة","Last saved page")),page,savePage,h("small",{},tr("حدّث رقم الصفحة يدويًا ثم اضغط حفظ الصفحة؛ لا يستطيع عارض المتصفح إبلاغ التطبيق بكل انتقال داخلي.","Update the page number manually and save it; the browser viewer does not expose every internal page change."))):null,h("div",{class:"lib-notes"},h("label",{},tr("ملاحظات المحاضرة","Lecture notes")),note,saveNote));
  }).catch(err=>{console.error("[library]",err);items.append(h("div",{class:"lib-empty"},tr("تعذر فتح المكتبة على هذا المتصفح. تحقق من دعم التخزين المحلي.","Could not open the library. Check local storage support.")))});
 }
 
@@ -874,7 +1103,8 @@ GT.fr=GT.en;IT.fr=IT.en;HT.fr=HT.en;BD.forEach(b=>{b.fr=b.en});
 const VIEWS={home:renderHome,decks:renderDecks,deck:renderDeck,study:renderStudy,library:renderLibrary,res:renderResearch,play:renderPlay,quiz:renderQuiz,me:renderMe,help:renderHelp};
 function render(){
  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==="ar"?"rtl":"ltr";
- $("lang").textContent=S.lang==="ar"?"EN":S.lang==="en"?"FR":"ع";$("lang").setAttribute("aria-label",({ar:"Language: English",en:"Langue : français",fr:"اللغة: العربية"})[S.lang]);$("help").setAttribute("aria-label",S.lang==="ar"?"مساعدة":"Help");
+ $("lang").textContent=S.lang==="ar"?"EN":S.lang==="en"?"FR":"ع";$("lang").setAttribute("aria-label",({ar:"Language: English",en:"Langue : français",fr:"اللغة: العربية"})[S.lang]);$("help").setAttribute("aria-label",S.lang==="ar"?"مساعدة":S.lang==="fr"?"Aide":"Help");
+ if(window.ScholarTheme&&ScholarTheme.sync)ScholarTheme.sync();
  document.body.classList.remove("focus","inchat");if(S.tab!=="quiz")stopTimer();
  buildTabs();updChip();updInst();
  const v=$("view");v.replaceChildren();(VIEWS[S.tab]||renderHome)(v)}
@@ -885,6 +1115,6 @@ window.addEventListener("hashchange",handleHash);
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 setInterval(checkRem,15000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkRem()});
 try{const go0=new URLSearchParams(location.search).get("go");if(go0==="study"&&dueTotal())setTimeout(()=>startStudy(null),50);else if(go0==="search")S.tab="res"}catch(e){}
-const hasCode=/^#[cd]=/.test(location.hash);
+const hasCode=/^#([cd]|u|room)=/.test(location.hash);
 render();handleHash();
 try{if(hasCode){}else if(localStorage.getItem("7s_tour")!=="5")setTimeout(()=>tour(0),700);else{const n=dueTotal();if(n&&S.tab==="home")setTimeout(()=>toast("🧠 "+n+" "+t("dueNow")),600)}}catch(e){}

@@ -39,3 +39,10 @@
 .lec-mn{display:inline-flex;align-items:center;gap:4px;border-radius:10px;padding:3px 10px;border:1px solid var(--line);background:var(--card)}
 .lec-mn.d1{border-color:var(--gold,#c9a227);font-weight:800;color:var(--blue)}.lec-mn.d2{border-color:var(--blue2)}
 [dir=rtl] .lec-t .ic-play{transform:scaleX(-1)}
+.lec-verif{margin:10px 16px 0;padding:10px 13px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+@media(min-width:900px){.lec-verif{margin-inline:0}}
+.lec-verif-top{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin-bottom:6px}
+.lec-verif-pct{font-weight:800;font-variant-numeric:tabular-nums;color:var(--blue)}
+.lec-verif-bar{height:7px;border-radius:999px;background:var(--soft);overflow:hidden;margin-bottom:4px}
+.lec-verif-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green,#1f9d63),var(--teal,#d5a83e))}
+.lec-ground{font-size:11.5px;color:var(--mute);font-weight:600;white-space:nowrap}

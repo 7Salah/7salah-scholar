@@ -1,0 +1,11 @@
+{
+  "name": "7Salah Scholar",
+  "description": "منصة أكاديمية ذكية ببطاقات موثّقة بالمصادر العلمية، مراجعة متباعدة ذاتية، شبكة تواصل وغرف دراسة، ومساعد بحثي ذكي.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

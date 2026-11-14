@@ -14,7 +14,10 @@ aiAdd:"إضافة تفسيرية من الذكاء الاصطناعي — ليس
 edit:"تعديل",save:"حفظ",saved:"تم الحفظ ✓",del:"حذف المحاضرة",delQ:"حذف المحاضرة وتسجيلاتها ونصوصها نهائيًا؟",pdf:"تصدير PDF",toDecks:"أضف إلى حزمي",added:"أُضيفت {n} بطاقة إلى حزمة جديدة ✓",
 reveal:"أظهر الجواب",score:"النتيجة",tr:"صح",fa:"خطأ",back:"رجوع",search:"بحث في العناوين…",allSub:"كل التخصصات",min:"د",
 eLimit:"بلغتَ الحد اليومي لمعالجة الصوت. حاول غدًا.",eBig:"الملف أكبر من 24MB. اضغطه أو قصّه إلى أجزاء.",eLong:"المحاضرة طويلة جدًا للتلخيص دفعة واحدة.",eKey:"لم تُضبط مفاتيح الخدمة في Supabase بعد.",eNoTxt:"لا يوجد نص بعد.",eMic:"تعذّر الوصول إلى الميكروفون. اسمح به من إعدادات المتصفح.",eGen:"تعذّرت العملية. حاول مرة أخرى.",eTime:"انتهت مهلة المعالجة (الملف طويل). اضغط «استئناف المعالجة» لإكمال ما تبقّى.",eStt:"تعذّر التفريغ الصوتي. اضغط «استئناف المعالجة» أو جرّب ملفًا أقصر.",eUp:"تعذّر رفع الصوت. تحقق من الاتصال وصيغة الملف (mp3 أو m4a أو wav) ثم أعد المحاولة.",lost:"لم يكتمل رفع الصوت لهذه المحاضرة ولا يوجد ملف محفوظ. احذفها وارفع الملف من جديد.",recov:"استرجاع وإكمال",
-hint:"الدقة أولًا: لا اختلاق، والإضافات التفسيرية موسومة بوضوح، والتوقيت يرجعك إلى التسجيل."},
+prep:"جارٍ تجهيز وتقسيم الصوت…",retry:"تعذّر الاتصال مؤقتًا — إعادة المحاولة ({a}/{b})…",
+hint:"الدقة أولًا: لا اختلاق، والإضافات التفسيرية موسومة بوضوح، والتوقيت يرجعك إلى التسجيل.",
+citeLec:"توثيق المحاضرة",confBar:"موثوقية التفريغ الصوتي",confPct:"{p}% مؤكدة · {u} مقطعًا بحاجة لمراجعة",confAll:"{p}% مؤكدة ومراجعة من أصل {n} مقطعًا",
+gMeter:"الإسناد الزمني للتسجيل",gGrounded:"مُسنَد للصوت",gExt:"تنظيم آلي — تحقّق عبر التوقيت",lecCiteTitle:"الاقتباس الأكاديمي للمحاضرة",lecCiteCourse:"محاضرة جامعية"},
 en:{title:"7Salah Lecture AI",tag:"Record. Understand. Learn.",hub:"Turn your lectures into transcripts, summaries and study tools",open:"Open lecture library",lib:"My lectures",newL:"New lecture",
 need:"Sign in to use Lecture AI.",login:"Sign in",noCloud:"This feature needs Supabase set up (see LECTURE-AI-SETUP.md).",none:"No lectures yet. Record your first one or upload an audio file.",
 fTitle:"Lecture title",fSubject:"Subject",fCourse:"Course",fLec:"Lecture language",fOut:"Output language",
@@ -27,8 +30,11 @@ sttNote:"The text is machine-transcribed and may contain errors. Dotted passages
 aiAdd:"AI explanatory addition — not said by the lecturer",aiHead:"Auto-suggested headings",unc:"unclear",uncList:"Unconfirmed passages",
 edit:"Edit",save:"Save",saved:"Saved ✓",del:"Delete lecture",delQ:"Permanently delete this lecture, its recordings and texts?",pdf:"Export PDF",toDecks:"Add to my decks",added:"{n} cards added to a new deck ✓",
 reveal:"Show answer",score:"Score",tr:"True",fa:"False",back:"Back",search:"Search titles…",allSub:"All subjects",min:"min",
-eLimit:"You reached today's audio processing limit. Try tomorrow.",eBig:"File is over 24MB. Compress it or split it.",eLong:"The lecture is too long to process at once.",eKey:"Service keys are not configured in Supabase yet.",eNoTxt:"No transcript yet.",eMic:"Cannot access the microphone. Allow it in browser settings.",eGen:"The operation failed. Try again.",eTime:"Processing timed out (long file). Tap Resume to finish the rest.",eStt:"Transcription failed. Tap Resume or try a shorter file.",eUp:"Audio upload failed. Check your connection and the file format (mp3, m4a or wav), then retry.",lost:"The audio upload never finished and no file is stored. Delete this lecture and upload again.",recov:"Recover and continue",
-hint:"Accuracy first: nothing invented, AI additions clearly labeled, timestamps lead you back to the recording."},
+eLimit:"You reached today's audio processing limit. Try tomorrow.",eBig:"File is too large or could not be split. Compress it or split it into smaller parts.",eLong:"The lecture is too long to process at once.",eKey:"Service keys are not configured in Supabase yet.",eNoTxt:"No transcript yet.",eMic:"Cannot access the microphone. Allow it in browser settings.",eGen:"The operation failed. Try again.",eTime:"Processing timed out (long file). Tap Resume to finish the rest.",eStt:"Transcription failed. Tap Resume or try a shorter file.",eUp:"Audio upload failed. Check your connection and the file format (mp3, m4a or wav), then retry.",lost:"The audio upload never finished and no file is stored. Delete this lecture and upload again.",recov:"Recover and continue",
+prep:"Preparing and splitting audio…",retry:"Temporary connection issue — retrying ({a}/{b})…",
+hint:"Accuracy first: nothing invented, AI additions clearly labeled, timestamps lead you back to the recording.",
+citeLec:"Cite lecture",confBar:"Transcript verification confidence",confPct:"{p}% confirmed · {u} segments to verify",confAll:"{p}% verified across {n} segments",
+gMeter:"Timestamp-grounded coverage",gGrounded:"Audio-grounded",gExt:"AI-structured — verify via timestamp",lecCiteTitle:"Academic lecture citation",lecCiteCourse:"University lecture"},
 fr:{title:"7Salah Lecture AI",tag:"Enregistrer. Comprendre. Apprendre.",hub:"Transformez vos cours en textes, résumés et outils de révision",open:"Ouvrir la bibliothèque de cours",lib:"Mes cours",newL:"Nouveau cours",
 need:"Connectez-vous pour utiliser Lecture AI.",login:"Connexion",noCloud:"Cette fonction nécessite la configuration de Supabase (voir LECTURE-AI-SETUP.md).",none:"Aucun cours pour l'instant. Enregistrez-en un ou importez un fichier audio.",
 fTitle:"Titre du cours",fSubject:"Spécialité",fCourse:"Matière",fLec:"Langue du cours",fOut:"Langue du texte produit",
@@ -41,17 +47,89 @@ sttNote:"Le texte est transcrit automatiquement et peut contenir des erreurs. Le
 aiAdd:"Ajout explicatif de l'IA — non dit par l'enseignant",aiHead:"Titres suggérés automatiquement",unc:"peu clair",uncList:"Passages non confirmés",
 edit:"Modifier",save:"Enregistrer",saved:"Enregistré ✓",del:"Supprimer le cours",delQ:"Supprimer définitivement ce cours, ses enregistrements et ses textes ?",pdf:"Exporter en PDF",toDecks:"Ajouter à mes paquets",added:"{n} cartes ajoutées à un nouveau paquet ✓",
 reveal:"Voir la réponse",score:"Score",tr:"Vrai",fa:"Faux",back:"Retour",search:"Rechercher…",allSub:"Toutes les spécialités",min:"min",
-eLimit:"Limite quotidienne de traitement audio atteinte. Réessayez demain.",eBig:"Fichier de plus de 24 Mo. Compressez-le ou découpez-le.",eLong:"Le cours est trop long pour un traitement unique.",eKey:"Les clés du service ne sont pas encore configurées dans Supabase.",eNoTxt:"Pas encore de transcription.",eMic:"Microphone inaccessible. Autorisez-le dans les paramètres du navigateur.",eGen:"L'opération a échoué. Réessayez.",eTime:"Délai dépassé (fichier long). Touchez Reprendre pour terminer.",eStt:"Échec de la transcription. Touchez Reprendre ou essayez un fichier plus court.",eUp:"Échec de l'envoi audio. Vérifiez la connexion et le format (mp3, m4a ou wav), puis réessayez.",lost:"L'envoi audio n'a jamais abouti et aucun fichier n'est stocké. Supprimez ce cours et réimportez.",recov:"Récupérer et continuer",
-hint:"La précision d'abord : rien d'inventé, ajouts de l'IA signalés, horodatages pour retrouver l'enregistrement."}};
+eLimit:"Limite quotidienne de traitement audio atteinte. Réessayez demain.",eBig:"Fichier trop volumineux ou impossible à découper. Compressez-le ou découpez-le.",eLong:"Le cours est trop long pour un traitement unique.",eKey:"Les clés du service ne sont pas encore configurées dans Supabase.",eNoTxt:"Pas encore de transcription.",eMic:"Microphone inaccessible. Autorisez-le dans les paramètres du navigateur.",eGen:"L'opération a échéé. Réessayez.",eTime:"Délai dépassé (fichier long). Touchez Reprendre pour terminer.",eStt:"Échec de la transcription. Touchez Reprendre ou essayez un fichier plus court.",eUp:"Échec de l'envoi audio. Vérifiez la connexion et le format (mp3, m4a ou wav), puis réessayez.",lost:"L'envoi audio n'a jamais abouti et aucun fichier n'est stocké. Supprimez ce cours et réimportez.",recov:"Récupérer et continuer",
+prep:"Préparation et découpage audio…",retry:"Problème de connexion temporaire — nouvelle tentative ({a}/{b})…",
+hint:"La précision d'abord : rien d'inventé, ajouts de l'IA signalés, horodatages pour retrouver l'enregistrement.",
+citeLec:"Citer le cours",confBar:"Fiabilité de la transcription",confPct:"{p}% confirmés · {u} segments à vérifier",confAll:"{p}% vérifiés sur {n} segments",
+gMeter:"Couverture ancrée aux horodatages",gGrounded:"Ancré à l'audio",gExt:"Structuré par IA — vérifier via horodatage",lecCiteTitle:"Citation académique du cours",lecCiteCourse:"Cours universitaire"}};
 const lt=(k,o)=>{let s=(LT[S.lang]||LT.en)[k];if(s==null)s=LT.en[k];if(s==null)return k;return o?s.replace(/\{(\w+)\}/g,(m,x)=>o[x]):s};
 const LN={ar:"العربية",en:"English",fr:"Français"};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmtT=s=>{s=Math.max(0,Math.round(+s||0));const H=s/3600|0,M=(s%3600)/60|0,X=s%60,p=n=>String(n).padStart(2,"0");return(H?H+":":"")+p(M)+":"+p(X)};
-const CH_SEC=600,MAX_UP=24*1024*1024,MAX_MP3=400*1024*1024,SPLIT_SEC=480;
-const LEC={id:null,data:null,list:null,tab:"tText",lvl:2,edit:false,busy:{},recUI:null,audio:null,urls:{},q:"",sub:""};
+const CH_SEC=600,MAX_UP=24*1024*1024,MAX_MP3=400*1024*1024,SPLIT_SEC=240,WAV_CHUNK_SEC=180,MAX_CHUNK_BYTES=8*1024*1024,REQ_TIMEOUT_MS=600000;
+const LEC={id:null,data:null,list:null,tab:"tText",lvl:2,edit:false,busy:{},recUI:null,audio:null,urls:{},q:"",sub:"",procId:null};
 const ok=()=>window.SUPA&&SUPA.url&&SUPA.key;
 async function sb(){await loadSb();return SC.sb}
-async function call(body){const c=await sb();const r=await c.functions.invoke("lecture-ai",{body});if(r.error){let code="server";try{const j=await r.error.context.json();code=j.error||code}catch(e){}throw new Error(code)}if(r.data&&r.data.error)throw new Error(r.data.error);return r.data}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function isRetryableErr(e){
+ if(!e)return false;
+ if(e.fatal)return false;
+ const code=String(e.code||e.message||""),st=Number(e.status||0);
+ if(/^(limit|no_key|no_text|bad_kind|bad_action|not_found|bad_chunk|no_audio|too_big|too_long|auth)$/.test(code))return false;
+ if(st>=400&&st<500&&st!==408&&st!==429)return false;
+ if(st===408||st===429||st>=500)return true;
+ if(/timeout|aborted|abort|network|failed to fetch|load failed|stt_failed|server|llm_failed|bad_output|502|503|504/i.test(code))return true;
+ return e.name==="AbortError"||e.name==="TypeError";
+}
+async function withRetry(fn,{retries=4,baseMs=2000,onRetry}={}){
+ let last;
+ for(let a=0;a<=retries;a++){
+  try{return await fn(a)}
+  catch(e){
+   last=e;
+   if(a>=retries||!isRetryableErr(e))throw e;
+   const wait=Math.min(30000,baseMs*Math.pow(2,a))+Math.floor(Math.random()*500);
+   if(onRetry)onRetry(a+1,retries,wait,e);
+   await sleep(wait);
+  }
+ }
+ throw last;
+}
+async function invokeOnce(body,timeoutMs=REQ_TIMEOUT_MS){
+ const c=await sb();
+ const callFetch=async token=>{
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(Object.assign(new Error("timeout"),{name:"AbortError",code:"server"})),timeoutMs);
+  try{
+   const res=await fetch(SUPA.url+"/functions/v1/lecture-ai",{
+    method:"POST",
+    headers:{"Content-Type":"application/json",apikey:SUPA.key,Authorization:"Bearer "+token},
+    body:JSON.stringify(body),
+    signal:ctrl.signal
+   });
+   const txt=await res.text();
+   let j=null;try{j=txt?JSON.parse(txt):null}catch(_){}
+   if(!res.ok){
+    const code=(j&&j.error)||((res.status===408||res.status===504)?"server":"server");
+    const err=new Error(code);err.code=code;err.status=res.status;
+    throw err;
+   }
+   if(j&&j.error){const err=new Error(j.error);err.code=j.error;err.status=res.status;throw err}
+   return j;
+  }catch(e){
+   if(e&&e.name==="AbortError"){const err=new Error("server");err.code="server";err.name="AbortError";err.status=408;throw err}
+   throw e;
+  }finally{clearTimeout(tid)}
+ };
+ let ss=(await c.auth.getSession()).data.session;
+ if(!ss||!ss.access_token){const rf=await c.auth.refreshSession();ss=rf.data&&rf.data.session}
+ if(!ss||!ss.access_token){const err=new Error("auth");err.code="auth";err.status=401;err.fatal=true;throw err}
+ try{return await callFetch(ss.access_token)}
+ catch(e){
+  if(e&&e.status===401){
+   const rf=await c.auth.refreshSession();const ns=rf.data&&rf.data.session;
+   if(ns&&ns.access_token)return await callFetch(ns.access_token);
+  }
+  throw e;
+ }
+}
+async function call(body,opts={}){
+ return withRetry(()=>invokeOnce(body,opts.timeoutMs||REQ_TIMEOUT_MS),{
+  retries:opts.retries==null?4:opts.retries,
+  baseMs:opts.baseMs||2000,
+  onRetry:opts.onRetry
+ });
+}
 const errMsg=c=>({limit:lt("eLimit"),too_big:lt("eBig"),too_long:lt("eLong"),no_key:lt("eKey"),no_text:lt("eNoTxt"),server:lt("eTime"),stt_failed:lt("eStt"),no_audio:lt("eStt"),bad_chunk:lt("eStt")})[c]||lt("eGen");
 
 // ---------- بطاقة الدخول من الرئيسية والمكتبة ----------
@@ -94,7 +172,7 @@ function newModal(){
   h("label",{class:"lec-consent"},h("input",{type:"checkbox",onchange:e=>f.ok=e.target.checked}),h("span",{},lt("consent"))),
   h("div",{class:"acts"},h("button",{class:"btn",onclick:()=>m.remove()},t("cancel")),h("button",{class:"btn",onclick:()=>{if(!valid())return;file.click()}},ic("download"),lt("up")),h("button",{class:"btn fill",onclick:()=>go2("rec")},ic("mic"),lt("rec"))),file);
  const valid=()=>{if(!f.ok||!f.title.trim()){toast(lt("consentNeed"));return false}return true};
- async function go2(kind,x){if(!valid())return;if(kind==="file"&&x.size>(/\.mp3$/i.test(x.name)?MAX_MP3:MAX_UP)){toast(lt("eBig"));return}m.remove();
+ async function go2(kind,x){if(!valid())return;if(kind==="file"&&x.size>MAX_MP3){toast(lt("eBig"));return}m.remove();
   try{const c=await sb();const r=await c.from("lectures").insert({user_id:SC.user.id,title:f.title.trim().slice(0,160),subject:f.subject.trim().slice(0,80)||null,course:f.course.trim().slice(0,80)||null,lecture_lang:f.ll,output_lang:f.ol,consent:true,status:"uploading"}).select().single();
    if(r.error)throw r.error;const lec=r.data;LEC.id=null;if(kind==="rec")startRec(lec);else uploadFile(lec,x)}catch(e){toast(lt("eGen"))}}}
 
@@ -102,28 +180,123 @@ function newModal(){
 const extOf=(type,name)=>{const m=(name||"").match(/\.(\w{2,5})$/);if(m)return m[1].toLowerCase();return/mp4|m4a/.test(type)?"m4a":/mpeg|mp3/.test(type)?"mp3":/wav/.test(type)?"wav":/ogg/.test(type)?"ogg":"webm"};
 const MIME_EXT={m4a:"audio/mp4",mp4:"audio/mp4",mp3:"audio/mpeg",mpga:"audio/mpeg",mpeg:"audio/mpeg",wav:"audio/wav",ogg:"audio/ogg",oga:"audio/ogg",aac:"audio/aac",flac:"audio/flac",webm:"audio/webm"};
 const mimeOf=(type,ext)=>{if(MIME_EXT[ext])return MIME_EXT[ext];type=(type||"").split(";")[0];if(/^(audio|video)\/(webm|mp4|mpeg|mp3|wav|ogg|aac|flac)$/.test(type))return type;return"audio/webm"};
-async function putChunk(lec,n,blob,name){const c=await sb(),ext=extOf(blob.type,name),path=SC.user.id+"/"+lec.id+"/c"+n+"."+ext;
- const r=await c.storage.from("lectures").upload(path,blob,{contentType:mimeOf(blob.type,ext),upsert:true});if(r.error)throw r.error;return{path,offset:0,dur:0,done:false}}
+async function putChunk(lec,n,blob,name,meta={}){
+ const ext=extOf(blob.type,name),path=SC.user.id+"/"+lec.id+"/c"+n+"."+ext,ct=mimeOf(blob.type,ext);
+ await withRetry(async()=>{
+  const c=await sb();
+  const r=await c.storage.from("lectures").upload(path,blob,{contentType:ct,upsert:true});
+  if(r.error){const err=new Error(r.error.message||"upload_failed");err.status=r.error.statusCode||502;throw err}
+ },{retries:3,baseMs:1500});
+ return{path,offset:Number(meta.offset)||0,dur:Number(meta.dur)||0,done:false};
+}
 const MP3BR1=[0,32,40,48,56,64,80,96,112,128,160,192,224,256,320],MP3BR2=[0,8,16,24,32,40,48,56,64,80,96,112,128,144,160],MP3SR={3:[44100,48000,32000],2:[22050,24000,16000],0:[11025,12000,8000]};
 function mp3Hdr(u,i){if(i+4>u.length||u[i]!==255||(u[i+1]&224)!==224)return null;const v=(u[i+1]>>3)&3,l=(u[i+1]>>1)&3,bi=u[i+2]>>4,si=(u[i+2]>>2)&3;if(v===1||l!==1||bi===0||bi===15||si===3)return null;const br=(v===3?MP3BR1:MP3BR2)[bi],sr=MP3SR[v][si];return{br,len:Math.floor((v===3?144000:72000)*br/sr)+((u[i+2]>>1)&1)}}
 function mp3Sync(u,from){for(let i=from;i<u.length-4;i++){const a=mp3Hdr(u,i);if(a&&(mp3Hdr(u,i+a.len)||i+a.len>=u.length-4))return{pos:i,br:a.br}}return null}
 async function splitMp3(file){const rd=async(a,b)=>new Uint8Array(await file.slice(a,Math.min(b,file.size)).arrayBuffer());
  const head=await rd(0,16);let st=0;if(head[0]===73&&head[1]===68&&head[2]===51)st=10+((head[6]&127)<<21|(head[7]&127)<<14|(head[8]&127)<<7|(head[9]&127));
- const f0=mp3Sync(await rd(st,st+65536),0);if(!f0)return[file];
- const step=Math.min(20*1024*1024,Math.max(1<<20,f0.br*125*SPLIT_SEC)),ty=file.type||"audio/mpeg",parts=[];let a=0;
- while(file.size-a>step*1.3){const f=mp3Sync(await rd(a+step,a+step+65536),0);if(!f)break;const cut=a+step+f.pos;parts.push(file.slice(a,cut,ty));a=cut}
- parts.push(file.slice(a,file.size,ty));return parts}
-const splitFile=f=>/\.mp3$/i.test(f.name)&&f.size>8*1024*1024?splitMp3(f):Promise.resolve([f]);
-async function uploadFile(lec,file){LEC.recUI={lec,msg:lt("upl"),file:true};render();const chs=[];
- try{const parts=await splitFile(file);for(let k=0;k<parts.length;k++){if(parts.length>1){LEC.recUI.msg=lt("upl")+" ("+(k+1)+"/"+parts.length+")";if(S.tab==="lec"&&!LEC.id)render()}chs.push(await putChunk(lec,k,parts[k],file.name))}
+ const f0=mp3Sync(await rd(st,st+65536),0);if(!f0)return null;
+ const step=Math.min(6*1024*1024,Math.max(512*1024,f0.br*125*SPLIT_SEC)),ty=file.type||"audio/mpeg",parts=[];let a=0;
+ while(file.size-a>step*1.25){const f=mp3Sync(await rd(a+step,a+step+65536),0);if(!f)break;const cut=a+step+f.pos;parts.push({blob:file.slice(a,cut,ty),name:file.name,offset:0,dur:0});a=cut}
+ parts.push({blob:file.slice(a,file.size,ty),name:file.name,offset:0,dur:0});
+ return parts.every(p=>p.blob.size<=MAX_CHUNK_BYTES)?parts:null;
+}
+function encodeWav16(samples,sr){
+ const buf=new ArrayBuffer(44+samples.length*2),dv=new DataView(buf);
+ const ws=(o,s)=>{for(let i=0;i<s.length;i++)dv.setUint8(o+i,s.charCodeAt(i))};
+ ws(0,"RIFF");dv.setUint32(4,36+samples.length*2,true);ws(8,"WAVE");
+ ws(12,"fmt ");dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+ dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);
+ ws(36,"data");dv.setUint32(40,samples.length*2,true);
+ for(let i=0;i<samples.length;i++){const x=Math.max(-1,Math.min(1,samples[i]));dv.setInt16(44+i*2,x<0?x*0x8000:x*0x7fff,true)}
+ return new Blob([buf],{type:"audio/wav"});
+}
+async function compressAndChunkAudio(file){
+ const AC=window.AudioContext||window.webkitAudioContext,OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext;
+ if(!AC||!OAC)return null;
+ const ctx=new AC();
+ try{
+  const arr=await file.arrayBuffer();
+  const decoded=await ctx.decodeAudioData(arr);
+  const targetSr=16000,totalFrames=Math.max(1,Math.ceil(decoded.duration*targetSr));
+  const off=new OAC(1,totalFrames,targetSr);
+  const src=off.createBufferSource();src.buffer=decoded;src.connect(off.destination);src.start(0);
+  const rendered=await off.startRendering();
+  const pcm=rendered.getChannelData(0),chunkFrames=WAV_CHUNK_SEC*targetSr,parts=[];
+  for(let start=0,idx=0;start<pcm.length;start+=chunkFrames,idx++){
+   const end=Math.min(pcm.length,start+chunkFrames);
+   const slice=pcm.subarray(start,end);
+   parts.push({blob:encodeWav16(slice,targetSr),name:"chunk_"+idx+".wav",offset:+(start/targetSr).toFixed(2),dur:+((end-start)/targetSr).toFixed(2)});
+  }
+  return parts.length?parts:null;
+ }catch(_){return null}
+ finally{try{ctx.close()}catch(_){}}
+}
+async function splitFile(f){
+ if(f.size<=6*1024*1024)return[{blob:f,name:f.name,offset:0,dur:0}];
+ if(/\.mp3$/i.test(f.name)){const mp3Parts=await splitMp3(f);if(mp3Parts)return mp3Parts}
+ const wavParts=await compressAndChunkAudio(f);
+ if(wavParts)return wavParts;
+ if(f.size<=MAX_UP)return[{blob:f,name:f.name,offset:0,dur:0}];
+ const err=new Error("too_big");err.code="too_big";err.fatal=true;throw err;
+}
+async function uploadFile(lec,file){LEC.recUI={lec,msg:lt("prep"),file:true};render();const chs=[];
+ try{const parts=await splitFile(file);
+  for(let k=0;k<parts.length;k++){
+   LEC.recUI.msg=parts.length>1?lt("upl")+" ("+(k+1)+"/"+parts.length+")":lt("upl");
+   if(S.tab==="lec"&&(!LEC.id||LEC.id===lec.id))render();
+   chs.push(await putChunk(lec,k,parts[k].blob,parts[k].name,parts[k]))
+  }
   const c=await sb();const saved=await c.from("lectures").update({chunks:chs}).eq("id",lec.id).select("id").single();if(saved.error)throw saved.error;lec.chunks=chs;await process(lec)}
  catch(e){console.error("[lecture-upload]",e);const c=await sb();if(chs.length){try{await c.storage.from("lectures").remove(chs.map(x=>x.path))}catch(cleanErr){console.warn("[lecture-upload-cleanup]",cleanErr)}}
   try{await c.from("lectures").delete().eq("id",lec.id)}catch(delErr){console.warn("[lecture-upload-row]",delErr)}
-  toast(lt("eUp"));LEC.id=null;LEC.data=null;fin(lec,"failed")}}
-async function process(lec){const c=await sb();let chunks=lec.chunks;
- try{for(let i=0;i<chunks.length;i++){if(chunks[i].done)continue;LEC.recUI={lec,msg:lt("trn",{a:i+1,b:chunks.length}),file:true};if(S.tab==="lec"&&!LEC.id)render();
-   const r=await call({action:"transcribe",lecture_id:lec.id,chunk:i});if(r.status==="ready")break}
-  fin(lec,"ready")}catch(e){toast(errMsg(e.message));fin(lec,"failed",e.message)}}
+  toast(e&&e.code==="too_big"?lt("eBig"):lt("eUp"));LEC.id=null;LEC.data=null;fin(lec,"failed")}}
+async function process(lec){
+ if(!lec||!lec.id||LEC.procId===lec.id)return;
+ LEC.procId=lec.id;
+ const paint=()=>{if(S.tab==="lec"&&(!LEC.id||LEC.id===lec.id))render()};
+ try{
+  const c=await sb();
+  // قراءة الحالة المحدّثة من قاعدة البيانات لتفادي البيانات القديمة عند «استئناف المعالجة»
+  const fr=await c.from("lectures").select("id,title,status,chunks,duration_sec").eq("id",lec.id).maybeSingle();
+  if(fr.error)throw fr.error;
+  if(!fr.data){const err=new Error("not_found");err.code="not_found";err.fatal=true;throw err}
+  const fresh=fr.data;
+  if(fresh.status==="ready"&&Array.isArray(fresh.chunks)&&fresh.chunks.length&&fresh.chunks.every(x=>x&&x.done)){
+   fin(fresh,"ready");return;
+  }
+  let chunks=Array.isArray(fresh.chunks)?fresh.chunks:(Array.isArray(lec.chunks)?lec.chunks:[]);
+  if(!chunks.length){
+   const dir=SC.user.id+"/"+fresh.id,rl=await c.storage.from("lectures").list(dir,{limit:200});
+   const fs=(rl.data||[]).filter(x=>/^c\d+\.\w+$/.test(x.name)).sort((a,b)=>parseInt(a.name.slice(1))-parseInt(b.name.slice(1)));
+   if(rl.error||!fs.length){toast(lt("lost"));fin(fresh,"failed");return}
+   chunks=fs.map(x=>({path:dir+"/"+x.name,offset:0,dur:0,done:false}));
+   const sv=await c.from("lectures").update({chunks}).eq("id",fresh.id).select("id").single();
+   if(sv.error)throw sv.error;
+  }
+  lec.chunks=chunks;
+  if(LEC.data&&LEC.data.lec&&LEC.data.lec.id===fresh.id)LEC.data.lec.chunks=chunks;
+  // إن كانت كل القطع منجزة وبقيت الحالة غير جاهزة، أعد تأكيد آخر قطعة
+  const allDone=chunks.length>0&&chunks.every(x=>x&&x.done);
+  const startPending=allDone?[chunks.length-1]:chunks.map((x,idx)=>x&&x.done?-1:idx).filter(idx=>idx>=0);
+  for(const i of startPending){
+   LEC.recUI={lec:fresh,msg:lt("trn",{a:i+1,b:chunks.length}),file:true};paint();
+   const r=await call({action:"transcribe",lecture_id:fresh.id,chunk:i},{
+    onRetry:(att,max)=>{LEC.recUI={lec:fresh,msg:lt("retry",{a:att,b:max})+" ("+(i+1)+"/"+chunks.length+")",file:true};paint()}
+   });
+   chunks[i]={...chunks[i],done:true};
+   lec.chunks=chunks;
+   if(LEC.data&&LEC.data.lec&&LEC.data.lec.id===fresh.id)LEC.data.lec.chunks=chunks;
+   if(r&&r.status==="ready")break;
+  }
+  fin(fresh,"ready");
+ }catch(e){
+  console.error("[lecture-process]",e);
+  toast(errMsg(e&&(e.code||e.message)));
+  fin(lec,"failed");
+ }finally{
+  if(LEC.procId===lec.id)LEC.procId=null;
+ }
+}
 function fin(lec,st){LEC.recUI=null;if(S.tab==="lec"){if(st==="ready"){LEC.id=lec.id;LEC.tab="tText"}if(LEC.id===lec.id)LEC.data=null;render()}}
 
 // ---------- التسجيل (قطع من 10 دقائق، كل قطعة تُرفع فور اكتمالها) ----------
@@ -151,17 +324,81 @@ window.addEventListener("beforeunload",e=>{if(LEC.recUI&&!LEC.recUI.file&&!LEC.r
 
 // ---------- صفحة المحاضرة ----------
 const TABS_L=["tText","tSum","tTerms","tCards","tQuiz","tMap"];
+function formatLectureCite(l,st){
+ st=st||S.citeStyle||"apa";
+ const ar=isAr(l.title||"")||l.lecture_lang==="ar";
+ const author=(window.SC&&SC.me&&SC.me.full_name)||S.prof.name||(ar?"محاضر المقياس":"Course Instructor");
+ const dt=l.lecture_date||new Date().toISOString().slice(0,10);
+ const yr=dt.slice(0,4);
+ const course=[l.course,l.subject].filter(Boolean).join(" · ")||lt("lecCiteCourse");
+ const title=(l.title||"").replace(/\.$/,"");
+ if(st==="mla")return `${author}. "${title}." ${course}, ${dt}, 7Salah Scholar Lecture AI.`;
+ if(st==="chicago")return `${author}. "${title}." ${course}, ${dt}.`;
+ return `${author} (${dt}). ${title} [${ar?"محاضرة صوتية مفرّغة":"Lecture transcript"}]. ${course}${yr?" ("+yr+")":""}, 7Salah Scholar.`;
+}
+function citeLecModal(l){
+ const box=h("div",{class:"cite",dir:"auto"});
+ const paint=()=>{box.textContent=formatLectureCite(l,S.citeStyle)};
+ const copyBtn=h("button",{class:"btn fill",onclick:async()=>{
+  try{await navigator.clipboard.writeText(box.textContent);award("cite");toast(t("copied"))}catch(e){}
+ }},t("copy"));
+ modal(
+  h("div",{style:"display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px"},
+   h("h3",{style:"margin:0"},lt("lecCiteTitle")),
+   typeof citeSwitcher==="function"?citeSwitcher(()=>paint()):null),
+  box,
+  h("div",{class:"acts"},copyBtn,h("button",{class:"btn",onclick:e=>e.target.closest(".modal").remove()},t("close")))
+ );
+ paint();
+}
+function shareLecModal(D){
+ if(!window.Net)return toast(lt("eGen"));
+ const l=D.lec,segs=(D.segs||[]).slice(0,15).map(s=>({t:s.start_sec,text:s.text}));
+ const sumOut=D.outs&&(D.outs.summary2||D.outs.summary1||D.outs.summary3);
+ const pts=sumOut&&sumOut.content&&sumOut.content.sections?sumOut.content.sections.flatMap(s=>(s.points||[]).map(p=>p.text)).slice(0,5):[];
+ const cards=D.outs&&D.outs.flashcards&&Array.isArray(D.outs.flashcards.content&&D.outs.flashcards.content.cards)?D.outs.flashcards.content.cards.slice(0,25):[];
+ const nSeg=(D.segs||[]).length,nUnc=(D.segs||[]).filter(s=>s.unclear&&!s.edited).length,conf=nSeg?Math.round((nSeg-nUnc)/nSeg*100):92;
+ const payload={kind:"transcript",title:l.title,lang:l.output_lang||l.lecture_lang,durationMin:l.duration_sec?Math.max(1,Math.round(l.duration_sec/60)):null,confidence:conf,segments:segs,summaryPoints:pts,cards};
+ const noteInp=h("textarea",{class:"cta",rows:"3",placeholder:S.lang==="ar"?"أضف ملاحظة أو سؤالًا لزملائك حول هذه المحاضرة…":"Add a question or note for peers about this lecture…"});
+ const pubBtn=h("button",{class:"pri",type:"button",onclick:async()=>{
+  pubBtn.disabled=true;
+  const me=Net.myIdentity();
+  await Net.apiPost("/api/community/posts",{userId:me.id,authorName:me.name,authorHandle:me.username,authorField:me.field,authorUniversity:me.university,authorAvatar:me.avatar,kind:"transcript",field:l.subject||me.field||"",title:l.title,body:noteInp.value.trim()||([l.subject,l.course].filter(Boolean).join(" · ")),transcriptPayload:payload});
+  m.remove();toast(S.lang==="ar"?"تم تبادل تفريغ المحاضرة في المجتمع ✓":"Transcript shared to Community ✓");
+  if(window.SC){SC.view="feed";SC.kind="transcript"}go("com");
+ }},ic("share"),S.lang==="ar"?"نشر التفريغ في المجتمع":"Publish Transcript to Community");
+ const roomBtn=window.openRoomCreator?h("button",{class:"btn fill",type:"button",onclick:()=>{m.remove();openRoomCreator({title:l.title,field:l.subject||"",linkedItem:payload})}},ic("video"),S.lang==="ar"?"بدء غرفة دراسة لهذه المحاضرة":"Launch Study Room with Lecture"):null;
+ const m=modal(
+  h("h3",{},ic("share")," ",S.lang==="ar"?"مشاركة تفريغ المحاضرة":"Share Lecture Transcript"),
+  h("div",{class:"meta"},[l.title,segs.length+" "+(S.lang==="ar"?"مقطع":"segments"),cards.length+" "+(S.lang==="ar"?"بطاقة":"cards")].join(" · ")),
+  noteInp,
+  pubBtn,
+  roomBtn?h("div",{class:"btns"},roomBtn):null,
+  h("div",{class:"acts"},h("button",{class:"btn",type:"button",onclick:()=>m.remove()},t("close")))
+ );
+}
 async function detail(v){
  if(!LEC.data||LEC.data.lec.id!==LEC.id){const sh=h("div",{class:"card meta"},"…");v.append(sh);try{await loadDetail()}catch(e){sh.textContent=lt("eGen");return}if(S.tab!=="lec"||!LEC.id)return;sh.remove()}
  const D=LEC.data,l=D.lec;
  if(LEC.recUI&&LEC.recUI.lec.id===l.id)v.append(recPanel());
  const title=h("h3",{dir:"auto",class:"lec-title"},l.title);
  const acts=h("div",{class:"lec-acts"},
+  h("button",{class:"btn fill",onclick:()=>{
+   if(!window.openAiWithSource)return toast(lt("eGen"));
+   const transcript=(D.segs||[]).map(s=>`[${fmtT(s.start_sec)}] ${s.text}`).join("\n");
+   const sumOut=D.outs&&(D.outs.summary2||D.outs.summary1||D.outs.summary3);
+   const sumText=sumOut&&sumOut.content&&sumOut.content.sections?sumOut.content.sections.map(s=>`${s.heading||""}: ${(s.points||[]).map(p=>p.text).join("; ")}`).join("\n"):"";
+   const combined=[transcript,sumText].filter(Boolean).join("\n\n---\n\n");
+   if(combined.trim().length<20)return toast(lt("eNoTxt"));
+   window.openAiWithSource({kind:"lecture",title:l.title,sizeLabel:[l.subject,l.course,l.lecture_date].filter(Boolean).join(" · "),text:combined,autoAnalyze:true});
+  }},ic("sparkles"),S.lang==="ar"?"تحليل بالمساعد الذكي":S.lang==="fr"?"Analyser avec l'IA":"Analyze with AI"),
+  h("button",{class:"btn fill",onclick:()=>shareLecModal(D)},ic("share"),S.lang==="ar"?"تبادل في المجتمع":"Share Transcript"),
   h("button",{class:"btn",onclick:async()=>{const n=prompt(lt("fTitle"),l.title);if(n&&n.trim()){l.title=n.trim().slice(0,160);await(await sb()).from("lectures").update({title:l.title}).eq("id",l.id);title.textContent=l.title}}},ic("pencil"),lt("edit")),
+  h("button",{class:"btn",onclick:()=>citeLecModal(l)},ic("book"),lt("citeLec")),
   h("button",{class:"btn",onclick:()=>exportPdf()},ic("download"),lt("pdf")),
   h("button",{class:"btn danger",onclick:()=>delLec(l)},ic("trash"),lt("del")));
  v.append(h("div",{class:"card"},title,h("div",{class:"meta"},[l.subject,l.course,l.lecture_date,Math.max(1,Math.round(l.duration_sec/60))+" "+lt("min"),LN[l.lecture_lang]+" → "+LN[l.output_lang]].filter(Boolean).join(" · ")),acts));
- if(l.status!=="ready"){const pend=(l.chunks||[]).some(c=>!c.done),act=LEC.recUI&&LEC.recUI.lec.id===l.id;v.append(h("div",{class:"card"},h("b",{},act?lt("proc"):lt("failed")),
+ if(l.status!=="ready"){const pend=(l.chunks||[]).some(c=>!c.done),act=(LEC.recUI&&LEC.recUI.lec.id===l.id)||LEC.procId===l.id;v.append(h("div",{class:"card"},h("b",{},act?lt("proc"):lt("failed")),
   !act&&pend?h("div",{class:"acts"},h("button",{class:"btn fill",onclick:()=>{process(l)}},lt("resumeP"))):null,
   !act&&!pend?h("div",{},h("p",{class:"meta"},lt("lost")),h("div",{class:"acts"},h("button",{class:"btn fill",onclick:()=>recover(l)},lt("recov")))):null))}
  const ab=h("div",{class:"lec-audio"});if(!LEC.audio){LEC.audio=h("audio",{controls:"",preload:"none"})}ab.append(LEC.audio);v.append(ab);
@@ -178,9 +415,10 @@ async function loadDetail(){const c=await sb();
 async function recover(l){const c=await sb(),dir=SC.user.id+"/"+l.id;const r=await c.storage.from("lectures").list(dir,{limit:200});
  const fs=(r.data||[]).filter(x=>/^c\d+\.\w+$/.test(x.name)).sort((a,b)=>parseInt(a.name.slice(1))-parseInt(b.name.slice(1)));
  if(r.error||!fs.length)return toast(lt("lost"));
- const chunks=fs.map(x=>({path:dir+"/"+x.name,offset:0,dur:0,done:false}));
+ const prev=Array.isArray(l.chunks)?l.chunks:[];
+ const chunks=fs.map(x=>{const p=dir+"/"+x.name,old=prev.find(k=>k&&k.path===p);return old?{...old,path:p}:{path:p,offset:0,dur:0,done:false}});
  const sv=await c.from("lectures").update({chunks}).eq("id",l.id).select("id").single();if(sv.error)return toast(lt("eGen"));
- l.chunks=chunks;LEC.recUI={lec:l,msg:lt("proc"),file:true};render();await process(l)}
+ l.chunks=chunks;if(LEC.data&&LEC.data.lec&&LEC.data.lec.id===l.id)LEC.data.lec.chunks=chunks;LEC.recUI={lec:l,msg:lt("proc"),file:true};render();await process(l)}
 async function delLec(l){if(!confirm(lt("delQ")))return;const c=await sb();const ps=(l.chunks||[]).map(x=>x.path).filter(Boolean);if(ps.length)await c.storage.from("lectures").remove(ps);await c.from("lectures").delete().eq("id",l.id);LEC.id=null;LEC.data=null;render()}
 
 // ---------- الصوت والقفز إلى التوقيت ----------
@@ -194,6 +432,11 @@ const chip=t=>t==null||!isFinite(t)?null:h("button",{class:"lec-t",title:fmtT(t)
 function tText(box,repaint){const D=LEC.data;
  box.append(h("div",{class:"lec-warn"},lt("sttNote")));
  if(!D.segs.length)return box.append(h("div",{class:"card meta"},lt("eNoTxt")));
+ const nSeg=D.segs.length,nUnc=D.segs.filter(s=>s.unclear&&!s.edited).length,confPct=Math.round((nSeg-nUnc)/nSeg*100);
+ box.append(h("div",{class:"lec-verif"},
+  h("div",{class:"lec-verif-top"},h("b",{},lt("confBar")),h("span",{class:"lec-verif-pct"},confPct+"%")),
+  h("div",{class:"lec-verif-bar"},h("i",{style:"width:"+confPct+"%"})),
+  h("div",{class:"meta"},nUnc?lt("confPct",{p:confPct,u:nUnc}):lt("confAll",{p:confPct,n:nSeg}))));
  box.append(h("div",{class:"lec-bar"},h("button",{class:"btn"+(LEC.edit?" fill":""),onclick:()=>{LEC.edit=!LEC.edit;repaint()}},ic("pencil"),LEC.edit?lt("save"):lt("edit")),
   D.outs.outline?null:genBtn("outline",box,repaint,false,lt("genHead"))));
  const heads=D.outs.outline?D.outs.outline.content.items||[]:[];
@@ -207,6 +450,17 @@ function tText(box,repaint){const D=LEC.data;
  box.append(doc)}
 
 // ---------- مولّد المخرجات ----------
+function groundStats(kind,content){
+ const list=[];
+ if(/^summary/.test(kind))(content.sections||[]).forEach(s=>(s.points||[]).forEach(p=>list.push(p)));
+ else if(kind==="terms")(content.items||[]).forEach(x=>list.push(x));
+ else if(kind==="flashcards")(content.cards||[]).forEach(x=>list.push(x));
+ else if(kind==="quiz")(content.questions||[]).forEach(x=>list.push(x));
+ else if(kind==="mindmap"){const walk=n=>{if(!n)return;list.push(n);(n.children||[]).forEach(walk)};walk(content)}
+ if(!list.length)return null;
+ const grounded=list.filter(x=>x&&x.t!=null&&isFinite(+x.t)).length;
+ return{total:list.length,grounded,pct:Math.round(grounded/list.length*100)};
+}
 function genBtn(kind,box,repaint,regen,label){return h("button",{class:"btn"+(regen?"":" fill"),disabled:!!LEC.busy[kind],onclick:async e=>{
   if(regen){const o=LEC.data.outs[kind];if(o&&o.edited&&!confirm(lt("regenQ")))return}
   LEC.busy[kind]=1;e.currentTarget.disabled=true;e.currentTarget.textContent=lt("working");
@@ -217,9 +471,15 @@ function ed(o,k,tag,cls){const e=h(tag||"span",{class:(cls||"")+(LEC.edit?" lec-
 async function saveOut(kind){const o=LEC.data.outs[kind];const r=await(await sb()).from("lecture_outputs").update({content:o.content}).eq("lecture_id",LEC.id).eq("kind",kind);if(r.error)return toast(lt("eGen"));o.edited=true;LEC.dirty=false;toast(lt("saved"))}
 function outPane(kind,box,repaint,fn,canEdit){const o=LEC.data.outs[kind];LEC.curKind=kind;
  if(!o){box.append(h("div",{class:"card"},h("p",{class:"meta"},lt("aiNote")),genBtn(kind,box,repaint)));return}
+ const gs=groundStats(kind,o.content||{});
  const bar=h("div",{class:"lec-bar"},genBtn(kind,box,repaint,true));
  if(canEdit)bar.append(h("button",{class:"btn"+(LEC.edit?" fill":""),onclick:async()=>{if(LEC.edit){await saveOut(kind)}LEC.edit=!LEC.edit;repaint()}},ic("pencil"),LEC.edit?lt("save"):lt("edit")));
- box.append(h("div",{class:"lec-warn"},lt("aiNote")),bar);fn(o.content,o)}
+ box.append(h("div",{class:"lec-warn"},lt("aiNote")),
+  gs?h("div",{class:"lec-verif"},
+   h("div",{class:"lec-verif-top"},h("b",{},lt("gMeter")),h("span",{class:"lec-verif-pct"},gs.pct+"% ("+gs.grounded+"/"+gs.total+")")),
+   h("div",{class:"lec-verif-bar"},h("i",{style:"width:"+gs.pct+"%"}))):null,
+  bar);
+ fn(o.content,o)}
 const aiNote=n=>n?h("div",{class:"lec-ai"},h("span",{class:"badge ai"},lt("aiAdd")),h("span",{dir:"auto"},n)):null;
 
 // ---------- الملخص ----------
@@ -227,7 +487,7 @@ function tSum(box,repaint){
  box.append(h("div",{class:"tabs"},[1,2,3].map(n=>h("button",{class:LEC.lvl===n?"on":"",onclick:async()=>{await flush();LEC.edit=false;LEC.lvl=n;repaint()}},lt("l"+n)))));
  outPane("summary"+LEC.lvl,box,repaint,c=>sumView(box,c),true)}
 function sumView(box,c){(c.sections||[]).forEach(s=>box.append(h("div",{class:"card lec-sec"},h("h3",{},ed(s,"heading")),
-  (s.points||[]).map(p=>h("div",{class:"lec-pt"},h("div",{},ed(p,"text"),chip(p.t)),aiNote(p.ai_note))))));
+  (s.points||[]).map(p=>h("div",{class:"lec-pt"},h("div",{},ed(p,"text"),chip(p.t),p.t!=null&&isFinite(+p.t)?h("span",{class:"lec-ground"}," · "+lt("gGrounded")):null),aiNote(p.ai_note))))));
  if((c.uncertain||[]).length)box.append(h("div",{class:"card lec-sec"},h("h3",{},lt("uncList")),c.uncertain.map(u=>h("div",{class:"lec-pt unc"},h("span",{dir:"auto"},u.text),chip(u.t)))))}
 
 // ---------- المصطلحات ----------
@@ -235,13 +495,13 @@ function tTerms(box,repaint){outPane("terms",box,repaint,c=>{(c.items||[]).forEa
 
 // ---------- البطاقات ----------
 function tCards(box,repaint){outPane("flashcards",box,repaint,c=>{const cs=c.cards||[];
- box.append(h("div",{class:"lec-bar"},h("button",{class:"btn fill",onclick:()=>{const d=newDeck(LEC.data.lec.title,cs.filter(x=>x.q&&x.a).map(x=>({id:uid(),t:"q",q:String(x.q),a:String(x.a),src:{t:lt("title")+": "+LEC.data.lec.title,own:1}})));persist();toast(lt("added",{n:d.cards.length}))}},ic("cards"),lt("toDecks"))));
- cs.forEach(x=>{const a=h("div",{class:"lec-ans",style:"display:none"},ed(x,"a","div"));box.append(h("div",{class:"card lec-sec",onclick:e=>{if(!LEC.edit&&!e.target.closest("button"))a.style.display=a.style.display==="none"?"":"none"}},h("div",{class:"lec-tk"},h("b",{},ed(x,"q")),chip(x.t)),a));if(LEC.edit)a.style.display=""})},true)}
+ box.append(h("div",{class:"lec-bar"},h("button",{class:"btn fill",onclick:()=>{const lec=LEC.data.lec,metaJ=[lec.subject,lec.course].filter(Boolean).join(" · ")||lt("lecCiteCourse"),yr=lec.lecture_date?String(lec.lecture_date).slice(0,4):null;const d=newDeck(lec.title,cs.filter(x=>x.q&&x.a).map(x=>({id:uid(),t:"q",q:String(x.q),a:String(x.a),src:{t:lec.title+(x.t!=null&&isFinite(+x.t)?" ["+fmtT(x.t)+"]":""),j:metaJ,y:yr,own:1}})));persist();toast(lt("added",{n:d.cards.length}))}},ic("cards"),lt("toDecks"))));
+ cs.forEach(x=>{const a=h("div",{class:"lec-ans",style:"display:none"},ed(x,"a","div"));box.append(h("div",{class:"card lec-sec",onclick:e=>{if(!LEC.edit&&!e.target.closest("button"))a.style.display=a.style.display==="none"?"":"none"}},h("div",{class:"lec-tk"},h("b",{},ed(x,"q")),chip(x.t),x.t!=null&&isFinite(+x.t)?h("span",{class:"lec-ground"},lt("gGrounded")):h("span",{class:"lec-ground"},lt("gExt"))),a));if(LEC.edit)a.style.display=""})},true)}
 
 // ---------- الاختبار الذاتي ----------
 function tQuiz(box,repaint){outPane("quiz",box,repaint,c=>{const qs=c.questions||[];let sc=0,n=0;const sb2=h("div",{class:"lec-score"},lt("score")+": 0/0");box.append(sb2);
  const upd=ok=>{n++;if(ok)sc++;sb2.textContent=lt("score")+": "+sc+"/"+n};
- qs.forEach((q,i)=>{const fb=h("div",{class:"lec-fb",style:"display:none"},h("div",{dir:"auto"},q.explain||""),chip(q.t));let done=false;
+ qs.forEach((q,i)=>{const fb=h("div",{class:"lec-fb",style:"display:none"},h("div",{dir:"auto"},q.explain||""),chip(q.t),q.t!=null&&isFinite(+q.t)?h("span",{class:"lec-ground"}," · "+lt("gGrounded")):null);let done=false;
   const pick=(btn,right,val)=>{if(done)return;done=true;btn.classList.add(right?"right":"wrong");fb.style.display="";upd(right);btn.parentNode.querySelectorAll("button").forEach(b=>{if(b.dataset.ok==="1")b.classList.add("right")})};
   let opts;
   if(q.type==="short"){opts=h("div",{},h("button",{class:"btn",onclick:e=>{fb.prepend(h("div",{class:"lec-model",dir:"auto"},q.answer||""));fb.style.display="";e.currentTarget.remove()}},lt("reveal")))}

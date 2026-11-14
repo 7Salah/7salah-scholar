@@ -4,13 +4,21 @@
   "version": "0.2.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "tsx server.ts",
+    "start": "NODE_ENV=production tsx server.ts",
     "build": "vite build",
-    "test": "node tests/run.mjs"
+    "test": "node game/tests/run.mjs",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@babylonjs/core": "^8.0.0",
-    "@babylonjs/loaders": "^8.0.0"
+    "@babylonjs/loaders": "^8.0.0",
+    "@google/genai": "^3.3.0",
+    "@types/express": "^5.0.6",
+    "@types/ws": "^8.18.2",
+    "express": "^5.3.0",
+    "tsx": "^4.23.15",
+    "ws": "^8.23.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

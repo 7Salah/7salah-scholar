@@ -216,6 +216,73 @@ async function createLecture({ title, subject, lectureLang, outputLang, consent 
   if (error) throw error;
   return data.id;
 }
+const REQ_TIMEOUT_MS = 600000;
+const WAV_CHUNK_SEC = 180;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function isRetryable(e) {
+  if (!e || e.fatal) return false;
+  const code = String(e.code || e.message || '');
+  const st = Number(e.status || 0);
+  if (/^(unauthorized|daily_limit|chunk_too_large|unsupported_audio|server_not_configured|gemini_400|gemini_401|gemini_403|no_transcript|too_long|consent_required|not_found|no_audio_chunks)$/.test(code)) return false;
+  if (st >= 400 && st < 500 && st !== 408 && st !== 429) return false;
+  if (st === 408 || st === 429 || st >= 500) return true;
+  return e.name === 'AbortError' || e.name === 'TypeError' || /timeout|abort|network|failed to fetch|load failed|gemini_429|gemini_network|gemini_5|bad_ai_json|empty_ai_response|502|503|504/i.test(code);
+}
+async function withRetry(fn, { retries = 4, baseMs = 2000, onRetry } = {}) {
+  let last;
+  for (let a = 0; a <= retries; a++) {
+    try { return await fn(a); }
+    catch (e) {
+      last = e;
+      if (a >= retries || !isRetryable(e)) throw e;
+      const wait = Math.min(30000, baseMs * Math.pow(2, a)) + Math.floor(Math.random() * 500);
+      if (onRetry) onRetry(a + 1, retries, wait, e);
+      await sleep(wait);
+    }
+  }
+  throw last;
+}
+function encodeWav16(samples, sr) {
+  const buf = new ArrayBuffer(44 + samples.length * 2), dv = new DataView(buf);
+  const ws = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0, 'RIFF'); dv.setUint32(4, 36 + samples.length * 2, true); ws(8, 'WAVE');
+  ws(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  ws(24, sr, true); dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+  ws(36, 'data'); dv.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) {
+    const x = Math.max(-1, Math.min(1, samples[i]));
+    dv.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7fff, true);
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+async function splitAudioForUpload(file, fallbackDur) {
+  if (file.size <= 6 * 1024 * 1024) return [{ blob: file, offset_sec: 0, duration_sec: fallbackDur }];
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  if (AC && OAC) {
+    const ctx = new AC();
+    try {
+      const decoded = await ctx.decodeAudioData(await file.arrayBuffer());
+      const targetSr = 16000, totalFrames = Math.max(1, Math.ceil(decoded.duration * targetSr));
+      const off = new OAC(1, totalFrames, targetSr);
+      const src = off.createBufferSource(); src.buffer = decoded; src.connect(off.destination); src.start(0);
+      const rendered = await off.startRendering();
+      const pcm = rendered.getChannelData(0), chunkFrames = WAV_CHUNK_SEC * targetSr, parts = [];
+      for (let start = 0; start < pcm.length; start += chunkFrames) {
+        const end = Math.min(pcm.length, start + chunkFrames);
+        parts.push({
+          blob: encodeWav16(pcm.subarray(start, end), targetSr),
+          offset_sec: Math.round(start / targetSr),
+          duration_sec: Math.max(1, Math.round((end - start) / targetSr)),
+        });
+      }
+      if (parts.length) return parts;
+    } catch (_) { /* fall back below */ }
+    finally { try { ctx.close(); } catch (_) {} }
+  }
+  if (file.size <= MAX_CHUNK_BYTES) return [{ blob: file, offset_sec: 0, duration_sec: fallbackDur }];
+  const err = new Error('chunk_too_large'); err.code = 'chunk_too_large'; err.fatal = true; throw err;
+}
 async function uploadChunks(lectureId, items, onItem) {
   const { data: auth } = await sb.auth.getUser();
   if (!auth || !auth.user) throw new Error('unauthorized');
@@ -226,8 +293,10 @@ async function uploadChunks(lectureId, items, onItem) {
     const mime = (blob.type || 'audio/webm').split(';')[0];
     const ext = (mime.split('/')[1] || 'webm').replace('mpeg', 'mp3');
     const path = `${auth.user.id}/${lectureId}/${i}.${ext}`;
-    const { error } = await sb.storage.from('lectures').upload(path, blob, { contentType: mime, upsert: true });
-    if (error) throw error;
+    await withRetry(async () => {
+      const { error } = await sb.storage.from('lectures').upload(path, blob, { contentType: mime, upsert: true });
+      if (error) { const err = new Error(error.message); err.status = error.statusCode || 502; throw err; }
+    }, { retries: 3, baseMs: 1500 });
     chunks.push({ path, mime, offset_sec, duration_sec });
     if (onItem) onItem(i);
   }
@@ -235,27 +304,73 @@ async function uploadChunks(lectureId, items, onItem) {
   const { error: ue } = await sb.from('lectures').update({ chunks, duration_sec: Math.round(total) }).eq('id', lectureId);
   if (ue) throw ue;
 }
-async function callFn(body) {
-  const { data, error } = await sb.functions.invoke('process-lecture', { body });
-  if (error) {
-    let code = error.message;
-    try { const j = await error.context.json(); if (j && j.error) code = j.error; } catch (_) {}
-    throw new Error(code);
+async function invokeFnOnce(body, timeoutMs = REQ_TIMEOUT_MS) {
+  const runFetch = async (token) => {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(Object.assign(new Error('timeout'), { name: 'AbortError' })), timeoutMs);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/process-lecture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+        signal: ctrl.signal,
+      });
+      const txt = await res.text();
+      let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (_) {}
+      if (!res.ok) {
+        const code = (j && j.error) || `http_${res.status}`;
+        const err = new Error(code); err.code = code; err.status = res.status; throw err;
+      }
+      if (j && j.error) { const err = new Error(j.error); err.code = j.error; err.status = res.status; throw err; }
+      return j;
+    } catch (e) {
+      if (e && e.name === 'AbortError') { const err = new Error('timeout'); err.name = 'AbortError'; err.status = 408; throw err; }
+      throw e;
+    } finally { clearTimeout(tid); }
+  };
+  let { data: s } = await sb.auth.getSession();
+  let token = s && s.session && s.session.access_token;
+  if (!token) { const rf = await sb.auth.refreshSession(); token = rf.data && rf.data.session && rf.data.session.access_token; }
+  if (!token) { const err = new Error('unauthorized'); err.fatal = true; throw err; }
+  try { return await runFetch(token); }
+  catch (e) {
+    if (e && e.status === 401) {
+      const rf = await sb.auth.refreshSession();
+      const nt = rf.data && rf.data.session && rf.data.session.access_token;
+      if (nt) return await runFetch(nt);
+    }
+    throw e;
   }
-  if (data && data.error) throw new Error(data.error);
-  return data;
+}
+async function callFn(body, opts = {}) {
+  return withRetry(() => invokeFnOnce(body, opts.timeoutMs || REQ_TIMEOUT_MS), {
+    retries: opts.retries == null ? 4 : opts.retries,
+    baseMs: opts.baseMs || 2000,
+    onRetry: opts.onRetry,
+  });
 }
 async function processLecture(lectureId, onProgress) {
-  const { data: lec, error } = await sb.from('lectures').select('id, chunks').eq('id', lectureId).single();
+  const [{ data: lec, error }, { data: segDone }] = await Promise.all([
+    sb.from('lectures').select('id, status, chunks').eq('id', lectureId).single(),
+    sb.from('lecture_segments').select('chunk').eq('lecture_id', lectureId),
+  ]);
   if (error) throw error;
-  const total = (lec.chunks || []).length;
+  const chunks = Array.isArray(lec.chunks) ? lec.chunks : [];
+  const total = chunks.length;
   if (!total) throw new Error('no_audio_chunks');
+  const doneSet = new Set((segDone || []).map((s) => Number(s.chunk)));
   for (let i = 0; i < total; i++) {
+    if (chunks[i] && chunks[i].done) doneSet.add(i);
+    if (doneSet.has(i)) continue;
     onProgress({ step: 'transcribe', done: i, total });
-    await callFn({ lecture_id: lectureId, action: 'transcribe', chunk: i });
+    await callFn({ lecture_id: lectureId, action: 'transcribe', chunk: i }, {
+      onRetry: (att, max) => onProgress({ step: 'retry', done: i, total, att, max }),
+    });
   }
   onProgress({ step: 'outputs', done: total, total });
-  await callFn({ lecture_id: lectureId, action: 'outputs' });
+  await callFn({ lecture_id: lectureId, action: 'outputs' }, {
+    onRetry: (att, max) => onProgress({ step: 'retry', done: total, total, att, max }),
+  });
 }
 async function loadLecture(id) {
   const [lec, segs, outs] = await Promise.all([
@@ -505,9 +620,16 @@ function renderSetup(mode) {
     if (mode === 'record') return renderRecording(meta);
     const f = file.files[0];
     if (!f) return (msg.textContent = 'اختر ملفاً صوتياً', msg.className = 'msg err');
-    if (f.size > MAX_CHUNK_BYTES) return (msg.textContent = 'الملف أكبر من 12MB. اضغطه أو قسّمه أولاً، أو سجّله مباشرة هنا', msg.className = 'msg err');
-    const dur = await audioDuration(f);
-    runNew(meta, [{ blob: f, offset_sec: 0, duration_sec: dur }]);
+    if (f.size > 400 * 1024 * 1024) return (msg.textContent = 'الملف كبير جداً. اختر ملفاً أصغر.', msg.className = 'msg err');
+    go.disabled = true; msg.textContent = 'جاري تجهيز وتقسيم الصوت…'; msg.className = 'msg';
+    try {
+      const dur = await audioDuration(f);
+      const parts = await splitAudioForUpload(f, dur);
+      runNew(meta, parts);
+    } catch (e) {
+      go.disabled = false;
+      msg.textContent = errText(e); msg.className = 'msg err';
+    }
   };
   render(h('section', { class: 'screen' }, header(mode === 'record' ? 'تسجيل محاضرة' : 'رفع ملف صوتي'),
     h('div', { class: 'card' },
@@ -605,20 +727,28 @@ async function runNew(meta, chunks) {
     await uploadChunks(id, chunks, (i) => set(((i + 1) / total) * 100, `نرفع الصوت ${i + 1}/${n}`));
     await processLecture(id, (p) => {
       if (p.step === 'transcribe') set(((n + p.done) / total) * 100, `نفرّغ الكلام ${p.done + 1}/${n}`);
+      else if (p.step === 'retry') set(((n + p.done) / total) * 100, `تعذّر الاتصال مؤقتاً — إعادة المحاولة (${p.att}/${p.max})…`);
       else set(((n * 2) / total) * 100, 'نصنع الملخصات والاختبار…');
     });
     set(100, 'تمّ! 🎉'); await openLecture(id);
   } catch (e) { showFail(e, id); }
 }
+let resumingId = null;
 async function runResume(id) {
+  if (resumingId === id) return;
+  resumingId = id;
   const set = renderProcessing();
   try {
+    const { data: fresh } = await sb.from('lectures').select('status').eq('id', id).maybeSingle();
+    if (fresh && fresh.status === 'ready') { set(100, 'تمّ! 🎉'); await openLecture(id); return; }
     await processLecture(id, (p) => {
       if (p.step === 'transcribe') set((p.done / (p.total + 1)) * 100, `نفرّغ الكلام ${p.done + 1}/${p.total}`);
+      else if (p.step === 'retry') set((p.done / (p.total + 1)) * 100, `تعذّر الاتصال مؤقتاً — إعادة المحاولة (${p.att}/${p.max})…`);
       else set((p.total / (p.total + 1)) * 100, 'نصنع الملخصات والاختبار…');
     });
     set(100, 'تمّ! 🎉'); await openLecture(id);
   } catch (e) { showFail(e, id); }
+  finally { if (resumingId === id) resumingId = null; }
 }
 
 /* --- عرض المحاضرة --- */

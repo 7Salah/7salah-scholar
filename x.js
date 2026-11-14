@@ -78,9 +78,12 @@ function mentionize(text){
   f.append(h("a",{class:"mention",href:"#","data-u":m[2].toLowerCase(),dir:"ltr",onclick:e=>{e.preventDefault();e.stopPropagation();xOpenUser(e.currentTarget.dataset.u)}},"@"+m[2]));last=st+1+m[2].length}
  if(last<s.length)f.append(document.createTextNode(s.slice(last)));return f}
 const XU=new Map();
-async function xOpenUser(u){u=String(u||"").toLowerCase();if(!SC.sb)return;let id=XU.get(u);
- if(id===undefined){const r=await SC.sb.from("profiles").select("id").eq("username",u).maybeSingle();id=r.data?r.data.id:null;if(!r.error)XU.set(u,id)}
- if(!id)return toast(xt("noUser",{u}));openProf(id)}
+async function xOpenUser(u){u=String(u||"").toLowerCase();
+ if(SC.sb){let id=XU.get(u);
+  if(id===undefined){const r=await SC.sb.from("profiles").select("id").eq("username",u).maybeSingle();id=r.data?r.data.id:null;if(!r.error)XU.set(u,id)}
+  if(id)return openProf(id)}
+ if(window.Net){try{const r=await Net.apiGet("/api/directory/"+encodeURIComponent(u));if(r&&r.profile&&r.profile.id)return openProf(r.profile.id)}catch(e){}}
+ toast(xt("noUser",{u}))}
 async function xFollowing(){
  if(!SC.user||!SC.sb)return[];const c=XC.fl;if(c&&c.uid===SC.user.id&&Date.now()-c.t<60000)return c.rows;
  const f=await SC.sb.from("follows").select("followee").eq("follower",SC.user.id).limit(100),ids=(f.data||[]).map(x=>x.followee);let rows=[];
@@ -131,7 +134,8 @@ async function xFetchThread(root){
  const rows=await xHydrate(r.data||[]);rows.forEach(p=>{p._tlen=rows.length});return rows}
 // يُستدعى من loadPosts قبل بناء البطاقات: يضيف المنشور الأصلي لكل إعادة نشر/اقتباس ويحدّث حالة «أعدتُ نشره»
 async function xPrep(data){
- if(!SC.sb||!(await xReady()))return;
+ data=(data||[]).filter(p=>p&&!p._server);
+ if(!data.length||!SC.sb||!(await xReady()))return;
  const need=[...new Set(data.map(p=>p.repost_of||p.quote_of).filter(Boolean))],om=need.length?await xFetchPosts(need):new Map();
  data.forEach(p=>{const k=p.repost_of||p.quote_of;if(!k)return;let o=om.get(k)||null;if(o&&SC.blocked.has(o.user_id))o=null;p._orig=o;if(!o&&p.repost_of)p._hide=true});
  if(SC.user){const tg=[...new Set(data.map(p=>p.kind==="repost"?p.repost_of:p.id).filter(Boolean))];
@@ -241,6 +245,7 @@ function xDecorate(c,p){
  if(h3){if((p.kind==="quote"||p.thread_root)&&p.body&&xNorm(p.body).startsWith(xNorm(p.title)))h3.remove();else if((p.title||"").includes("@"))h3.replaceChildren(mentionize(p.title))}
  if(pb&&(p.body||"").includes("@"))pb.replaceChildren(mentionize(p.body))}
 {const _pc=postCard;postCard=function(p,l){
+ if(p&&p._server)return _pc(p,l);
  if(XF.ready&&p.kind==="repost"&&p._orig)return xRepostCard(p);
  const c=_pc(p,l);xDecorate(c,p);if(!XF.ready||p.kind==="repost")return c;
  const foot=c.querySelector(".pfoot"),kc=c.querySelector(".kchip");
@@ -267,7 +272,9 @@ function xDecorate(c,p){
 
 // ===================== 10) التعليقات والردود المتفرعة =====================
 XC.open=new Set();
+const _baseLoadComments=typeof loadComments==="function"?loadComments:null;
 loadComments=async function(p,box){
+ if(p&&p._server&&_baseLoadComments)return _baseLoadComments(p,box);
  await xReady();const tree=!!XF.ready;
  const r=await SC.sb.from("comments").select("*,profiles(id,username,name,avatar_url,verified)").eq("post_id",p.id).order("created_at").limit(300);
  if(r.error){box.replaceChildren(h("div",{class:"meta"},"⚠ "+r.error.message));return}

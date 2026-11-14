@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Academic Quest — 7Salah Scholar</title>
+  <link rel="stylesheet" href="./src/styles.css">
+  <script>
+    (function () {
+      var inDist = location.pathname.indexOf("/dist/") !== -1;
+      var s = document.createElement("script");
+      s.src = inDist ? "../../config.js" : "../config.js";
+      document.head.appendChild(s);
+      window.addEventListener("DOMContentLoaded", function () {
+        var target = inDist ? "../../" : "../";
+        document.querySelectorAll("[data-back-link]").forEach(function (el) {
+          el.setAttribute("href", target);
+        });
+      });
+    })();
+  </script>
+</head>
+<body>
+  <div id="app">
+    <div class="game-shell">
+      <canvas id="academy-canvas" tabindex="0"></canvas>
+      <div class="sky-wash"></div>
+
+      <header class="hud-top">
+        <a class="back-link" href="../../" data-back-link>
+          <span aria-hidden="true">←</span>
+          <span data-copy="back">العودة للمنصة</span>
+        </a>
+
+        <div class="player-card">
+          <div class="avatar-mark" aria-hidden="true">✦</div>
+          <div class="player-info">
+            <b id="player-name">مستكشف الأكاديمية</b>
+            <span><span data-copy="level">المستوى</span> 1 <i>·</i> <span data-copy="xp">خبرة تجريبية</span></span>
+          </div>
+          <div class="xp-block">
+            <div class="xp-caption">
+              <span data-copy="xp">خبرة تجريبية</span>
+              <b>0 / 100</b>
+            </div>
+            <div class="xp-track"><span></span></div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button class="icon-button" id="customize-open" type="button" aria-label="Customize">✦</button>
+          <button class="icon-button" id="settings-open" type="button" aria-label="Settings">⚙</button>
+          <button class="icon-button pause-button" id="pause-open" type="button" aria-label="Pause">❚❚</button>
+        </div>
+      </header>
+
+      <div class="world-label">
+        <span class="world-pulse"></span>
+        <span data-copy="location">ساحة الأكاديمية</span>
+      </div>
+
+      <div class="interaction-prompt" id="interaction-prompt" hidden>
+        <kbd>E</kbd>
+        <span></span>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+      <div class="desktop-hints">
+        <span><kbd>WASD</kbd><i data-copy="move">حركة</i></span>
+        <span><kbd>Space</kbd><i data-copy="jump">قفز</i></span>
+        <span><kbd>Shift</kbd><i data-copy="run">جري</i></span>
+        <span><kbd>E</kbd><i data-copy="interact">تفاعل</i></span>
+        <span><kbd>Esc</kbd><i data-copy="menu">القائمة</i></span>
+      </div>
+
+      <div class="touch-controls">
+        <div class="joystick" id="joystick">
+          <div class="joystick-knob"></div>
+        </div>
+        <div class="touch-actions">
+          <button id="touch-run" type="button" data-copy="run">جري</button>
+          <button id="touch-jump" type="button" aria-label="Jump">↑</button>
+          <button id="touch-interact" type="button" data-copy="interact">تفاعل</button>
+        </div>
+      </div>
+
+      <section class="welcome-screen" id="welcome-screen">
+        <div class="welcome-decoration" aria-hidden="true"><span>✦</span><i></i><b>7</b></div>
+        <div class="welcome-card">
+          <div class="eyebrow"><span>✦</span>ACADEMIC QUEST · 7SALAH SCHOLAR</div>
+          <h1 data-copy="title">أكاديميتك بانتظارك</h1>
+          <p data-copy="intro"></p>
+          <div class="welcome-meta">
+            <span data-copy="single-player"></span>
+            <span data-copy="no-xp"></span>
+          </div>
+          <button class="primary-button" id="enter-academy" type="button">
+            <span data-copy="enter">دخول الأكاديمية</span>
+            <b>→</b>
+          </button>
+          <p class="session-note" id="session-note" data-copy="session-check"></p>
+        </div>
+      </section>
+
+      <aside class="side-panel" id="customize-panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <div class="eyebrow" data-copy="character"></div>
+            <h2 data-copy="customize"></h2>
+          </div>
+          <button class="close-button" type="button" data-close="customize-panel" aria-label="Close">×</button>
+        </div>
+
+        <label id="avatar-model-row" hidden>
+          <span data-copy="avatar-model"></span>
+          <select id="avatar-model">
+            <option value=""></option>
+          </select>
+        </label>
+
+        <label>
+          <span data-copy="hair"></span>
+          <select id="hair-style">
+            <option value="short"></option>
+            <option value="bob"></option>
+            <option value="long"></option>
+            <option value="ponytail"></option>
+          </select>
+        </label>
+
+        <div class="color-row">
+          <label>
+            <span data-copy="hair-color"></span>
+            <input id="hair-color" type="color" value="#28334f">
+          </label>
+          <label>
+            <span data-copy="eye-color"></span>
+            <input id="eye-color" type="color" value="#62d3d0">
+          </label>
+        </div>
+
+        <label>
+          <span data-copy="outfit"></span>
+          <select id="outfit">
+            <option value="#345f91"></option>
+            <option value="#745b91"></option>
+            <option value="#3e766b"></option>
+            <option value="#b06755"></option>
+          </select>
+        </label>
+
+        <label>
+          <span data-copy="shoes"></span>
+          <select id="shoes">
+            <option value="#f2eee7"></option>
+            <option value="#243248"></option>
+            <option value="#a97849"></option>
+          </select>
+        </label>
+
+        <label>
+          <span data-copy="bag"></span>
+          <select id="bag">
+            <option value="backpack"></option>
+            <option value="satchel"></option>
+            <option value="none"></option>
+          </select>
+        </label>
+
+        <label>
+          <span data-copy="accessory"></span>
+          <select id="accessory">
+            <option value="hairclip"></option>
+            <option value="headband"></option>
+            <option value="none"></option>
+          </select>
+        </label>
+
+        <label>
+          <span data-copy="theme"></span>
+          <select id="theme">
+            <option value="aqua"></option>
+            <option value="gold"></option>
+            <option value="rose"></option>
+          </select>
+        </label>
+
+        <label>
+          <span data-copy="details"></span>
+          <select id="details">
+            <option value="trim"></option>
+            <option value="classic"></option>
+            <option value="glasses"></option>
+          </select>
+        </label>
+
+        <p class="panel-note" data-copy="custom-note"></p>
+      </aside>
+
+      <aside class="side-panel" id="settings-panel" hidden>
+        <div class="panel-heading">
+          <div>
+            <div class="eyebrow" data-copy="settings"></div>
+            <h2 data-copy="settings"></h2>
+          </div>
+          <button class="close-button" type="button" data-close="settings-panel" aria-label="Close">×</button>
+        </div>
+
+        <label>
+          <span data-copy="graphics"></span>
+          <select id="graphics-quality">
+            <option value="low"></option>
+            <option value="medium"></option>
+            <option value="high"></option>
+          </select>
+        </label>
+
+        <p class="panel-note" data-copy="settings-note"></p>
+      </aside>
+
+      <div class="loading-screen" id="loading-screen" hidden>
+        <div class="loading-mark">✦</div>
+        <b data-copy="loading"></b>
+      </div>
+
+      <div class="modal-screen" id="pause-screen" hidden>
+        <div class="modal-card">
+          <div class="eyebrow">ACADEMIC QUEST</div>
+          <h2 data-copy="paused"></h2>
+          <button class="primary-button" id="resume-game" type="button">
+            <span data-copy="resume"></span>
+            <b>▶</b>
+          </button>
+          <a class="return-link" href="../../" data-back-link data-copy="return"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

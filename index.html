@@ -4,13 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#173D70">
-<meta name="description" content="ادرس بدليل: بطاقات ذكية موثّقة بالمصادر العلمية، مراجعة متباعدة، وتحدّيات بين الأصدقاء.">
+<meta name="theme-color" content="#001449">
+<meta name="description" content="ادرس بدليل: منصة أكاديمية ذكية ببطاقات موثّقة بالمصادر العلمية، مراجعة متباعدة ذاتية، وتوثيق APA وMLA وChicago.">
+<meta property="og:title" content="7Salah Scholar — ادرس بدليل">
+<meta property="og:description" content="منصة أكاديمية ذكية ببطاقات موثّقة بالمصادر العلمية ومراجعة متباعدة ذاتية التكيّف للطلبة والباحثين.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="icon-192.png">
-<title>7salah-scholar — ادرس بدليل</title>
+<link rel="apple-touch-icon" href="/assets/aistudio/file_00000000baa482108ace7d3de05b5536_10fcdeca.png">
+<link rel="icon" type="image/png" href="/assets/aistudio/file_00000000baa482108ace7d3de05b5536_10fcdeca.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" media="print" onload="this.media='all'">
+<title>7Salah Scholar — ادرس بدليل</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="x.css">
 <link rel="stylesheet" href="lecture.css">
@@ -18,12 +23,17 @@
 </head>
 <body>
 <div class="app">
-  <header>
-    <div class="brand"><span class="logo">7</span><span>7Salah Scholar</span></div>
-    <button class="gchip" id="gchip"></button>
-    <button class="lang hbtn theme-toggle" id="theme-toggle" type="button" aria-label="التبديل إلى الوضع الداكن" aria-pressed="false" title="تغيير المظهر"></button>
-    <button class="lang hbtn" id="help" aria-label="مساعدة"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
-    <button class="lang" id="lang"></button>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo"><img src="/assets/aistudio/file_00000000baa482108ace7d3de05b5536_10fcdeca.png" alt="7Salah Scholar" width="32" height="32"></span>
+      <span class="brand-name">7Salah Scholar</span>
+    </div>
+    <div class="header-actions" id="header-actions">
+      <button class="gchip" id="gchip" type="button"></button>
+      <button class="lang hbtn theme-toggle" id="theme-toggle" type="button" aria-label="التبديل إلى الوضع الداكن" aria-pressed="false" title="تغيير المظهر"></button>
+      <button class="lang hbtn" id="help" type="button" aria-label="مساعدة"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+      <button class="lang" id="lang" type="button"></button>
+    </div>
   </header>
   <div id="inst"></div>
   <div id="view"></div>
@@ -32,6 +42,7 @@
 <script src="config.js"></script>
 <script src="icons.js"></script>
 <script src="app.js"></script>
+<script src="network.js"></script>
 <script src="social.js"></script>
 <script src="diag.js"></script>
 <script src="chat.js"></script>
@@ -44,8 +55,10 @@
 <script src="break.js"></script>
 <script src="translate.js"></script>
 <script src="calls.js"></script>
+<script src="rooms.js"></script>
 <script src="x.js"></script>
 <script src="lecture.js"></script>
+<script src="ai.js"></script>
 <script src="game/launch.js"></script>
 </body>
 </html>

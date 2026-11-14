@@ -85,7 +85,13 @@ const P={
  "corner-down-right":"<path d='m15 10 5 5-5 5'/><path d='M4 4v7a4 4 0 0 0 4 4h12'/>",
  "at-sign":"<circle cx='12' cy='12' r='4'/><path d='M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8'/>",
  "chevron-down":"<path d='m6 9 6 6 6-6'/>",
- "chevron-up":"<path d='m18 15-6-6-6 6'/>"
+ "chevron-up":"<path d='m18 15-6-6-6 6'/>",
+ monitor:"<rect x='2' y='3' width='20' height='14' rx='2'/><path d='M8 21h8M12 17v4'/>",
+ "monitor-off":"<path d='M17 17H4a2 2 0 0 1-2-2V5c0-.6.2-1.1.6-1.5M22 15V5a2 2 0 0 0-2-2H9M8 21h8M12 17v4M2 2l20 20'/>",
+ "user-check":"<circle cx='9' cy='8' r='4'/><path d='M2 21c0-3.8 3.1-6 7-6s7 2.2 7 6'/><path d='m16 11 2 2 4-4'/>",
+ "calendar-plus":"<rect x='3' y='4' width='18' height='18' rx='2'/><path d='M16 2v4M8 2v4M3 10h18'/><path d='M12 14v4M10 16h4'/>",
+ headphones:"<path d='M3 18v-6a9 9 0 0 1 18 0v6'/><path d='M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z'/>",
+ hash:"<path d='M4 9h16M4 15h16M10 3 8 21M16 3l-2 18'/>"
 };
 const A={},ALIAS={"arrow-start":"arrow-left"};
 const NS="http://www.w3.org/2000/svg";

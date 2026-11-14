@@ -14,24 +14,111 @@ function dayLabel(d){const df=Math.round((sod(new Date())-sod(new Date(d)))/DAY)
 const grpAv=n=>h("div",{class:"cav gav",style:"width:"+n+"px;height:"+n+"px"},ic("users",{s:Math.round(n*.5)}));
 
 async function chatList(v){
- if(!SC.user){v.append(h("div",{class:"card cempty"},ic("lock",{s:30}),h("div",{class:"meta"},"سجّل الدخول لتراسل الباحثين."),h("button",{class:"pri",onclick:authModal},"دخول / تسجيل")));return}
+ const cTr=(a,e,f)=>S.lang==="ar"?a:S.lang==="fr"?(f||e):e;
  const canNotif=("Notification" in window&&Notification.permission==="default");
  v.append(h("div",{class:"cquick",style:"--n:"+(canNotif?3:2)},
-  h("button",{class:"qtile",onclick:newGroupModal},h("i",{},ic("users")),h("span",{},"مجموعة بحثية جديدة")),
-  h("button",{class:"qtile",onclick:discoverModal},h("i",{},ic("compass")),h("span",{},"اكتشف مجموعات")),
-  canNotif?h("button",{class:"qtile",onclick:async()=>{await Notification.requestPermission();render()}},h("i",{},ic("bell")),h("span",{},"فعّل الإشعارات")):null));
- const box=h("div",{class:"clist"});v.append(box);
+  h("button",{class:"qtile",onclick:newGroupModal},h("i",{},ic("users")),h("span",{},cTr("مجموعة جديدة","New Group","Nouveau groupe"))),
+  h("button",{class:"qtile",onclick:discoverModal},h("i",{},ic("compass")),h("span",{},cTr("اكتشف / رمز دعوة","Discover / Invite","Découvrir / Code"))),
+  canNotif?h("button",{class:"qtile",onclick:async()=>{await Notification.requestPermission();render()}},h("i",{},ic("bell")),h("span",{},cTr("فعّل الإشعارات","Notifications","Notifications"))):null));
+
+ // Collaborative Academic Groups from server (/api/groups)
+ if(window.Net){
+  const gBox=h("div",{class:"clist"}),myId=Net.ensurePeerId(),me=Net.myIdentity();
+  v.append(h("div",{class:"sec"},h("span",{},cTr("المجموعات الأكاديمية (عامة وخاصة)","Academic Groups (Public & Private)","Groupes académiques")),h("button",{class:"btn",type:"button",onclick:discoverModal},cTr("انضمام برمز","Join Code","Code"))),gBox);
+  try{
+   const gr=await Net.apiGet("/api/groups?peerId="+encodeURIComponent(myId));
+   const groups=gr.groups||[];
+   if(!groups.length){
+    gBox.append(h("div",{class:"cempty"},ic("users",{s:28}),h("b",{},cTr("لا مجموعات أكاديمية بعد","No academic groups yet","Aucun groupe")),h("div",{class:"meta"},cTr("أنشئ مجموعة عامة أو خاصة لمناقشة المقررات والأبحاث وإطلاق غرف دراسة بالفيديو.","Create a public or private group for coursework, peer tutoring, and video rooms.","Créez un groupe d'étude."))));
+   }else{
+    groups.forEach(g=>{
+     const isPriv=g.visibility==="private";
+     gBox.append(h("div",{class:"crow grp-row",style:"justify-content:space-between"},
+      h("div",{style:"display:flex;align-items:center;gap:12px;flex:1;min-width:0;cursor:pointer",onclick:async()=>{await Net.apiPost("/api/groups/join",{groupId:g.id,userId:myId,name:me.name,handle:me.username}).catch(()=>{});openChat(g.id,"👥 "+g.title)}},
+       grpAv(46),
+       h("div",{class:"cmain"},
+        h("b",{dir:"auto"},g.title," ",isPriv?ic("lock",{s:13}):null),
+        h("span",{class:"meta"},[g.field&&Net.discLabel(g.field),g.university,(g.members||[]).length+" "+cTr("أعضاء","members","membres"),g.inviteCode].filter(Boolean).join(" · "))
+       )
+      ),
+      g.roomId&&window.joinStudyRoom?h("button",{class:"ibtn",type:"button",title:cTr("غرفة دراسة بالفيديو","Video Study Room","Salle vidéo"),onclick:e=>{e.stopPropagation();joinStudyRoom(g.roomId)}},ic("video")):null
+     ));
+    });
+   }
+  }catch(e){}
+ }
+
+ if(!SC.user){
+  if(window.SUPA&&SUPA.url&&SUPA.key){
+   v.append(h("div",{class:"card cempty"},ic("message",{s:26}),h("div",{class:"meta"},cTr("للمحادثات الخاصة الفردية عبر Supabase يمكنك تسجيل الدخول اختياريًا.","Optional: sign in for encrypted Supabase DMs.","Connexion optionnelle pour DM Supabase.")),h("button",{class:"btn",onclick:authModal},cTr("دخول / تسجيل","Sign in","Connexion"))));
+  }
+  return;
+ }
+ const box=h("div",{class:"clist"});v.append(h("div",{class:"sec"},cTr("محادثاتي المباشرة","Direct Chats","Discussions")),box);
  const {data,error}=await SC.sb.from("members").select("conversations(id,kind,title,last_at)").eq("user_id",SC.user.id);
  if(error)return box.append(h("div",{class:"card"},ic("alert"),error.message));
  const cs=(data||[]).map(x=>x.conversations).filter(Boolean).sort((a,b)=>new Date(b.last_at)-new Date(a.last_at)),peer={},dm=cs.filter(c=>c.kind==="dm").map(c=>c.id);
  if(dm.length)((await SC.sb.from("members").select("conv_id,profiles(id,username,name,avatar_url)").in("conv_id",dm).neq("user_id",SC.user.id)).data||[]).forEach(x=>peer[x.conv_id]=x.profiles);
- if(!cs.length)box.append(h("div",{class:"cempty"},ic("message",{s:34}),h("b",{},"لا محادثات بعد"),h("div",{class:"meta"},"افتح صفحة باحث واضغط «راسل»، أو أنشئ مجموعة.")));
+ if(!cs.length)box.append(h("div",{class:"cempty"},ic("message",{s:30}),h("div",{class:"meta"},cTr("لا محادثات خاصة بعد.","No direct messages yet.","Aucune discussion."))));
  cs.forEach(c=>{const p=c.kind==="dm"?peer[c.id]:null,name=p?(p.name||p.username):c.title;if(p&&SC.blocked.has(p.id))return;const n=SC.unread&&SC.unread[c.id]||0;
   box.append(h("button",{class:"crow"+(n?" unread":""),onclick:()=>openChat(c.id,(p?"":"👥 ")+name)},p?av(p,48):grpAv(48),
    h("div",{class:"cmain"},h("b",{dir:"auto"},name),h("span",{class:"meta"},p?(ar()?"محادثة خاصة":"Direct message"):(ar()?"مجموعة بحثية":"Research group"))),
    h("div",{class:"cside"},h("time",{class:"ctime"},fmtAgo(c.last_at)),n?h("span",{class:"dot2"},n>99?"99+":String(n)):null)))})}
 
+async function serverGroupChatRoom(v,gid){
+ const cTr=(a,e,f)=>S.lang==="ar"?a:S.lang==="fr"?(f||e):e;
+ document.body.classList.add("inchat");
+ const me=Net.myIdentity(),myId=me.id;
+ let group=null;
+ try{const r=await Net.apiGet("/api/groups?peerId="+encodeURIComponent(myId));group=(r.groups||[]).find(x=>x.id===gid)||null}catch(e){}
+ const title=cleanName(SC.cname)||(group&&group.title)||cTr("مجموعة بحثية","Academic Group","Groupe");
+ const list=h("div",{class:"msgs no-swipe",role:"log","aria-live":"polite"}),
+  inp=h("input",{class:"cin cmsg",placeholder:cTr("اكتب رسالة للمجموعة…","Message the group…","Écrire au groupe…"),maxlength:"1500",enterkeyhint:"send",autocomplete:"off"}),
+  sendB=h("button",{class:"sendb dis","aria-label":cTr("إرسال","Send","Envoyer")},ic("send"));
+ let msgs=[];
+ const paint=()=>{
+  if(!msgs.length){list.replaceChildren(h("div",{class:"cempty"},ic("message",{s:28}),h("div",{class:"meta"},cTr("ابدأ النقاش العلمي في المجموعة أو افتح غرفة فيديو مباشرة.","Start the group discussion or launch a live video study room.","Démarrez la discussion."))));return}
+  list.replaceChildren(...msgs.map(m=>{
+   const isMe=m.userId===myId;
+   return h("div",{class:"mrow"+(isMe?" me":"")+" first last"},
+    isMe?null:h("div",{class:"mav"},h("div",{class:"cav",style:"width:30px;height:30px;font-size:13px"},(m.authorName||"?").slice(0,1))),
+    h("div",{class:"bub"},!isMe?h("div",{class:"mname",dir:"auto"},m.authorName||m.authorHandle):null,
+     h("div",{class:"mtxt",dir:"auto"},m.body),
+     h("div",{class:"mmeta"},h("time",{},fmtTime(m.createdAt)))
+    )
+   );
+  }));
+  list.scrollTop=list.scrollHeight;
+ };
+ const loadMsgs=async()=>{try{const r=await Net.apiGet("/api/groups/"+encodeURIComponent(gid)+"/messages");msgs=r.messages||[];paint()}catch(e){}};
+ const send=async()=>{
+  const b=inp.value.trim();if(!b)return;inp.value="";sendB.classList.add("dis");
+  try{const r=await Net.apiPost("/api/groups/"+encodeURIComponent(gid)+"/messages",{userId:myId,authorName:me.name,authorHandle:me.username,body:b});if(r.message){msgs.push(r.message);paint()}}catch(e){toast(cTr("تعذّر الإرسال","Send failed","Erreur"))}
+ };
+ inp.oninput=()=>sendB.classList.toggle("dis",!inp.value.trim());
+ inp.onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing)send()};
+ sendB.onclick=send;
+
+ const copyInv=()=>group&&shareLink(baseUrl()+"#room="+(group.roomId||group.inviteCode),cTr("رمز دعوة المجموعة: ","Group invite code: ","Code du groupe : ")+group.inviteCode);
+ v.append(h("section",{class:"chatwrap"},
+  h("header",{class:"chead"},
+   h("button",{class:"ibtn back","aria-label":cTr("رجوع","Back","Retour"),onclick:()=>{stopChat();SC.view="chats";render()}},ic("arrow-right",{cls:"flip"})),
+   h("div",{class:"hav"},grpAv(40)),
+   h("div",{class:"ctitle"},h("b",{dir:"auto"},title),h("span",{class:"csub"},group?[group.visibility==="private"?"🔒":"🌐",group.field&&Net.discLabel(group.field),(group.members||[]).length+" "+cTr("أعضاء","members","membres"),cTr("رمز: ","Code: ")+group.inviteCode].filter(Boolean).join(" · "):cTr("مجموعة بحثية","Academic group","Groupe"))),
+   h("div",{class:"cops"},
+    group&&group.roomId&&window.joinStudyRoom?h("button",{class:"ibtn","aria-label":cTr("غرفة دراسة بالفيديو","Video Study Room","Salle vidéo"),title:cTr("غرفة دراسة بالفيديو","Video Study Room","Salle vidéo"),onclick:()=>joinStudyRoom(group.roomId)},ic("video")):null,
+    group?h("button",{class:"ibtn","aria-label":cTr("نسخ الدعوة","Share Invite","Inviter"),title:cTr("نسخ الدعوة","Share Invite","Inviter"),onclick:copyInv},ic("link")):null
+   )
+  ),
+  list,
+  h("div",{class:"composer"},inp,sendB)
+ ));
+ await loadMsgs();
+ _rt=setInterval(loadMsgs,4000);
+}
+
 async function chatRoom(v){
+ if(String(SC.cid||"").startsWith("grp_")&&window.Net)return serverGroupChatRoom(v,SC.cid);
  if(!SC.user){SC.view="feed";return authModal()}
  document.body.classList.add("inchat");
  let peer=null,peerRead=0;const cid=SC.cid,P={},seen=new Set(),isG=isGrp(SC.cname),title=cleanName(SC.cname),list=h("div",{class:"msgs no-swipe",role:"log","aria-live":"polite"}),
@@ -131,11 +218,21 @@ async function chatRoom(v){
  else{menu.append(mi("user-plus","إضافة عضو",async()=>{const u=prompt("اسم المستخدم لإضافته (للمشرف فقط):");if(!u)return;const r=await SC.sb.rpc("add_member",{cid,uname:u});toast(r.error?r.error.message:"✅ تمت الإضافة")}),
   mi("logout","مغادرة المجموعة",async()=>{if(confirm("مغادرة المجموعة؟")){await SC.sb.from("members").delete().match({conv_id:cid,user_id:SC.user.id});SC.view="chats";render()}},true))}
  const showCall=!isG&&!(window.APP&&APP.pilot),hAv=h("div",{class:"hav"},isG?grpAv(40):h("div",{class:"cav",style:"width:40px;height:40px"},"…"));
+ const launchGroupRoom=async()=>{
+  if(!window.Net||!window.joinStudyRoom)return;
+  const me=Net.myIdentity();
+  try{
+   const r=await Net.apiPost("/api/rooms",{title,field:me.field||"General",hostId:me.id,hostName:me.name,hostHandle:me.username,visibility:"public"});
+   await SC.sb.from("messages").insert({conv_id:cid,user_id:SC.user.id,body:"🎥 "+chL("غرفة دراسة بالفيديو الآن — الرمز: ","Live Video Study Room — Code: ")+r.room.code+" ("+baseUrl()+"#room="+r.room.code+")"}).catch(()=>{});
+   joinStudyRoom(r.room.id);
+  }catch(e){toast(chL("تعذّر بدء غرفة الفيديو","Could not launch room"))}
+ };
  v.append(h("section",{class:"chatwrap"},
   h("header",{class:"chead"},h("button",{class:"ibtn back","aria-label":"رجوع",title:"رجوع",onclick:()=>{SC.view="chats";render()}},ic("arrow-right",{cls:"flip"})),hAv,
    h("div",{class:"ctitle"},h("b",{dir:"auto"},title),subEl),
    h("div",{class:"cops"},showCall?h("button",{class:"ibtn","aria-label":"مكالمة صوتية",title:"مكالمة صوتية",onclick:()=>startCall(cid,SC.cname,false)},ic("phone")):null,
-    showCall?h("button",{class:"ibtn","aria-label":"مكالمة فيديو",title:"مكالمة فيديو",onclick:()=>startCall(cid,SC.cname,true)},ic("video")):null,moreB),menu),
+    showCall?h("button",{class:"ibtn","aria-label":"مكالمة فيديو",title:"مكالمة فيديو",onclick:()=>startCall(cid,SC.cname,true)},ic("video")):null,
+    isG&&window.joinStudyRoom?h("button",{class:"ibtn","aria-label":chL("غرفة دراسة بالفيديو","Group Video Room"),title:chL("غرفة دراسة بالفيديو","Group Video Room"),onclick:launchGroupRoom},ic("video")):null,moreB),menu),
   list,rbar,
   h("div",{class:"composer"},h("button",{class:"ibtn att","aria-label":"إرفاق ملف",title:"إرفاق ملف",onclick:()=>fi.click()},ic("paperclip")),fi,inp,sendB)));
  const ms=((await SC.sb.from("members").select("profiles(id,name,username,avatar_url)").eq("conv_id",cid)).data||[]);

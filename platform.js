@@ -25,7 +25,13 @@
     edited:"edited", cantEdit:"Messages can only be edited within 15 minutes", err:"Something went wrong, try again",
     noid:"Couldn’t identify the message", notifs:"Notifications", none:"No notifications yet", loading:"Loading…",
     k_follow:"started following you", k_like:"liked your post", k_comment:"commented on your post", k_repost:"reposted your post", k_quote:"quoted your post"};
-  function T(k) { return ((document.documentElement.lang || "ar").slice(0, 2) === "en" ? EN : AR)[k]; }
+  var FR = {followers:"Abonnés", following:"Abonnements", empty:"Personne ici pour l’instant", follow:"Suivre", back:"Suivre en retour",
+    unfollow:"Ne plus suivre", youfollow:"Abonné", followsYou:"Vous suit", copy:"Copier", copied:"Copié", edit:"Modifier",
+    del:"Supprimer pour tous", save:"Enregistrer", cancel:"Annuler", sure:"Supprimer ce message pour tout le monde ?", gone:"Ce message a été supprimé",
+    edited:"modifié", cantEdit:"Les messages peuvent être modifiés dans les 15 minutes uniquement", err:"Une erreur est survenue, réessayez",
+    noid:"Impossible d’identifier le message", notifs:"Notifications", none:"Aucune notification", loading:"Chargement…",
+    k_follow:"a commencé à vous suivre", k_like:"a aimé votre publication", k_comment:"a commenté votre publication", k_repost:"a reposté votre publication", k_quote:"a cité votre publication"};
+  function T(k) { var l = (document.documentElement.lang || "ar").slice(0, 2); return (l === "en" ? EN : l === "fr" ? FR : AR)[k]; }
 
   var sb = null, me = null, bell = null, badge = null;
 
@@ -151,10 +157,12 @@
   }
   function addBell() {
     var h = document.querySelector("header"); if (!h || bell || !me || window.PLATFORM_NO_BELL) return;
-    bell = el("button", "hbtn pf-bell"); bell.setAttribute("aria-label", T("notifs"));
+    bell = el("button", "lang hbtn pf-bell"); bell.type = "button"; bell.setAttribute("aria-label", T("notifs"));
     bell.innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
     badge = el("b", "pf-badge"); badge.hidden = true; bell.appendChild(badge);
-    var anchor = h.querySelector(".gchip"); if (anchor) h.insertBefore(bell, anchor); else h.appendChild(bell);
+    var anchor = h.querySelector(".gchip");
+    if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(bell, anchor);
+    else { var box = h.querySelector(".header-actions") || h; box.appendChild(bell); }
     bell.onclick = openNotifs; refreshBadge();
   }
 

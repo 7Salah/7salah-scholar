@@ -1,18 +1,32 @@
 // الاكتشاف: بحث عن باحثين ومنشورات، واقتراحات المتابعة. يُحمَّل بعد admin.js.
 const sq=s=>(s||"").replace(/[,()%*\\"]/g," ").trim().slice(0,50);
-function searchBar(){const inp=h("input",{class:"cin",type:"search",placeholder:"ابحث عن باحث (اسم أو ID) أو تخصص أو منشور",value:SC.q||"",enterkeyhint:"search",
- onkeydown:e=>{if(e.key==="Enter"){const q=sq(inp.value);if(q.length<2)return toast("اكتب حرفين على الأقل");SC.q=q;SC.view="search";render()}}});
+function searchBar(){const ph=S.lang==="ar"?"ابحث عن باحث أو تخصص أو منشور…":S.lang==="fr"?"Rechercher un chercheur, une discipline ou un post…":"Search researchers, fields, or posts…";const inp=h("input",{class:"cin",type:"search",placeholder:ph,value:SC.q||"",enterkeyhint:"search",
+ onkeydown:e=>{if(e.key==="Enter"){const q=sq(inp.value);if(q.length<2)return toast(S.lang==="ar"?"اكتب حرفين على الأقل":"Enter at least 2 characters");SC.q=q;SC.view="search";render()}}});
  return h("div",{style:"padding:0 16px"},inp)}
-function userRow(p,fw){const sub=[p.field,p.university].filter(Boolean).join(" · ");
+function userRow(p,fw){const sub=[p.field&&(window.Net?Net.discLabel(p.field):p.field),p.university].filter(Boolean).join(" · ");
  const row=h("div",{class:"card phd"},h("div",{style:"display:flex;gap:10px;align-items:center;flex:1;min-width:0",onclick:()=>openProf(p.id)},av(p,42),
   h("div",{},h("b",{dir:"auto"},(p.name||p.username)+(p.verified?" ✅":"")),h("div",{class:"meta",dir:"auto"},"@"+p.username+(sub?" · "+sub:"")))));
- if(fw&&SC.user)row.append(h("button",{class:"btn",onclick:async e=>{e.stopPropagation();const r=await SC.sb.from("follows").insert({follower:SC.user.id,followee:p.id});if(r.error)return toast(r.error.message);row.remove()}},"＋ متابعة"));return row}
-async function sugBox(v){const box=h("div",{});v.append(box);const r=await SC.sb.rpc("suggested_users"),l=((r.data)||[]).filter(p=>!SC.blocked.has(p.id)).slice(0,4);if(r.error||!l.length)return;
+ if(fw&&SC.user&&SC.sb)row.append(h("button",{class:"btn",onclick:async e=>{e.stopPropagation();const r=await SC.sb.from("follows").insert({follower:SC.user.id,followee:p.id});if(r.error)return toast(r.error.message);row.remove()}},"＋ متابعة"));
+ else if(window.startPeerCall&&window.Net&&p.id!==Net.ensurePeerId())row.append(h("button",{class:"ibtn",type:"button",title:S.lang==="ar"?"مكالمة فيديو":"Video Call",onclick:e=>{e.stopPropagation();startPeerCall(p.id,p.name||p.username,true)}},ic("video")));
+ return row}
+async function sugBox(v){if(!SC.sb||!SC.user)return;const box=h("div",{});v.append(box);const r=await SC.sb.rpc("suggested_users"),l=((r.data)||[]).filter(p=>!SC.blocked.has(p.id)).slice(0,4);if(r.error||!l.length)return;
  box.append(h("div",{class:"meta",style:"padding:8px 16px 0;font-weight:700"},"✨ باحثون قد تهتم بمتابعتهم"),...l.map(p=>userRow(p,true)))}
 async function searchView(v){const q=SC.q;v.append(searchBar());const pb=h("div",{}),xb=h("div",{}),T=x=>h("div",{class:"meta",style:"padding:8px 16px 0;font-weight:700"},x);
- v.append(T("👤 باحثون"),pb,T("📄 منشورات"),xb);
- const w="*"+q+"*",pr=await SC.sb.from("profiles").select("*").or("username.ilike."+w+",name.ilike."+w+",field.ilike."+w+",university.ilike."+w+(/^\d{6,12}$/.test(q)?",researcher_uid.eq."+q:"")).limit(20),rows=(pr.data||[]).filter(p=>!SC.blocked.has(p.id));
- if(rows.length)rows.forEach(p=>pb.append(userRow(p)));else pb.append(h("div",{class:"meta",style:"padding:6px 16px"},"لا نتائج"));
+ v.append(T(S.lang==="ar"?"👤 باحثون":"👤 Researchers"),pb,T(S.lang==="ar"?"📄 منشورات":"📄 Posts"),xb);
+ const seen=new Set(),rows=[];
+ if(window.Net){
+  try{
+   const dir=await Net.apiGet("/api/directory?q="+encodeURIComponent(q));
+   (dir.profiles||[]).forEach(p=>{if(!SC.blocked.has(p.id)&&!seen.has(p.id)){seen.add(p.id);rows.push({id:p.id,username:p.username,name:p.name,field:p.field,university:p.university,authorAvatar:p.avatar,verified:p.verified})}});
+  }catch(e){}
+ }
+ if(SC.sb){
+  try{
+   const w="*"+q+"*",pr=await SC.sb.from("profiles").select("*").or("username.ilike."+w+",name.ilike."+w+",field.ilike."+w+",university.ilike."+w+(/^\d{6,12}$/.test(q)?",researcher_uid.eq."+q:"")).limit(20);
+   (pr.data||[]).filter(p=>!SC.blocked.has(p.id)).forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);rows.push(p)}});
+  }catch(e){}
+ }
+ if(rows.length)rows.forEach(p=>pb.append(userRow(p)));else pb.append(h("div",{class:"meta",style:"padding:6px 16px"},S.lang==="ar"?"لا نتائج":"No matching researchers"));
  loadPosts(xb,{q})}
 
 // ===== الخلاصة المخصّصة «✨ لك» =====
