@@ -7,6 +7,7 @@ function openChat(id,name){SC.view="chat";SC.cid=id;SC.cname=name;SC.chatLimit=0
 const isGrp=n=>(n||"").startsWith("👥");                       // منطق التعرّف على المجموعة محفوظ كما كان
 const cleanName=n=>(n||"").replace(/^👥\s*/,"");
 const ar=()=>S.lang==="ar";
+const chL=(a,e)=>ar()?a:e;
 const fmtTime=d=>new Date(d).toLocaleTimeString(S.lang,{hour:"2-digit",minute:"2-digit"});
 function fmtAgo(d){const t=new Date(d),n=new Date(),df=Math.round((sod(n)-sod(t))/DAY);if(df<=0)return fmtTime(t);if(df===1)return ar()?"أمس":"Yesterday";if(df<7)return t.toLocaleDateString(S.lang,{weekday:"short"});return t.toLocaleDateString(S.lang,{day:"numeric",month:"short"})}
 function dayLabel(d){const df=Math.round((sod(new Date())-sod(new Date(d)))/DAY);if(df<=0)return ar()?"اليوم":"Today";if(df===1)return ar()?"أمس":"Yesterday";return new Date(d).toLocaleDateString(S.lang,{weekday:"long",day:"numeric",month:"long"})}
@@ -40,7 +41,7 @@ async function chatRoom(v){
  let prev=null,lastDay="";                                  // آخر رسالة معروضة (لتجميع الرسائل المتتالية)
  // ---- v20: الرد على رسالة محددة (اقتباس) ----
  let replyTo=null;const MSG={},QC={},X=(k,o)=>window.xt?xt(k,o):k;
- const snip=o=>o?(o.body?o.body.replace(/\s+/g," ").slice(0,140):(o.file_type||"").startsWith("image/")?"🖼 "+X("photo"):"📎 "+(o.file_name||X("file"))):"";
+ const snip=o=>o?(o.deleted_at?"🚫 "+chL("تم حذف هذه الرسالة","This message was deleted"):o.body?o.body.replace(/\s+/g," ").slice(0,140):(o.file_type||"").startsWith("image/")?"🖼 "+X("photo"):"📎 "+(o.file_name||X("file"))):"";
  const nameOf=u=>u===SC.user.id?X("you"):((P[u]&&P[u].name)||"…");
  const rbar=h("div",{class:"replybar",hidden:true});
  const clearReply=()=>{replyTo=null;rbar.hidden=true;rbar.replaceChildren()};
@@ -51,28 +52,60 @@ async function chatRoom(v){
   if((SC.chatLimit||100)>=1000)return toast(X("origFar"));SC.jump=id;SC.chatLimit=1000;render()};
  const fillQuote=(el,m)=>{const paint=o=>{el.classList.toggle("gone",!o);el.replaceChildren(h("b",{dir:"auto"},o?nameOf(o.user_id):""),h("span",{dir:"auto"},o?snip(o):X("deletedMsg")))};
   if(MSG[m.reply_to])return paint(MSG[m.reply_to]);
-  (QC[m.reply_to]=QC[m.reply_to]||SC.sb.from("messages").select("id,user_id,body,file_name,file_type").eq("id",m.reply_to).eq("conv_id",cid).maybeSingle().then(r=>r.data||null,()=>null)).then(paint)};
+  (QC[m.reply_to]=QC[m.reply_to]||SC.sb.from("messages").select("id,user_id,body,file_name,file_type,deleted_at").eq("id",m.reply_to).eq("conv_id",cid).maybeSingle().then(r=>r.data||null,()=>null)).then(paint)};
  const quoteEl=m=>{if(!m.reply_to)return null;const el=h("button",{class:"mquote",type:"button","aria-label":X("goOriginal"),title:X("goOriginal"),onclick:()=>el.classList.contains("gone")?toast(X("deletedMsg")):jumpTo(m.reply_to)},h("span",{},"…"));fillQuote(el,m);return el};
  const near=()=>list.scrollHeight-list.scrollTop-list.clientHeight<140,toEnd=()=>{list.scrollTop=list.scrollHeight};
  const who=id=>P[id]||(P[id]={name:"…"});
  const tickFor=m=>!isG&&peerRead&&new Date(m.created_at).getTime()<=peerRead?"seen":"sent";
  const paintTick=(el,m)=>{const k=tickFor(m);el.className="tick "+k;el.replaceChildren(ic(k==="seen"?"checks":"check",{w:2.2}));el.setAttribute("aria-label",k==="seen"?(ar()?"تمت القراءة":"Seen"):(ar()?"أُرسلت":"Sent"))};
  const ticks=[];
+
+ // ---- v26: حذف الرسالة للجميع وتعديلها والتفاعل بالإيموجي (delete_message / edit_message / message_reactions) ----
+ const tn=t=>document.createTextNode(t),RX={},rowOf=id=>list.querySelector('.mrow[data-mid="'+id+'"]');
+ const sheet=(...kids)=>{const ov=h("div",{class:"pf-ov",onclick:e=>{if(e.target===ov)ov.remove()}},h("div",{class:"pf-sheet"},h("div",{class:"pf-menu"},...kids)));document.body.append(ov);return()=>ov.remove()};
+ const act=(label,fn,danger)=>h("button",{class:"pf-act"+(danger?" pf-danger":""),type:"button",onclick:fn},label);
+ const paintRx=id=>{const row=rowOf(id),box=row&&row.querySelector(".rxs");if(!box)return;const by=RX[id]||{},cnt={};Object.values(by).forEach(e=>cnt[e]=(cnt[e]||0)+1);
+  box.replaceChildren(...Object.keys(cnt).map(e=>h("button",{class:"rx"+(by[SC.user.id]===e?" on":""),type:"button",onclick:()=>toggleRx(id,e)},tn(e+(cnt[e]>1?" "+cnt[e]:"")))))};
+ const loadRx=async ids=>{ids=(ids||[]).filter(Boolean);for(let i=0;i<ids.length;i+=60){const part=ids.slice(i,i+60);
+  try{const r=await SC.sb.from("message_reactions").select("message_id,user_id,emoji").in("message_id",part);if(r.error)return;part.forEach(id=>RX[id]={});(r.data||[]).forEach(x=>{(RX[x.message_id]=RX[x.message_id]||{})[x.user_id]=x.emoji});part.forEach(paintRx)}catch(e){return}}};
+ const toggleRx=async(id,e)=>{const uid=SC.user.id,by=RX[id]=RX[id]||{},cur=by[uid];if(cur===e)delete by[uid];else by[uid]=e;paintRx(id);
+  const r=cur===e?await SC.sb.from("message_reactions").delete().eq("message_id",id).eq("user_id",uid):await SC.sb.from("message_reactions").upsert({message_id:id,user_id:uid,emoji:e},{onConflict:"message_id,user_id"});
+  if(r.error){if(cur)by[uid]=cur;else delete by[uid];paintRx(id);toast(chL("تعذّر التفاعل","Couldn’t react"))}};
+ const bubOf=(m,me)=>{const pf=who(m.user_id),nm=(!me&&isG)?h("div",{class:"mname",dir:"auto"},pf.name):null,tk=me?h("span",{class:"tick"}):null;if(tk){paintTick(tk,m);ticks.push([tk,m])}
+  if(m.deleted_at)return h("div",{class:"bub gone"},nm,h("div",{class:"mtxt mgone",dir:"auto"},"🚫 "+chL("تم حذف هذه الرسالة","This message was deleted")),h("div",{class:"mmeta"},h("time",{},fmtTime(m.created_at))));
+  const tro=h("div",{class:"trout",dir:"auto"}),fb=fileBox(m);
+  const tb=m.body?trBtn(()=>m.body,tro,"flag"):null;if(tb){tb.setAttribute("aria-label","ترجمة");tb.title="ترجمة"}
+  const rb=h("button",{class:"flag rbtn",type:"button","aria-label":X("reply"),title:X("reply"),onclick:()=>setReply(m)},ic("reply"));
+  const rp=me?null:h("button",{class:"flag","aria-label":"إبلاغ",title:"إبلاغ",onclick:()=>reportModal({message_id:m.id,target_user:m.user_id})},ic("flag"));
+  const mb=h("button",{class:"flag mbtn",type:"button","aria-label":chL("المزيد","More"),title:chL("المزيد","More"),onclick:()=>msgSheet(m.id)},ic("more"));
+  return h("div",{class:"bub"},nm,quoteEl(m),m.body?h("div",{class:"mtxt",dir:"auto"},window.mentionize?mentionize(m.body):m.body):null,tro,fb,h("div",{class:"rxs"}),
+   h("div",{class:"mmeta"},rb,tb,rp,mb,m.edited_at?h("span",{class:"edtag"},chL("معدّلة","edited")):null,h("time",{},fmtTime(m.created_at)),tk))};
+ const applyUpdate=u=>{const old=MSG[u.id];if(!old)return;const m=MSG[u.id]=Object.assign({},old,u),row=rowOf(m.id);if(!row)return;
+  const bub=row.querySelector(".bub");if(bub)bub.replaceWith(bubOf(m,m.user_id===SC.user.id));paintRx(m.id)};
+ const editSheet=m=>{const ta=h("textarea",{class:"cin",rows:"3",maxlength:"2000",dir:"auto"});ta.value=m.body||"";let close;
+  const save=h("button",{class:"pf-btn pf-pri",type:"button",onclick:async()=>{const v=ta.value.trim();if(!v||v===m.body)return close();save.disabled=true;
+   const r=await SC.sb.rpc("edit_message",{mid:m.id,new_body:v});
+   if(r.error){save.disabled=false;return toast(/15 minutes/i.test(r.error.message||"")?chL("يمكن تعديل الرسالة خلال ١٥ دقيقة فقط","Messages can only be edited within 15 minutes"):chL("تعذّر التعديل","Couldn’t edit"))}
+   close();applyUpdate({id:m.id,body:v,edited_at:new Date().toISOString()})}},chL("حفظ","Save"));
+  close=sheet(h("b",{class:"pf-title"},chL("تعديل الرسالة","Edit message")),ta,h("div",{class:"pf-bar"},h("button",{class:"pf-btn",type:"button",onclick:()=>close()},chL("إلغاء","Cancel")),save));ta.focus()};
+ const delSheet=m=>{let close;const ok=h("button",{class:"pf-btn pf-red",type:"button",onclick:async()=>{ok.disabled=true;
+   const r=await SC.sb.rpc("delete_message",{mid:m.id});if(r.error){ok.disabled=false;return toast(chL("تعذّر الحذف","Couldn’t delete"))}
+   close();applyUpdate({id:m.id,body:null,file_path:null,file_name:null,file_type:null,file_size:null,deleted_at:new Date().toISOString()})}},chL("حذف للجميع","Delete for everyone"));
+  close=sheet(h("p",{class:"pf-p"},chL("حذف هذه الرسالة للجميع؟ لا يمكن التراجع.","Delete this message for everyone? This can’t be undone.")),h("div",{class:"pf-bar"},h("button",{class:"pf-btn",type:"button",onclick:()=>close()},chL("إلغاء","Cancel")),ok))};
+ const msgSheet=id=>{const m=MSG[id];if(!m||m.deleted_at)return;const mine=m.user_id===SC.user.id,fresh=Date.now()-new Date(m.created_at).getTime()<15*60000;let close;
+  const emo=h("div",{class:"pf-emoji"},["👍","❤️","😂","😮","😢","🙏"].map(e=>h("button",{type:"button",onclick:()=>{close();toggleRx(id,e)}},tn(e))));
+  close=sheet(emo,act("↩️ "+chL("رد","Reply"),()=>{close();setReply(m)}),
+   m.body?act("📋 "+chL("نسخ","Copy"),()=>{close();try{navigator.clipboard.writeText(m.body);toast(chL("تم النسخ","Copied"))}catch(e){}}):null,
+   mine&&m.body&&fresh?act("✏️ "+chL("تعديل","Edit"),()=>{close();editSheet(m)}):null,
+   mine?act("🗑 "+chL("حذف للجميع","Delete for everyone"),()=>{close();delSheet(m)},true):null)};
  const add=m=>{if(seen.has(m.id))return;seen.add(m.id);MSG[m.id]=m;const me=m.user_id===SC.user.id;if(!me&&SC.blocked.has(m.user_id))return;
   if(!me&&!P[m.user_id]){P[m.user_id]={name:"…"};SC.sb.from("profiles").select("name,username,avatar_url").eq("id",m.user_id).maybeSingle().then(r=>{const d=r.data;P[m.user_id]=d?{name:d.name||d.username,username:d.username,avatar_url:d.avatar_url}:{name:"?"};list.querySelectorAll('[data-u="'+m.user_id+'"] .mname').forEach(e=>e.textContent=P[m.user_id].name);list.querySelectorAll('[data-u="'+m.user_id+'"] .mav').forEach(e=>e.replaceChildren(av(P[m.user_id],30)))})}
   const stick=near()||me,day=dkey(new Date(m.created_at));
   if(day!==lastDay){lastDay=day;list.append(h("div",{class:"dsep"},h("span",{},dayLabel(m.created_at))));prev=null}
   const cont=prev&&prev.u===m.user_id&&(new Date(m.created_at)-prev.t)<5*60000;
   if(prev&&cont)prev.el.classList.remove("last");
-  const tro=h("div",{class:"trout",dir:"auto"}),pf=who(m.user_id),tk=me?h("span",{class:"tick"}):null,fb=fileBox(m);if(tk){paintTick(tk,m);ticks.push([tk,m])}
-  const tb=m.body?trBtn(()=>m.body,tro,"flag"):null;if(tb){tb.setAttribute("aria-label","ترجمة");tb.title="ترجمة"}
-  const rb=h("button",{class:"flag rbtn",type:"button","aria-label":X("reply"),title:X("reply"),onclick:()=>setReply(m)},ic("reply"));
-  const rp=me?null:h("button",{class:"flag","aria-label":"إبلاغ",title:"إبلاغ",onclick:()=>reportModal({message_id:m.id,target_user:m.user_id})},ic("flag"));
-  const row=h("div",{class:"mrow"+(me?" me":"")+(cont?"":" first")+" last","data-u":m.user_id,"data-mid":m.id},
-   me?null:h("div",{class:"mav"},av(pf,30)),
-   h("div",{class:"bub"},(!me&&isG)?h("div",{class:"mname",dir:"auto"},pf.name):null,
-    quoteEl(m),m.body?h("div",{class:"mtxt",dir:"auto"},window.mentionize?mentionize(m.body):m.body):null,tro,fb,
-    h("div",{class:"mmeta"},rb,tb,rp,h("time",{},fmtTime(m.created_at)),tk)));
+  const pf=who(m.user_id),row=h("div",{class:"mrow"+(me?" me":"")+(cont?"":" first")+" last","data-u":m.user_id,"data-mid":m.id},
+   me?null:h("div",{class:"mav"},av(pf,30)),bubOf(m,me));
   list.append(row);prev={u:m.user_id,t:new Date(m.created_at),el:row};
   const im=row.querySelector("img.cimg");if(im)im.addEventListener("load",()=>{if(stick)toEnd()});
   if(stick)toEnd()};
@@ -86,7 +119,7 @@ async function chatRoom(v){
   list.addEventListener("touchmove",e=>{if(!row)return;const x=e.touches[0].clientX-sx,y=e.touches[0].clientY-sy;
    if(!on){if(Math.abs(x)>14&&Math.abs(x)>Math.abs(y)*1.6){on=true;row.style.transition="none"}else if(Math.abs(y)>14){row=null;return}}
    if(on){dx=Math.max(-90,Math.min(90,x));row.style.transform="translateX("+dx+"px)"}},{passive:true});
-  const end=()=>{if(!row)return;row.style.transition="";row.style.transform="";if(on&&Math.abs(dx)>=60&&MSG[row.dataset.mid])setReply(MSG[row.dataset.mid]);row=null;on=false};
+  const end=()=>{if(!row)return;row.style.transition="";row.style.transform="";if(on&&Math.abs(dx)>=60&&MSG[row.dataset.mid]&&!MSG[row.dataset.mid].deleted_at)setReply(MSG[row.dataset.mid]);row=null;on=false};
   list.addEventListener("touchend",end);list.addEventListener("touchcancel",end)}
  const fi=h("input",{type:"file",style:"display:none",accept:"image/jpeg,image/png,image/webp,.pdf,.txt,.csv,.docx,.xlsx",onchange:e=>{const f=e.target.files[0];e.target.value="";if(f)sendFile(cid,f,inp,replyTo&&replyTo.id).then(ok=>{if(ok)clearReply()})}});
  // قائمة الخيارات (حظر / إضافة عضو / مغادرة) — نفس الإجراءات القديمة في مكان ثابت واحد
@@ -110,10 +143,12 @@ async function chatRoom(v){
  if(isG)subEl.textContent=ms.length+(ar()?" عضو":" members");else if(peer&&P[peer]){hAv.replaceChildren(av(P[peer],40))}
  // حالة القراءة (علامتان) للمحادثات الخاصة: قراءة فقط من members.last_read إن وُجد؛ أي فشل يُتجاهل ويبقى الظاهر «أُرسلت»
  const readState=async()=>{if(isG||!peer)return;try{const r=await SC.sb.from("members").select("last_read").eq("conv_id",cid).eq("user_id",peer).maybeSingle();const t=r&&r.data&&r.data.last_read?new Date(r.data.last_read).getTime():0;if(t!==peerRead){peerRead=t;ticks.forEach(([e,m])=>paintTick(e,m))}}catch(e){}};
- const {data}=await SC.sb.from("messages").select("*").eq("conv_id",cid).order("created_at",{ascending:false}).limit(SC.chatLimit||100);await readState();(data||[]).reverse().forEach(add);markRead(cid);toEnd();
+ const {data}=await SC.sb.from("messages").select("*").eq("conv_id",cid).order("created_at",{ascending:false}).limit(SC.chatLimit||100);await readState();(data||[]).reverse().forEach(add);markRead(cid);toEnd();loadRx((data||[]).map(x=>x.id));
  if(SC.jump){const j=SC.jump;SC.jump=null;setTimeout(()=>jumpTo(j),80)}
  stopChat();document.body.classList.add("inchat");_rt=setInterval(readState,15000);
- _ch=SC.sb.channel("room-"+cid).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"conv_id=eq."+cid},p=>{add(p.new);markRead(cid);readState()}).subscribe()}
+ _ch=SC.sb.channel("room-"+cid).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:"conv_id=eq."+cid},p=>{add(p.new);markRead(cid);readState()})
+  .on("postgres_changes",{event:"UPDATE",schema:"public",table:"messages",filter:"conv_id=eq."+cid},p=>applyUpdate(p.new))
+  .on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},p=>{const id=(p.new&&p.new.message_id)||(p.old&&p.old.message_id);if(id&&MSG[id])loadRx([id])}).subscribe()}
 function newGroupModal(){const ti=h("input",{class:"cin",placeholder:"اسم المجموعة: مثال، بحث التكيّف المناخي",maxlength:"80"}),pub=h("input",{type:"checkbox",checked:true});
  const m=modal(h("h3",{},"👥 مجموعة بحثية جديدة"),ti,h("label",{class:"meta",style:"display:flex;gap:6px;align-items:center"},pub,"عامة: يستطيع أي باحث اكتشافها والانضمام"),
   h("button",{class:"pri",onclick:async()=>{if(!ti.value.trim())return toast("اكتب اسمًا");const r=await SC.sb.rpc("create_group",{ttl:ti.value.trim(),pub:pub.checked});if(r.error)return toast(r.error.message);m.remove();openChat(r.data,"👥 "+ti.value.trim())}},"إنشاء"),cancelB({remove:()=>m.remove()}))}
@@ -158,3 +193,6 @@ function fileBox(m){if(!m.file_path)return null;const b=m.file_size,sz=b?" ("+(b
  const url=()=>SC.sb.storage.from("chat").createSignedUrl(m.file_path,3600).then(r=>r.data&&r.data.signedUrl);
  if((m.file_type||"").startsWith("image/")){const img=h("img",{class:"cimg",alt:"",loading:"lazy"});url().then(u=>{if(u)img.src=u});img.onclick=async()=>{const u=await url();if(u)window.open(u,"_blank","noopener")};return img}
  return h("button",{class:"fbox",onclick:async()=>{const u=await url();u?window.open(u,"_blank","noopener"):toast("تعذّر فتح الملف")}},h("i",{},ic("file-text")),h("span",{class:"fname"},h("span",{dir:"auto"},m.file_name||"ملف"),sz?h("small",{dir:"ltr"},sz.replace(/[()]/g,"").trim()):null))}
+
+// وحدة المنصة: قوائم المتابِعين والمتابَعين + جرس الإشعارات (ملف platform.js بجانب هذا الملف)
+(()=>{if(window.Platform||document.querySelector("script[data-platform]"))return;const s=document.createElement("script");s.src="platform.js";s.defer=true;s.dataset.platform="1";document.head.append(s)})();

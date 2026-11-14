@@ -998,3 +998,75 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
 }
 @keyframes nbBlink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
 @keyframes nbPop{30%{transform:scale(1.18) rotate(-6deg)}60%{transform:scale(.96) rotate(4deg)}}
+
+/* =========================================================
+   7Salah Scholar v24 — واجهة وحدة المنصة (platform.js)
+   قوائم المتابعين، قائمة الرسالة، الإشعارات، تفاعلات الرسائل
+   ========================================================= */
+.pstats .pst{cursor:pointer}
+.pstats .pst:active{background:rgba(217,173,69,.12)}
+.mrow .bub{-webkit-touch-callout:none}
+.pf-ov{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,22,40,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pf-sheet{width:min(560px,100%);max-height:78vh;overflow:auto;padding:8px 16px calc(18px + env(safe-area-inset-bottom,0px));border-radius:26px 26px 0 0;background-color:var(--g-bg2,var(--card));border:1px solid var(--g-brd,var(--line));-webkit-backdrop-filter:var(--g-blur-hi);backdrop-filter:var(--g-blur-hi);box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+.pf-sheet::before{content:"";display:block;width:42px;height:4px;margin:4px auto 10px;border-radius:4px;background:var(--line)}
+.pf-h{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 10px;font-size:17px}
+.pf-x{width:34px;height:34px;border-radius:50%;border:0;background:var(--soft);color:var(--ink);font-size:15px;cursor:pointer}
+.pf-list{display:grid;gap:4px}
+.pf-row{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:16px;cursor:pointer}
+.pf-row:active{background:var(--soft)}
+.pf-unread{background:rgba(217,173,69,.12)}
+.pf-nm{flex:1;min-width:0;display:grid;gap:2px;line-height:1.5}
+.pf-nm b{font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.pf-nm small{color:var(--mute)}
+.pf-v{color:#1d9bf0;font-style:normal}
+.pf-k{font-weight:500;color:var(--mute)}
+.pf-empty,.pf-p{padding:28px 8px;text-align:center;color:var(--mute);margin:0}
+.pf-btn{min-height:38px;padding:0 16px;border-radius:12px;border:1px solid var(--g-brd,var(--line));background:var(--soft);color:var(--ink);font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer}
+.pf-pri{background:linear-gradient(145deg,#f5d77f,#dcae3e);border-color:transparent;color:#3e2b05}
+.pf-red{background:#e5484d;border-color:transparent;color:#fff}
+.pf-btn:disabled{opacity:.55}
+.pf-menu{display:grid;gap:8px}
+.pf-emoji{display:flex;justify-content:space-around;padding:8px;border-radius:18px;background:var(--soft)}
+.pf-emoji button{border:0;background:none;font-size:28px;padding:4px 6px;border-radius:12px;cursor:pointer}
+.pf-emoji button:active{transform:scale(1.25)}
+.pf-act{min-height:48px;border:0;border-radius:14px;background:var(--soft);color:var(--ink);font-family:inherit;font-weight:700;font-size:15px;text-align:start;padding:0 16px;cursor:pointer}
+.pf-danger{color:#e5484d}
+.pf-bar{display:flex;gap:10px;justify-content:flex-end}
+.pf-menu textarea{width:100%;resize:none}
+.pf-rx{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.pf-rx span{padding:2px 8px;border-radius:12px;background:rgba(127,127,127,.2);font-size:13px}
+.pf-rx span.on{background:rgba(217,173,69,.35)}
+.pf-gone{font-style:italic;opacity:.75}
+.pf-ed{opacity:.7;font-size:.85em}
+.pf-bell{position:relative}
+.pf-badge{position:absolute;top:-4px;inset-inline-end:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#e5484d;color:#fff;font-size:11px;font-weight:700;line-height:18px;text-align:center}
+.pf-badge[hidden]{display:none}
+.pf-toast{position:fixed;z-index:99;top:calc(14px + env(safe-area-inset-top,0px));inset-inline:16px;margin-inline:auto;width:fit-content;max-width:90vw;padding:12px 20px;border-radius:18px;background:#0b2854;color:#fff;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+@media(prefers-reduced-motion:no-preference){
+  .pf-ov{animation:pfFade .2s}
+  .pf-sheet{animation:pfUp .28s cubic-bezier(.2,.9,.3,1)}
+  .pf-toast{animation:v21Drop .3s}
+}
+@keyframes pfFade{from{opacity:0}}
+@keyframes pfUp{from{transform:translateY(40px);opacity:0}}
+
+/* =========================================================
+   7Salah Scholar v25 — الرسائل (حذف/تعديل/تفاعل) + نماذج وقوائم منسدلة حديثة
+   ========================================================= */
+.mbtn{opacity:.85}
+.mrow .rxs{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.mrow .rxs:empty{display:none}
+.rx{border:1px solid var(--g-brd,var(--line));background:rgba(127,127,127,.16);color:inherit;border-radius:12px;padding:1px 8px;font-family:inherit;font-size:13px;cursor:pointer}
+.rx.on{background:rgba(217,173,69,.38);border-color:rgba(217,173,69,.7)}
+.bub.gone{background:transparent!important;border:1px dashed var(--line)!important;box-shadow:none!important}
+.mgone{font-style:italic;opacity:.7}
+.edtag{opacity:.7;font-size:.85em;margin-inline-end:4px}
+.pf-title{display:block;padding:6px 2px 10px;font-size:17px}
+.pf-menu .cin{margin:0}
+
+/* القوائم المنسدلة: سهم خاص، حواف ناعمة، تركيز ذهبي (تشمل كل select في التطبيق) */
+select,select.in,select.cin{-webkit-appearance:none;appearance:none;min-height:48px;padding:10px 16px;padding-inline-end:44px;border-radius:14px;border:1px solid var(--g-brd,var(--line))!important;background-color:var(--g-in,var(--card))!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%238a99ad' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:left 14px center!important;color:var(--ink);font-family:inherit;font-size:16px;cursor:pointer;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+[dir=ltr] select,[dir=ltr] select.in,[dir=ltr] select.cin{background-position:right 14px center!important}
+select option{background:var(--card);color:var(--ink)}
+.in:focus,.cin:focus,.cta:focus,select:focus{outline:none;border-color:var(--gold)!important;box-shadow:0 0 0 3px rgba(217,173,69,.25)}
+input[type=checkbox],input[type=radio],input[type=range]{accent-color:#b98a25}
