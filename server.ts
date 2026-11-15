@@ -5,7 +5,19 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { WebSocketServer, WebSocket } from "ws";
-import { registerAiResearchRoutes } from "./ai-research.js";
+import { registerAiResearchRoutes, generateCompanionReply, mapAiError } from "./ai-research.js";
+import { createLiveVoiceWss } from "./live-voice.js";
+import { requireAuth, type AuthRequest } from "./src/middleware/auth.ts";
+import { adminAuth } from "./src/lib/firebase-admin.ts";
+import {
+  getUserAcademicBundle,
+  upsertAcademicProfile,
+  getStudentMemory,
+  upsertStudentMemory,
+  createSqlStudyRoom,
+  findOpenSqlRoomByCode,
+  listOpenSqlRooms
+} from "./src/db/users.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
@@ -83,6 +95,15 @@ interface StudyRoomRecord {
   visibility: "public" | "private";
   scheduledAt: string | null;
   durationMin: number;
+  focusDurationMin?: number | null;
+  venue?: {
+    name: string;
+    address?: string;
+    uri?: string;
+    placeId?: string;
+    lat?: number;
+    lng?: number;
+  } | null;
   linkedItem?: Record<string, unknown> | null;
   createdAt: number;
 }
@@ -342,7 +363,204 @@ async function startServer() {
     });
   });
 
+  app.get("/api/maps/config", (_req, res) => {
+    const apiKey = (
+      process.env.GOOGLE_MAPS_API_KEY ||
+      process.env.VITE_GOOGLE_MAPS_API_KEY ||
+      process.env.GOOGLE_MAPS_PLATFORM_API_KEY ||
+      process.env.MAPS_API_KEY ||
+      ""
+    ).trim();
+    res.json({
+      configured: Boolean(apiKey),
+      apiKey,
+      attributionId: "gmp_mcp_codeassist_v1_aistudio",
+      isDemoKey: true
+    });
+  });
+
   registerAiResearchRoutes(app);
+
+  // ---- Cloud SQL Protected Academic Profile, Track Memory, Voice Companion & Rooms ----
+  app.get("/api/sql/me", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const uid = req.user!.uid;
+      const email = req.user!.email || "";
+      const displayName = (req.user as any).name || "";
+      const bundle = await getUserAcademicBundle(uid, email, displayName);
+      res.json(bundle);
+    } catch (err) {
+      console.error("[sql/me]", err);
+      res.status(500).json({ error: "Unable to load academic profile." });
+    }
+  });
+
+  app.put("/api/sql/profile", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const uid = req.user!.uid;
+      const email = req.user!.email || "";
+      const suppliedId = cleanStr(req.body?.userId || req.body?.id || "", 128);
+      if (suppliedId && suppliedId !== uid && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(suppliedId)) {
+        res.status(400).json({ error: "Invalid user identifier." });
+        return;
+      }
+      const name = cleanStr(req.body?.name || (req.user as any).name || "Scholar", 80);
+      const field = cleanStr(req.body?.field || "", 80);
+      const university = cleanStr(req.body?.university || "", 120);
+      const academicTitle = cleanStr(req.body?.academicTitle || req.body?.title || "", 80);
+      const bio = cleanStr(req.body?.bio || "", 300);
+
+      const profile = await upsertAcademicProfile(uid, email, {
+        name,
+        field,
+        university,
+        academicTitle,
+        bio
+      });
+
+      if (field || university) {
+        await upsertStudentMemory(uid, email, {
+          ...(field ? { field } : {}),
+          ...(university ? { university } : {})
+        }).catch(() => {});
+      }
+
+      res.json({ profile });
+    } catch (err) {
+      console.error("[sql/profile]", err);
+      res.status(500).json({ error: "Unable to save academic profile." });
+    }
+  });
+
+  app.get("/api/sql/memory", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const memory = await getStudentMemory(req.user!.uid, req.user!.email || "");
+      res.json({ memory });
+    } catch (err) {
+      console.error("[sql/memory]", err);
+      res.status(500).json({ error: "Unable to load academic memory." });
+    }
+  });
+
+  app.post("/api/sql/companion", requireAuth, async (req: AuthRequest, res) => {
+    const lang = cleanStr(req.body?.lang || "ar", 8);
+    try {
+      const uid = req.user!.uid;
+      const email = req.user!.email || "";
+      const displayName = (req.user as any).name || "";
+      const message = cleanStr(req.body?.message || "", 4000);
+      if (!message) {
+        res.status(400).json({ error: "Message is required." });
+        return;
+      }
+
+      const bundle = await getUserAcademicBundle(uid, email, displayName);
+      const clientCtx = req.body?.studentContext && typeof req.body.studentContext === "object"
+        ? req.body.studentContext
+        : {};
+
+      const mergedField = cleanStr(
+        req.body?.field || clientCtx.field || bundle.memory?.field || bundle.profile?.field || "",
+        80
+      );
+      const mergedUniversity = cleanStr(
+        clientCtx.university || bundle.memory?.university || bundle.profile?.university || "",
+        120
+      );
+
+      const aiRes = await generateCompanionReply({
+        message,
+        lang,
+        field: mergedField,
+        studentContext: {
+          name: bundle.profile?.name || bundle.user?.displayName || displayName,
+          academicTitle: bundle.profile?.academicTitle || "",
+          field: mergedField,
+          university: mergedUniversity,
+          lastTopic: bundle.memory?.lastTopic || clientCtx.lastTopic || "",
+          memoryNotes: bundle.memory?.memoryNotes || ""
+        }
+      });
+
+      const memory = await upsertStudentMemory(uid, email, {
+        field: mergedField,
+        university: mergedUniversity,
+        lastTopic: message.slice(0, 140),
+        memoryNotes: aiRes.updatedNotes
+      });
+
+      res.json({
+        reply: aiRes.reply,
+        modelUsed: aiRes.modelUsed,
+        memory
+      });
+    } catch (err: any) {
+      console.error("[sql/companion]", err);
+      const mapped = mapAiError(err, lang);
+      res.status(mapped.status >= 400 && mapped.status < 600 ? mapped.status : 500).json({
+        error: mapped.message,
+        code: mapped.code
+      });
+    }
+  });
+
+  app.get("/api/sql/rooms", async (_req, res) => {
+    try {
+      const rows = await listOpenSqlRooms();
+      res.json({ rooms: rows });
+    } catch (err) {
+      console.error("[sql/rooms:list]", err);
+      res.status(500).json({ error: "Unable to load study rooms." });
+    }
+  });
+
+  app.get("/api/sql/rooms/:code", async (req, res) => {
+    try {
+      let raw = cleanStr(req.params.code, 300);
+      if (raw.includes("room=")) {
+        const m = raw.match(/(?:^|[#&?])(?:room|code)=([^&#\s]+)/i);
+        if (m && m[1]) raw = m[1];
+      } else if (/^https?:\/\//i.test(raw) || raw.includes("/")) {
+        const segs = raw.split("/").filter(Boolean);
+        if (segs.length) raw = segs[segs.length - 1];
+      }
+      const room = await findOpenSqlRoomByCode(raw);
+      if (!room) {
+        res.status(404).json({ error: "Study room not found." });
+        return;
+      }
+      res.json({ room });
+    } catch (err) {
+      console.error("[sql/rooms:get]", err);
+      res.status(500).json({ error: "Unable to look up study room." });
+    }
+  });
+
+  app.post("/api/sql/rooms", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const title = cleanStr(req.body?.title, 120);
+      if (!title) {
+        res.status(400).json({ error: "Room title is required." });
+        return;
+      }
+      const roomCode = cleanStr(req.body?.roomCode || req.body?.code || genRoomCode(), 32).toUpperCase();
+      const room = await createSqlStudyRoom(req.user!.uid, req.user!.email || "", {
+        roomCode,
+        title,
+        field: cleanStr(req.body?.field || "General", 80),
+        description: cleanStr(req.body?.description || "", 400),
+        visibility: req.body?.visibility === "private" ? "private" : "public",
+        hostName: cleanStr(req.body?.hostName || (req.user as any).name || "Scholar", 80),
+        focusDurationMin: Number(req.body?.focusDurationMin) || 25,
+        durationMin: Number(req.body?.durationMin) || 60,
+        scheduledAt: req.body?.scheduledAt ? cleanStr(req.body.scheduledAt, 40) : null
+      });
+      res.json({ room });
+    } catch (err) {
+      console.error("[sql/rooms:create]", err);
+      res.status(500).json({ error: "Unable to create study room." });
+    }
+  });
 
   // ---- Researcher Directory ----
   app.get("/api/directory", (req, res) => {
@@ -522,11 +740,45 @@ async function startServer() {
     res.json({ rooms: enriched });
   });
 
-  app.get("/api/rooms/:idOrCode", (req, res) => {
-    const key = cleanStr(req.params.idOrCode, 100).toUpperCase();
-    const room = store.rooms.find(
-      (r) => r.id === req.params.idOrCode || r.code.toUpperCase() === key
+  app.get("/api/rooms/:idOrCode", async (req, res) => {
+    let raw = cleanStr(req.params.idOrCode, 300);
+    if (raw.includes("room=")) {
+      const m = raw.match(/(?:^|[#&?])(?:room|code)=([^&#\s]+)/i);
+      if (m && m[1]) raw = m[1];
+    } else if (/^https?:\/\//i.test(raw) || raw.includes("/")) {
+      const segs = raw.split("/").filter(Boolean);
+      if (segs.length) raw = segs[segs.length - 1];
+    }
+    const key = raw.trim().toUpperCase();
+    let room = store.rooms.find(
+      (r) => r.id === raw.trim() || r.code.toUpperCase() === key
     );
+    if (!room) {
+      try {
+        const sqlRoom = await findOpenSqlRoomByCode(key);
+        if (sqlRoom) {
+          room = {
+            id: "room_sql_" + sqlRoom.id,
+            code: sqlRoom.roomCode,
+            title: sqlRoom.title,
+            field: sqlRoom.field || "General",
+            description: sqlRoom.description || "",
+            hostId: "sql_" + sqlRoom.hostUserId,
+            hostName: sqlRoom.hostName,
+            hostHandle: "scholar",
+            visibility: sqlRoom.visibility === "private" ? "private" : "public",
+            scheduledAt: sqlRoom.scheduledAt || null,
+            durationMin: sqlRoom.durationMin || 60,
+            focusDurationMin: sqlRoom.focusDurationMin || 25,
+            venue: null,
+            linkedItem: null,
+            createdAt: sqlRoom.createdAt ? new Date(sqlRoom.createdAt).getTime() : Date.now()
+          };
+          store.rooms.unshift(room);
+          scheduleSave();
+        }
+      } catch {}
+    }
     if (!room) {
       res.status(404).json({ error: "Study room not found" });
       return;
@@ -541,7 +793,7 @@ async function startServer() {
     });
   });
 
-  app.post("/api/rooms", (req, res) => {
+  app.post("/api/rooms", async (req, res) => {
     const title = cleanStr(req.body?.title, 120);
     if (!title) {
       res.status(400).json({ error: "Room title is required" });
@@ -559,6 +811,21 @@ async function startServer() {
       visibility: req.body?.visibility === "private" ? "private" : "public",
       scheduledAt: req.body?.scheduledAt ? cleanStr(req.body.scheduledAt, 40) : null,
       durationMin: Math.min(240, Math.max(15, Number(req.body?.durationMin) || 60)),
+      focusDurationMin:
+        Number.isFinite(Number(req.body?.focusDurationMin)) && Number(req.body?.focusDurationMin) > 0
+          ? Math.min(180, Math.max(0.05, Number(req.body.focusDurationMin)))
+          : null,
+      venue:
+        req.body?.venue && typeof req.body.venue === "object" && cleanStr(req.body.venue.name, 160)
+          ? {
+              name: cleanStr(req.body.venue.name, 160),
+              address: cleanStr(req.body.venue.address || "", 260) || undefined,
+              uri: cleanStr(req.body.venue.uri || "", 400) || undefined,
+              placeId: cleanStr(req.body.venue.placeId || "", 120) || undefined,
+              lat: Number.isFinite(Number(req.body.venue.lat)) ? Number(req.body.venue.lat) : undefined,
+              lng: Number.isFinite(Number(req.body.venue.lng)) ? Number(req.body.venue.lng) : undefined
+            }
+          : null,
       linkedItem:
         req.body?.linkedItem && typeof req.body.linkedItem === "object"
           ? req.body.linkedItem
@@ -571,6 +838,26 @@ async function startServer() {
       store.roomShared[room.id] = room.linkedItem;
     }
     scheduleSave();
+
+    // If caller carries a verified Firebase Bearer token, mirror the room to Cloud SQL
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const decoded = await adminAuth.verifyIdToken(authHeader.split("Bearer ")[1]);
+        await createSqlStudyRoom(decoded.uid, decoded.email || "", {
+          roomCode: room.code,
+          title: room.title,
+          field: room.field,
+          description: room.description,
+          visibility: room.visibility,
+          hostName: room.hostName,
+          focusDurationMin: room.focusDurationMin,
+          durationMin: room.durationMin,
+          scheduledAt: room.scheduledAt
+        });
+      } catch {}
+    }
+
     res.json({ room: { ...room, activeParticipants: [] } });
   });
 
@@ -844,7 +1131,23 @@ async function startServer() {
 
   // ---- HTTP + WebSocket Server ----
   const server = http.createServer(app);
-  const wss = new WebSocketServer({ server, path: "/ws" });
+  const wss = new WebSocketServer({ noServer: true });
+  const liveWss = createLiveVoiceWss();
+
+  server.on("upgrade", (req, socket, head) => {
+    try {
+      const pathname = new URL(req.url || "/", "http://localhost").pathname;
+      if (pathname === "/ws") {
+        wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
+      } else if (pathname === "/ws-live") {
+        liveWss.handleUpgrade(req, socket, head, (ws) => liveWss.emit("connection", ws, req));
+      } else {
+        socket.destroy();
+      }
+    } catch {
+      socket.destroy();
+    }
+  });
 
   wss.on("connection", (ws) => {
     const peer: LivePeer = {
@@ -1034,6 +1337,23 @@ async function startServer() {
         return;
       }
 
+      if (msg.type === "room:timer") {
+        const roomId = cleanStr(msg.roomId, 100);
+        if (!roomId) return;
+        broadcastRoom(
+          roomId,
+          {
+            type: "room:timer",
+            roomId,
+            fromPeerId: peer.peerId,
+            fromName: peer.name,
+            timer: msg.timer && typeof msg.timer === "object" ? msg.timer : null
+          },
+          peer.peerId
+        );
+        return;
+      }
+
       // Direct 1:1 Skype-style signaling across online peers
       if (
         msg.type === "call:invite" ||
@@ -1096,6 +1416,9 @@ async function startServer() {
   }, 30000);
 
   wss.on("close", () => clearInterval(heartbeat));
+  server.on("close", () => {
+    try { liveWss.close(); } catch {}
+  });
 
   if (!IS_PROD) {
     const { createServer: createViteServer } = await import("vite");

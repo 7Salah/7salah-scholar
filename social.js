@@ -8,6 +8,7 @@ function authMsg(err){const m=String((err&&err.message)||err||"").toLowerCase(),
 
 // المجتمع الأكاديمي العالمي: منشورات وتفريغات محاضرات وحزم بطاقات وطلبات تواصل ومجموعات
 const SC={blocked:new Set(),sb:null,user:null,me:null,view:"feed",kind:"",field:"",uid:null,q:""};
+window.SC=SC;
 Object.assign(T.ar,{nCom:"المجتمع"});
 Object.assign(T.en,{nCom:"Community"});
 Object.assign(T.fr,{nCom:"Communauté"});
@@ -16,6 +17,8 @@ VIEWS.com=renderCom;buildTabs();
 
 const sTr=(a,e,f)=>S.lang==="ar"?a:S.lang==="fr"?(f||e):e;
 const okU=u=>/^https:\/\//i.test(u||"");
+const UUID_RX=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid=v=>typeof v==="string"&&UUID_RX.test(v.trim());
 const cancelB=m=>h("div",{class:"acts"},h("button",{class:"btn",type:"button",onclick:()=>m.remove()},t("cancel")));
 
 let _lp=null;
@@ -178,17 +181,18 @@ async function loadPosts(box,f){
   }catch(e){}
  }
 
- // 2) Load Supabase posts if configured and reachable
- if(SC.sb&&f.kind!=="transcript"){
+ // 2) Load Supabase posts if configured, reachable, and uid filter (if any) is a valid UUID
+ const canQuerySupa=SC.sb&&f.kind!=="transcript"&&(!f.uid||isUuid(f.uid));
+ if(canQuerySupa){
   try{
    const mk=tp=>{
     let q=SC.sb.from("posts").select("*,likes(count),comments(count)").order("created_at",{ascending:false}).limit(f.limit||25);
     if(f.kind)q=f.kind==="post"?q.in("kind",["post","quote"]):q.eq("kind",f.kind);
     if(f.field&&tp)q=q.ilike("topic","*"+f.field+"*");
     if(f.q)q=q.neq("kind","repost");
-    if(f.ids)q=q.in("id",f.ids);
+    if(f.ids){const validIds=(f.ids||[]).filter(isUuid);q=q.in("id",validIds.length?validIds:["00000000-0000-0000-0000-000000000000"])}
     if(f.uid)q=q.eq("user_id",f.uid);
-    if(f.uids)q=q.in("user_id",f.uids.length?f.uids:["00000000-0000-0000-0000-000000000000"]);
+    if(f.uids){const validUids=(f.uids||[]).filter(isUuid);q=q.in("user_id",validUids.length?validUids:["00000000-0000-0000-0000-000000000000"])}
     if(f.q)q=q.or("title.ilike.*"+f.q+"*,body.ilike.*"+f.q+"*"+(tp?",topic.ilike.*"+f.q+"*":""));
     return q;
    };
@@ -196,7 +200,7 @@ async function loadPosts(box,f){
    if(error&&(f.q||f.field)&&/topic/i.test(error.message||""))({data,error}=await mk(false));
    if(!error&&data){
     if(f.rank)data=f.rank(data).slice(0,30);
-    const ids=[...new Set(data.map(p=>p.user_id))];
+    const ids=[...new Set(data.map(p=>p.user_id))].filter(isUuid);
     if(ids.length){
      const pr=await SC.sb.from("profiles").select("id,username,name,avatar_url,verified,is_teacher,field,university").in("id",ids),m={};
      (pr.data||[]).forEach(x=>m[x.id]=x);
@@ -488,15 +492,17 @@ async function profView(v){
  const myId=window.Net?Net.ensurePeerId():(SC.user&&SC.user.id);
  let p=null,f1={count:0},f2={count:0},f3={count:0},pc={count:0},isSupa=false;
 
- if(SC.sb){
-  const cn=(c,k,id)=>SC.sb.from("follows").select("*",{count:"exact",head:true}).eq(c,id);
-  const res=await Promise.all([
-   SC.sb.from("profiles").select("*").eq("id",SC.uid).maybeSingle(),
-   cn("followee",0,SC.uid),cn("follower",0,SC.uid),
-   SC.user?cn("follower",0,SC.user.id).eq("followee",SC.uid):{count:0},
-   SC.sb.from("posts").select("*",{count:"exact",head:true}).eq("user_id",SC.uid)
-  ]);
-  if(res[0]&&res[0].data){p=res[0].data;f1=res[1];f2=res[2];f3=res[3];pc=res[4];isSupa=true}
+ if(SC.sb&&isUuid(SC.uid)){
+  try{
+   const cn=(c,k,id)=>SC.sb.from("follows").select("*",{count:"exact",head:true}).eq(c,id);
+   const res=await Promise.all([
+    SC.sb.from("profiles").select("*").eq("id",SC.uid).maybeSingle(),
+    cn("followee",0,SC.uid),cn("follower",0,SC.uid),
+    SC.user&&isUuid(SC.user.id)?cn("follower",0,SC.user.id).eq("followee",SC.uid):{count:0},
+    SC.sb.from("posts").select("*",{count:"exact",head:true}).eq("user_id",SC.uid)
+   ]);
+   if(res[0]&&res[0].data){p=res[0].data;f1=res[1];f2=res[2];f3=res[3];pc=res[4];isSupa=true}
+  }catch(e){}
  }
 
  if(!p&&window.Net){
@@ -589,13 +595,24 @@ function editModal(p){
    const univ=un.value.trim();
    const b=bio.value.trim();
    S.prof.name=name;S.prof.field=field;S.prof.university=univ;S.prof.bio=b;persist();
+   const fbUser=window.ScholarAuth&&window.ScholarAuth.getUser();
+   if(fbUser&&window.AcademicCoreInstance){
+    try{
+     await window.AcademicCoreInstance.saveAcademicProfile(fbUser.uid,{name,field,university:univ,bio:b});
+    }catch(err){
+     return toast((err&&err.message)||sTr("تعذر حفظ الملف الأكاديمي","Could not save profile","Erreur"));
+    }
+   }
    if(SC.user&&SC.sb){
-    let url=p.avatar_url;const f=file&&file.files[0];
-    if(f){const bl=await square(f,256),path=SC.user.id+"/avatar-"+Date.now()+".jpg",up=await SC.sb.storage.from("avatars").upload(path,bl,{contentType:"image/jpeg"});
-     if(up.error)return toast(up.error.message);url=SC.sb.storage.from("avatars").getPublicUrl(path).data.publicUrl}
-    const r=await SC.sb.from("profiles").update({name,field,university:univ,bio:b,avatar_url:url}).eq("id",p.id);
-    if(r.error)return toast(r.error.message);
-    await setUser((await SC.sb.auth.getSession()).data.session);
+    const targetUuid=isUuid(p&&p.id)?p.id:(isUuid(SC.user.id)?SC.user.id:"");
+    if(targetUuid){
+     let url=p.avatar_url;const f=file&&file.files[0];
+     if(f){const bl=await square(f,256),path=SC.user.id+"/avatar-"+Date.now()+".jpg",up=await SC.sb.storage.from("avatars").upload(path,bl,{contentType:"image/jpeg"});
+      if(up.error)return toast(up.error.message);url=SC.sb.storage.from("avatars").getPublicUrl(path).data.publicUrl}
+     const r=await SC.sb.from("profiles").update({name,field,university:univ,bio:b,avatar_url:url}).eq("id",targetUuid);
+     if(r.error)return toast(r.error.message);
+     await setUser((await SC.sb.auth.getSession()).data.session);
+    }
    }
    await Net.syncDirectory();
    m.remove();toast(sTr("تم حفظ الملف الأكاديمي ✓","Academic profile saved ✓","Profil enregistré ✓"));render();

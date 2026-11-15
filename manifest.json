@@ -5,12 +5,12 @@
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
- "background_color": "#001449",
+ "background_color": "#F5F7FA",
  "theme_color": "#001449",
  "lang": "ar",
  "dir": "rtl",
  "icons": [
-  {"src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
+  {"src": "logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"},
   {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
   {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
  ],

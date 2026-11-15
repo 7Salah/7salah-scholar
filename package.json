@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "start": "NODE_ENV=production tsx server.ts",
-    "build": "vite build",
+    "build": "esbuild src/lib/firebase.ts --bundle --format=iife --outfile=firebase-auth.js --platform=browser && vite build",
     "test": "node game/tests/run.mjs",
     "lint": "tsc --noEmit"
   },
@@ -15,8 +15,15 @@
     "@babylonjs/loaders": "^8.0.0",
     "@google/genai": "^3.3.0",
     "@types/express": "^5.0.6",
+    "@types/pg": "^8.23.1",
     "@types/ws": "^8.18.2",
+    "dotenv": "^18.0.10",
+    "drizzle-kit": "^0.31.11",
+    "drizzle-orm": "^0.45.4",
     "express": "^5.3.0",
+    "firebase": "^13.3.0",
+    "firebase-admin": "^14.5.1",
+    "pg": "^8.23.1",
     "tsx": "^4.23.15",
     "ws": "^8.23.0"
   },

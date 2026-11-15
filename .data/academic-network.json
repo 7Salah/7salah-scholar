@@ -1,0 +1,70 @@
+{
+  "profiles": {
+    "scholar_7f0f7cf2-e69": {
+      "id": "scholar_7f0f7cf2-e69",
+      "username": "scholar_2e69",
+      "name": "باحث أكاديمي",
+      "field": "",
+      "university": "",
+      "level": "l1",
+      "bio": "",
+      "avatar": "📚",
+      "verified": false,
+      "updatedAt": 1794652622343
+    },
+    "peer_7008c2a6-a7b9-4db8-b8f4-65c5a6a81a07": {
+      "id": "peer_7008c2a6-a7b9-4db8-b8f4-65c5a6a81a07",
+      "username": "scholar",
+      "name": "Probe",
+      "field": "",
+      "university": "",
+      "level": "",
+      "bio": "",
+      "avatar": "🎓",
+      "updatedAt": 1794650817715
+    },
+    "scholar_8d849bc5-953": {
+      "id": "scholar_8d849bc5-953",
+      "username": "scholar_5953",
+      "name": "باحث أكاديمي",
+      "field": "",
+      "university": "",
+      "level": "l1",
+      "bio": "",
+      "avatar": "📚",
+      "verified": false,
+      "updatedAt": 1794650838028
+    },
+    "scholar_88c93a67-c1f": {
+      "id": "scholar_88c93a67-c1f",
+      "username": "scholar_7c1f",
+      "name": "باحث أكاديمي",
+      "field": "",
+      "university": "",
+      "level": "l1",
+      "bio": "",
+      "avatar": "📚",
+      "verified": false,
+      "updatedAt": 1794650914094
+    },
+    "scholar_0010a456-e70": {
+      "id": "scholar_0010a456-e70",
+      "username": "scholar_6e70",
+      "name": "باحث أكاديمي",
+      "field": "",
+      "university": "",
+      "level": "l1",
+      "bio": "",
+      "avatar": "📚",
+      "verified": false,
+      "updatedAt": 1794650931497
+    }
+  },
+  "connections": [],
+  "rooms": [],
+  "roomMessages": {},
+  "roomShared": {},
+  "posts": [],
+  "groups": [],
+  "groupMessages": {}
+}

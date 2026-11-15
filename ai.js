@@ -11,7 +11,6 @@
  if(Array.isArray(TABS)&&!TABS.some(x=>x[0]==="ai")){
   const resIdx=TABS.findIndex(x=>x[0]==="res");
   TABS.splice(resIdx!==-1?resIdx+1:3,0,["ai","nAI",icp("sparkles")]);
-  if(typeof buildTabs==="function")buildTabs(); // يظهر الزر مع باقي الأيقونات فورًا بدل القفز عند أول تحديث
  }
 
  const MODES=[
@@ -21,9 +20,25 @@
   {id:"litreview",ar:"مراجعة أدبيات",en:"Literature Review",fr:"Revue de littérature"}
  ];
 
+ const TASK_ROUTES=[
+  {id:"general",ar:"متوازن + مراجع (Hydrogen)",en:"Balanced + Search (Hydrogen)",fr:"Équilibré (Hydrogen)"},
+  {id:"fast",ar:"سريع (Flash-Lite)",en:"Fast (Flash-Lite)",fr:"Rapide (Flash-Lite)"},
+  {id:"complex",ar:"تحليل STEM متقدّم",en:"Complex STEM Analysis",fr:"Analyse STEM"},
+  {id:"deep",ar:"تفكير معمّق (Deep)",en:"Deep Reasoning",fr:"Raisonnement profond"}
+ ];
+
+ const PERSONAS=[
+  {id:"advisor",ar:"مستشار بحثي",en:"Research Advisor",fr:"Conseiller"},
+  {id:"reviewer",ar:"محكّم نقدي",en:"Peer Reviewer",fr:"Évaluateur"},
+  {id:"stem",ar:"مدرّس كمّي وSTEM",en:"STEM & Quant Tutor",fr:"Tuteur STEM"},
+  {id:"summarizer",ar:"مُلخّص تنفيذي",en:"Rapid Explainer",fr:"Synthèse rapide"}
+ ];
+
  const AI={
-  tab:"chat", // chat | analyzer | history
+  tab:"chat", // chat | live | analyzer | maps | history
   mode:"qa",
+  taskRoute:"general",
+  persona:"advisor",
   field:"",
   useWebSearch:true,
   busy:false,
@@ -32,10 +47,15 @@
   savingId:null,
   source:null, // { kind: "pdf"|"lecture"|"text", title, sizeLabel, pdfBase64?, text?, mime? }
   analysis:null,
-  messages:[], // [{ id, role, text, mode, verification, citations, openCits, ts, titleHint }]
+  messages:[], // [{ id, role, text, mode, modelUsed, verification, citations, openCits, ts, titleHint }]
   sessions:LS.get("7s_ai_sessions",[])||[],
   activeSessionId:null,
-  draft:""
+  draft:"",
+  mapsQuery:"",
+  mapsCoords:null,
+  mapsBusy:false,
+  mapsResult:null,
+  mapsError:""
  };
 
  function saveSessions(){
@@ -332,9 +352,15 @@
    try{await navigator.clipboard.writeText(text);if(typeof award==="function")award("cite");toast(t("copied"));}catch(e){}
   }},ic("clipboard",{s:14}),aiTr("نسخ كل المراجع","Copy All Bibliography","Tout copier"));
 
+  const qChips=(stateObj.queries&&stateObj.queries.length)?h("div",{class:"ai-wg-queries",style:"padding:8px 12px 0"},
+   h("small",{class:"meta"},aiTr("استعلامات Google Search:","Google Search Queries:","Requêtes Google Search :")),
+   stateObj.queries.map(qs=>h("span",{class:"ai-wg-q",dir:"auto"},qs))
+  ):null;
+
   return h("div",{class:"ai-cit-wrap open"},
    toggleBtn,
    h("div",{class:"ai-cit-controls"},citeSwitcher(()=>render()),copyAllBtn),
+   qChips,
    h("div",{class:"ai-cit-list"},citations.map((c,idx)=>
     h("div",{class:"ai-cit-item"},
      h("div",{class:"ai-cit-head"},
@@ -355,13 +381,30 @@
   );
  }
 
+ async function getAiHeaders(){
+  const headers={"Content-Type":"application/json"};
+  try{
+   if(window.ScholarAuth&&typeof window.ScholarAuth.getFreshIdToken==="function"){
+    const fbToken=await window.ScholarAuth.getFreshIdToken();
+    if(fbToken){headers["Authorization"]="Bearer "+fbToken;return headers}
+   }
+   if(window.SC&&SC.sb&&SC.sb.auth){
+    const sRes=await SC.sb.auth.getSession();
+    const token=sRes&&sRes.data&&sRes.data.session&&sRes.data.session.access_token;
+    if(token)headers["Authorization"]="Bearer "+token;
+   }
+  }catch(e){}
+  return headers;
+ }
+
  async function postAiJson(endpoint,payload,timeoutMs){
   const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
   const tm=ctrl?setTimeout(()=>ctrl.abort(),timeoutMs||120000):null;
   try{
+   const headers=await getAiHeaders();
    const res=await fetch(endpoint,{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers,
     body:JSON.stringify(payload),
     signal:ctrl?ctrl.signal:undefined
    });
@@ -370,6 +413,13 @@
    if(raw){try{data=JSON.parse(raw)}catch(e){data={}}}
    if(!res.ok){
     if(data.error)throw new Error(data.error);
+    if(res.status===405){
+     throw new Error(aiTr(
+      "طريقة الطلب غير مدعومة (HTTP 405). يتطلب المساعد الذكي إرسال الطلب عبر POST.",
+      "Method Not Allowed (HTTP 405). AI research endpoints require POST.",
+      "Méthode non autorisée (HTTP 405). Requête POST requise."
+     ));
+    }
     if(res.status===404||res.status===502||res.status===503){
      throw new Error(aiTr(
       "خدمة المساعد البحثي الذكي (/api/ai) غير متاحة على الخادم حاليًا. تأكد من تشغيل الخادم وضبط GEMINI_API_KEY في ملف .env.",
@@ -536,6 +586,8 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
    const payload={
     messages:AI.messages.slice(-12).map(m=>({role:m.role,text:m.text})),
     mode:AI.mode,
+    taskRoute:AI.taskRoute||"general",
+    persona:AI.persona||"advisor",
     citeStyle:S.citeStyle||"apa",
     lang:S.lang||"ar",
     field:AI.field||"",
@@ -556,7 +608,10 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
     role:"assistant",
     text:data.answer||"",
     mode:AI.mode,
+    modelUsed:data.modelUsed||"",
+    taskRoute:data.taskRoute||AI.taskRoute,
     verification:data.verification||null,
+    queries:(data.verification&&Array.isArray(data.verification.queries))?data.verification.queries:[],
     citations:Array.isArray(data.citations)?data.citations:[],
     openCits:true,
     titleHint:q.slice(0,70),
@@ -662,18 +717,26 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
    {mode:"litreview",t:"Draft a comparative literature review on spaced repetition vs massed practice in medical education"}
   ];
 
-  // Mode + Discipline + Cite Style Toolbar
+  // Mode + Discipline + Task Routing + Persona + Cite Style Toolbar
   const discList=(window.Net&&Net.DISCIPLINES)||[];
   const discSel=h("select",{class:"in ai-disc-sel",onchange:e=>{AI.field=e.target.value}},
    discList.map(d=>h("option",{value:d.id,selected:AI.field===d.id},d[S.lang]||d.en))
+  );
+  const routeSel=h("select",{class:"in ai-disc-sel",title:aiTr("توجيه النموذج والتفكير","Model & Thinking Route","Routage du modèle"),onchange:e=>{AI.taskRoute=e.target.value}},
+   TASK_ROUTES.map(rt=>h("option",{value:rt.id,selected:AI.taskRoute===rt.id},rt[S.lang]||rt.en))
+  );
+  const personaSel=h("select",{class:"in ai-disc-sel",title:aiTr("الدور الأكاديمي","Academic Persona","Rôle académique"),onchange:e=>{AI.persona=e.target.value}},
+   PERSONAS.map(pr=>h("option",{value:pr.id,selected:AI.persona===pr.id},pr[S.lang]||pr.en))
   );
 
   v.append(h("div",{class:"ai-toolbar"},
    h("div",{class:"ai-modes",role:"tablist"},MODES.map(m=>
     h("button",{type:"button",class:"ai-mode-btn"+(AI.mode===m.id?" on":""),onclick:()=>{AI.mode=m.id;render()}},m[S.lang]||m.en)
    )),
+   h("div",{class:"ai-route-row"},routeSel,personaSel),
    h("div",{class:"ai-toolbar-meta"},
     discList.length?discSel:null,
+    h("button",{type:"button",class:"btn ai-live-launch",onclick:()=>{AI.tab="live";render()}},ic("headphones",{s:15}),aiTr("تحدّث صوتيًا (Live)","Live Voice Tutor","Voix en direct")),
     typeof citeSwitcher==="function"?citeSwitcher(()=>render()):null
    )
   ));
@@ -724,6 +787,7 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
       h("span",{class:"ai-verif-dot"}),
       ic("shield-check",{s:16}),
       h("strong",{},vm.label),
+      m.modelUsed?h("span",{class:"ai-model-chip",dir:"ltr"},m.modelUsed):null,
       vm.score?h("span",{class:"ai-verif-score"},vm.score):null,
       m.verification&&m.verification.groundingChunksCount?h("span",{class:"ai-verif-sub"}," · "+m.verification.groundingChunksCount+" "+aiTr("مصدر بحث","sources","sources")):null
      ),
@@ -944,27 +1008,712 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
   });
  }
 
+ // ===================== Live Voice Tutor (Gemini Live API: gemini-3.8-live) =====================
+ const LIVE_VOICES=[
+  {id:"Zephyr",ar:"Zephyr (متوازن وواضح)",en:"Zephyr (Balanced & Clear)",fr:"Zephyr (Équilibré)"},
+  {id:"Kore",ar:"Kore (أكاديمي هادئ)",en:"Kore (Calm Academic)",fr:"Kore (Académique)"},
+  {id:"Puck",ar:"Puck (حيوي وتفاعلي)",en:"Puck (Engaging)",fr:"Puck (Dynamique)"},
+  {id:"Charon",ar:"Charon (رزين وعميق)",en:"Charon (Deep & Steady)",fr:"Charon (Posé)"},
+  {id:"Fenrir",ar:"Fenrir (حازم ومباشر)",en:"Fenrir (Crisp & Direct)",fr:"Fenrir (Direct)"}
+ ];
+
+ const LIVE={
+  status:"idle", // idle | connecting | listening | speaking | error
+  muted:false,
+  micUnavailable:false,
+  voice:"Zephyr",
+  error:null,
+  ws:null,
+  stream:null,
+  inputCtx:null,
+  outputCtx:null,
+  workletNode:null,
+  procNode:null,
+  srcNode:null,
+  nextStartTime:0,
+  activeSources:new Set(),
+  turns:[], // [{ id, role: "user"|"assistant", text, ts }]
+  draft:"",
+  level:0,
+  feedEl:null,
+  meterEl:null,
+  statusEl:null
+ };
+
+ function abToB64(buf){
+  const bytes=new Uint8Array(buf);
+  let bin="";
+  for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin);
+ }
+
+ function b64ToBytes(b64){
+  const bin=atob(b64);
+  const bytes=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return bytes;
+ }
+
+ function floatTo16kPcmBuffer(float32,srcRate){
+  let samples=float32;
+  if(srcRate&&srcRate!==16000){
+   const ratio=srcRate/16000;
+   const outLen=Math.max(1,Math.floor(float32.length/ratio));
+   const resampled=new Float32Array(outLen);
+   for(let i=0;i<outLen;i++){
+    const idx=i*ratio;
+    const lo=Math.floor(idx);
+    const hi=Math.min(float32.length-1,lo+1);
+    const frac=idx-lo;
+    resampled[i]=float32[lo]*(1-frac)+float32[hi]*frac;
+   }
+   samples=resampled;
+  }
+  const pcm=new Int16Array(samples.length);
+  for(let i=0;i<samples.length;i++){
+   const s=Math.max(-1,Math.min(1,samples[i]));
+   pcm[i]=s<0?s*0x8000:s*0x7fff;
+  }
+  return pcm.buffer;
+ }
+
+ function stopPlaybackQueue(){
+  for(const src of LIVE.activeSources){
+   try{src.stop()}catch(e){}
+  }
+  LIVE.activeSources.clear();
+  if(LIVE.outputCtx){
+   LIVE.nextStartTime=LIVE.outputCtx.currentTime;
+  }else{
+   LIVE.nextStartTime=0;
+  }
+ }
+
+ function enqueuePcm24kAudio(b64){
+  if(!LIVE.outputCtx)return;
+  try{
+   if(LIVE.outputCtx.state==="suspended")LIVE.outputCtx.resume().catch(()=>{});
+   const bytes=b64ToBytes(b64);
+   const i16=new Int16Array(bytes.buffer,bytes.byteOffset,Math.floor(bytes.byteLength/2));
+   if(!i16.length)return;
+   const f32=new Float32Array(i16.length);
+   for(let i=0;i<i16.length;i++)f32[i]=i16[i]/32768;
+
+   const buf=LIVE.outputCtx.createBuffer(1,f32.length,24000);
+   buf.copyToChannel(f32,0);
+   const src=LIVE.outputCtx.createBufferSource();
+   src.buffer=buf;
+   src.connect(LIVE.outputCtx.destination);
+   const now=LIVE.outputCtx.currentTime;
+   const startAt=Math.max(now,LIVE.nextStartTime);
+   src.start(startAt);
+   LIVE.nextStartTime=startAt+buf.duration;
+   LIVE.activeSources.add(src);
+   setLiveStatusDom("speaking");
+   src.onended=()=>{
+    LIVE.activeSources.delete(src);
+    if(LIVE.activeSources.size===0&&LIVE.ws&&LIVE.ws.readyState===1&&LIVE.status==="speaking"){
+     setLiveStatusDom("listening");
+    }
+   };
+  }catch(e){}
+ }
+
+ function setLiveStatusDom(next){
+  LIVE.status=next;
+  if(!LIVE.statusEl)return;
+  const meta=liveStatusLabel(next);
+  LIVE.statusEl.className="ai-live-status "+next;
+  LIVE.statusEl.replaceChildren(h("span",{class:"ai-live-dot"}),h("span",{},meta));
+ }
+
+ function appendLiveTranscript(role,chunk){
+  const txt=String(chunk||"");
+  if(!txt)return;
+  const last=LIVE.turns[LIVE.turns.length-1];
+  if(last&&last.role===role&&!last.finalized){
+   last.text+=txt;
+  }else{
+   if(last)last.finalized=true;
+   LIVE.turns.push({id:uid(),role,text:txt,finalized:false,ts:Date.now()});
+  }
+  patchLiveFeedDom();
+ }
+
+ function finalizeLiveTurns(){
+  const last=LIVE.turns[LIVE.turns.length-1];
+  if(last)last.finalized=true;
+ }
+
+ function patchLiveFeedDom(){
+  if(!LIVE.feedEl)return;
+  const children=LIVE.turns.map(turn=>
+   h("div",{class:"ai-live-turn "+turn.role},
+    h("div",{class:"ai-live-turn-who"},turn.role==="user"?aiTr("أنت (صوت)","You (Voice)","Vous"):aiTr("المساعد الصوتي · Gemini Live","Live Tutor · Gemini Live","Tuteur Live")),
+    h("div",{class:"ai-live-turn-tx",dir:"auto"},turn.text)
+   )
+  );
+  if(!children.length){
+   children.push(h("div",{class:"meta",style:"text-align:center;padding:18px 8px"},
+    aiTr("تحدّث بحرية في الميكروفون أو اكتب سؤالًا بالأسفل ليردّ عليك المساعد صوتيًا بشكل فوري.","Speak naturally into your microphone or type below to hear a real-time spoken academic answer.","Parlez dans votre micro ou écrivez ci-dessous.")
+   ));
+  }
+  LIVE.feedEl.replaceChildren(...children);
+  LIVE.feedEl.scrollTop=LIVE.feedEl.scrollHeight;
+ }
+
+ function updateMicMeter(rms){
+  LIVE.level=rms;
+  if(LIVE.meterEl){
+   const pct=LIVE.muted?0:Math.min(100,Math.round(rms*420));
+   LIVE.meterEl.style.width=pct+"%";
+  }
+ }
+
+ async function startMicCapture(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+   LIVE.micUnavailable=true;
+   return false;
+  }
+  try{
+   const stream=await navigator.mediaDevices.getUserMedia({
+    audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}
+   });
+   LIVE.stream=stream;
+   const AC=window.AudioContext||window.webkitAudioContext;
+   const ctx=new AC({sampleRate:16000});
+   LIVE.inputCtx=ctx;
+   if(ctx.state==="suspended")await ctx.resume();
+   const src=ctx.createMediaStreamSource(stream);
+   LIVE.srcNode=src;
+
+   const sendFloatChunk=float32=>{
+    if(!LIVE.ws||LIVE.ws.readyState!==1||LIVE.muted)return;
+    let sum=0;
+    for(let i=0;i<float32.length;i++)sum+=float32[i]*float32[i];
+    updateMicMeter(Math.sqrt(sum/float32.length));
+    const pcmBuf=floatTo16kPcmBuffer(float32,ctx.sampleRate);
+    LIVE.ws.send(JSON.stringify({type:"audio",data:abToB64(pcmBuf)}));
+   };
+
+   if(ctx.audioWorklet&&typeof Blob!=="undefined"){
+    try{
+     const code=`class PcmWorklet extends AudioWorkletProcessor{process(inputs){const ch=inputs[0]&&inputs[0][0];if(ch&&ch.length){this.port.postMessage(new Float32Array(ch))}return true}}registerProcessor("pcm-worklet",PcmWorklet);`;
+     const url=URL.createObjectURL(new Blob([code],{type:"application/javascript"}));
+     await ctx.audioWorklet.addModule(url);
+     URL.revokeObjectURL(url);
+     const worklet=new AudioWorkletNode(ctx,"pcm-worklet");
+     worklet.port.onmessage=ev=>{if(ev.data)sendFloatChunk(ev.data)};
+     src.connect(worklet);
+     LIVE.workletNode=worklet;
+     LIVE.micUnavailable=false;
+     return true;
+    }catch(e){}
+   }
+
+   const proc=ctx.createScriptProcessor(2048,1,1);
+   const zeroGain=ctx.createGain();
+   zeroGain.gain.value=0;
+   proc.onaudioprocess=e=>{
+    const ch=e.inputBuffer.getChannelData(0);
+    if(ch)sendFloatChunk(ch);
+   };
+   src.connect(proc);
+   proc.connect(zeroGain);
+   zeroGain.connect(ctx.destination);
+   LIVE.procNode=proc;
+   LIVE.micUnavailable=false;
+   return true;
+  }catch(e){
+   LIVE.micUnavailable=true;
+   return false;
+  }
+ }
+
+ function stopLiveVoice(silent){
+  stopPlaybackQueue();
+  try{LIVE.workletNode&&LIVE.workletNode.disconnect()}catch(e){}
+  try{LIVE.procNode&&LIVE.procNode.disconnect()}catch(e){}
+  try{LIVE.srcNode&&LIVE.srcNode.disconnect()}catch(e){}
+  try{LIVE.stream&&LIVE.stream.getTracks().forEach(tr=>tr.stop())}catch(e){}
+  try{LIVE.inputCtx&&LIVE.inputCtx.close()}catch(e){}
+  try{LIVE.outputCtx&&LIVE.outputCtx.close()}catch(e){}
+  if(LIVE.ws){
+   try{
+    if(LIVE.ws.readyState===1)LIVE.ws.send(JSON.stringify({type:"end"}));
+    LIVE.ws.close();
+   }catch(e){}
+  }
+  LIVE.workletNode=null;LIVE.procNode=null;LIVE.srcNode=null;
+  LIVE.stream=null;LIVE.inputCtx=null;LIVE.outputCtx=null;LIVE.ws=null;
+  LIVE.level=0;
+  finalizeLiveTurns();
+  if(LIVE.status!=="error")LIVE.status="idle";
+  if(!silent)render();
+ }
+
+ async function startLiveVoice(){
+  if(LIVE.status==="connecting"||LIVE.status==="listening"||LIVE.status==="speaking"){
+   stopLiveVoice();
+   return;
+  }
+  LIVE.error=null;
+  LIVE.status="connecting";
+  render();
+
+  try{
+   const AC=window.AudioContext||window.webkitAudioContext;
+   LIVE.outputCtx=new AC({sampleRate:24000});
+   if(LIVE.outputCtx.state==="suspended")await LIVE.outputCtx.resume();
+   LIVE.nextStartTime=LIVE.outputCtx.currentTime;
+  }catch(e){}
+
+  const proto=location.protocol==="https:"?"wss:":"ws:";
+  const params=new URLSearchParams({
+   lang:S.lang||"ar",
+   voice:LIVE.voice||"Zephyr",
+   field:AI.field||"",
+   sourceTitle:AI.source&&AI.source.title?AI.source.title:""
+  });
+  const ws=new WebSocket(`${proto}//${location.host}/ws-live?${params.toString()}`);
+  LIVE.ws=ws;
+
+  ws.onmessage=async ev=>{
+   let msg;
+   try{msg=JSON.parse(ev.data)}catch(e){return}
+   if(!msg||typeof msg.type!=="string")return;
+
+   if(msg.type==="ready"){
+    const micOk=await startMicCapture();
+    if(AI.source&&AI.source.text&&ws.readyState===1){
+     ws.send(JSON.stringify({
+      type:"context",
+      text:`Attached study document ("${AI.source.title}"):\n${AI.source.text.slice(0,4500)}`
+     }));
+    }
+    setLiveStatusDom("listening");
+    if(!micOk){
+     toast(aiTr("الميكروفون غير متاح — يمكنك كتابة رسالتك لسماع الرد الصوتي المباشر.","Microphone unavailable — type below to hear live spoken responses.","Micro indisponible — écrivez ci-dessous pour la réponse vocale."));
+    }
+    render();
+    return;
+   }
+
+   if(msg.type==="audio"&&msg.data){
+    enqueuePcm24kAudio(msg.data);
+    return;
+   }
+
+   if(msg.type==="inputTranscript"&&msg.text){
+    appendLiveTranscript("user",msg.text);
+    return;
+   }
+
+   if(msg.type==="outputTranscript"&&msg.text){
+    appendLiveTranscript("assistant",msg.text);
+    return;
+   }
+
+   if(msg.type==="interrupted"){
+    stopPlaybackQueue();
+    finalizeLiveTurns();
+    setLiveStatusDom("listening");
+    return;
+   }
+
+   if(msg.type==="turnComplete"){
+    finalizeLiveTurns();
+    if(LIVE.activeSources.size===0&&LIVE.ws&&LIVE.ws.readyState===1){
+     setLiveStatusDom("listening");
+    }
+    return;
+   }
+
+   if(msg.type==="error"){
+    LIVE.error=msg.message||aiTr("تعذر بدء المحادثة الصوتية.","Live voice error.","Erreur vocale.");
+    LIVE.status="error";
+    stopLiveVoice(true);
+    render();
+   }
+  };
+
+  ws.onerror=()=>{
+   if(LIVE.status==="idle")return;
+   LIVE.error=aiTr("تعذر الاتصال بخادم الصوت المباشر (/ws-live).","Could not connect to Live Voice server (/ws-live).","Connexion vocale impossible.");
+   LIVE.status="error";
+   stopLiveVoice(true);
+   render();
+  };
+
+  ws.onclose=()=>{
+   if(LIVE.status!=="idle"&&LIVE.status!=="error"){
+    stopLiveVoice();
+   }
+  };
+ }
+
+ function sendLiveTextTurn(){
+  const tx=LIVE.draft.trim();
+  if(!tx||!LIVE.ws||LIVE.ws.readyState!==1)return;
+  LIVE.draft="";
+  LIVE.turns.push({id:uid(),role:"user",text:tx,finalized:true,ts:Date.now()});
+  patchLiveFeedDom();
+  LIVE.ws.send(JSON.stringify({type:"text",text:tx}));
+  const inp=document.getElementById("ai-live-text-in");
+  if(inp)inp.value="";
+ }
+
+ function liveStatusLabel(st){
+  if(st==="connecting")return aiTr("جارٍ الاتصال بـ Gemini Live…","Connecting to Gemini Live…","Connexion…");
+  if(st==="listening")return aiTr("متصل · يستمع الآن…","Connected · Listening…","En écoute…");
+  if(st==="speaking")return aiTr("يتحدث المساعد الصوتي الآن…","Speaking (speak to interrupt)…","En train de parler…");
+  if(st==="error")return aiTr("تعذر الاتصال الصوتي","Voice Connection Error","Erreur vocale");
+  return aiTr("جاهز للمحادثة الصوتية المباشرة","Ready for Live Voice Conversation","Prêt pour l'appel vocal");
+ }
+
+ const CM={busy:false,listening:false,speak:true,draft:"",history:[],error:""};
+
+ async function sendCompanionQuery(rawText){
+  const q=String(rawText!=null?rawText:CM.draft||"").trim();
+  const core=window.AcademicCoreInstance;
+  if(!q||CM.busy||!core)return;
+  CM.draft="";
+  CM.busy=true;
+  CM.error="";
+  CM.history.push({id:uid(),role:"user",text:q,ts:Date.now()});
+  render();
+  try{
+   const res=await core.askCompanion(q,{
+    lang:S.lang||"ar",
+    field:AI.field||(S.prof&&S.prof.field)||"",
+    speakReply:CM.speak
+   });
+   CM.history.push({id:uid(),role:"model",text:res.reply||"",modelUsed:res.modelUsed||"",ts:Date.now()});
+  }catch(e){
+   CM.error=(e&&e.message)||aiTr("تعذر الاتصال بالمساعد الصوتي الشخصي.","Could not reach personal academic companion.","Erreur de l'assistant personnel.");
+  }finally{
+   CM.busy=false;
+   render();
+  }
+ }
+
+ function toggleCompanionVoice(){
+  const core=window.AcademicCoreInstance;
+  if(!core)return;
+  if(CM.listening){
+   try{core.recognition&&core.recognition.stop()}catch(e){}
+   CM.listening=false;
+   render();
+   return;
+  }
+  CM.error="";
+  try{
+   const started=core.listenAndAsk({
+    lang:S.lang||"ar",
+    field:AI.field||(S.prof&&S.prof.field)||"",
+    speakReply:CM.speak,
+    onTranscript:tx=>{
+     CM.listening=false;
+     CM.busy=true;
+     CM.history.push({id:uid(),role:"user",text:tx,ts:Date.now()});
+     render();
+    },
+    onReply:res=>{
+     CM.busy=false;
+     CM.history.push({id:uid(),role:"model",text:res.reply||"",modelUsed:res.modelUsed||"",ts:Date.now()});
+     render();
+    },
+    onError:err=>{
+     CM.listening=false;
+     CM.busy=false;
+     CM.error=(err&&err.message)||aiTr("تعذر التقاط الصوت.","Voice input failed.","Erreur micro.");
+     render();
+    },
+    onEnd:()=>{
+     if(CM.listening){CM.listening=false;render()}
+    }
+   });
+   if(started){CM.listening=true;render()}
+  }catch(err){
+   CM.listening=false;
+   CM.error=(err&&err.message)||aiTr("المتصفح لا يدعم الإدخال الصوتي.","Speech recognition unavailable.","Reconnaissance vocale indisponible.");
+   render();
+  }
+ }
+
+ function renderVoiceCompanionCard(v){
+  const core=window.AcademicCoreInstance;
+  const user=window.ScholarAuth&&window.ScholarAuth.getUser();
+  if(!core)return;
+  if(!user){
+   v.append(h("div",{class:"card ai-companion-card"},
+    h("div",{class:"ai-live-top"},
+     h("b",{},ic("cap",{s:16})," ",aiTr("المساعد الأكاديمي الشخصي (الصوت + ذاكرة المسار)","Personal Academic Companion (Voice + Track Memory)","Assistant personnel (Voix + Parcours)")),
+     h("span",{class:"ai-live-model"},aiTr("ذاكرة دائمة","Track Memory","Mémoire"))
+    ),
+    h("p",{class:"meta",style:"margin:4px 0 8px"},aiTr("سجّل الدخول بحساب Google ليحفظ المساعد تخصصك وجامعتك وآخر موضوع بحثت فيه ويجيبك صوتيًا في أي جلسة.","Sign in with Google so your companion remembers your discipline, university, and latest research topic across sessions.","Connectez-vous avec Google pour mémoriser votre filière et votre dernier sujet.")),
+    h("button",{type:"button",class:"btn fill",onclick:()=>{if(window.ScholarAuth&&window.ScholarAuth.signInWithGoogle)window.ScholarAuth.signInWithGoogle().catch(()=>{})}},ic("login",{s:15})," ",aiTr("تسجيل الدخول بحساب Google","Sign in with Google","Connexion Google"))
+   ));
+   return;
+  }
+  const mem=core.memory||{};
+  const fieldTxt=mem.field||(S.prof&&S.prof.field)||"";
+  const univTxt=mem.university||(S.prof&&S.prof.university)||"";
+  const topicTxt=mem.lastTopic||mem.last_topic||"";
+  const compIn=h("input",{
+   class:"in",
+   value:CM.draft,
+   disabled:CM.busy,
+   placeholder:aiTr("اسأل مساعدك الشخصي صوتيًا أو كتابةً…","Ask your personal companion by voice or text…","Posez votre question…"),
+   oninput:e=>{CM.draft=e.target.value},
+   onkeydown:e=>{if(e.key==="Enter"){e.preventDefault();sendCompanionQuery()}}
+  });
+  v.append(h("div",{class:"card ai-companion-card"},
+   h("div",{class:"ai-live-top"},
+    h("b",{},ic("cap",{s:16})," ",aiTr("المساعد الأكاديمي الشخصي (صوت + ذاكرة مسار)","Personal Academic Voice Companion","Assistant vocal personnel")),
+    h("button",{type:"button",class:"btn",style:"padding:4px 10px;font-size:12px",onclick:()=>{if(typeof window.openScholarAccountModal==="function")window.openScholarAccountModal()}},ic("user",{s:14})," ",aiTr("ملفي الجامعي","Academic Profile","Profil"))
+   ),
+   h("div",{class:"ai-track-chips"},
+    fieldTxt?h("span",{class:"ai-track-chip"},ic("book",{s:13})," ",fieldTxt):null,
+    univTxt?h("span",{class:"ai-track-chip"},ic("cap",{s:13})," ",univTxt):null,
+    topicTxt?h("span",{class:"ai-track-chip",dir:"auto"},ic("bookmark",{s:13})," ",aiTr("آخر موضوع: ","Last topic: ","Sujet : "),topicTxt):h("span",{class:"ai-track-chip muted"},aiTr("سيتم حفظ آخر موضوع تلقائيًا","Your research track updates automatically","Suivi automatique actif"))
+   ),
+   h("div",{class:"ai-live-controls"},
+    h("button",{type:"button",class:"btn "+(CM.listening?"danger":"fill")+" ai-companion-mic"+(CM.listening?" listening":""),disabled:CM.busy,onclick:toggleCompanionVoice},
+     ic(CM.listening?"mic-off":"mic",{s:16})," ",
+     CM.listening?aiTr("جارٍ الاستماع… اضغط للإيقاف","Listening… Tap to stop","Écoute…"):aiTr("تحدّث مع المساعد","Speak Question","Parler")
+    ),
+    h("button",{type:"button",class:"btn"+(CM.speak?" fill":""),onclick:()=>{CM.speak=!CM.speak;if(!CM.speak)core.stopSpeaking();render()}},
+     ic(CM.speak?"volume":"volume-x",{s:15})," ",CM.speak?aiTr("نطق الردود: مفعّل","Voice Reply: On","Voix : Activée"):aiTr("نطق الردود: صامت","Voice Reply: Muted","Voix : Coupée")
+    ),
+    CM.speak?h("button",{type:"button",class:"btn",onclick:()=>core.stopSpeaking()},aiTr("إيقاف الصوت","Stop Audio","Arrêter")):null
+   ),
+   CM.error?h("div",{class:"ai-verif-line warn",style:"margin-top:6px"},ic("alert",{s:15}),h("span",{},CM.error)):null,
+   CM.history.length?h("div",{class:"ai-companion-feed"},CM.history.slice(-8).map(m=>
+    h("div",{class:"ai-companion-msg "+m.role,dir:"auto"},
+     h("strong",{},m.role==="user"?aiTr("أنت","You","Vous"):aiTr("المساعد الشخصي","Companion","Assistant")),
+     h("div",{class:"ai-companion-txt"},m.text)
+    )
+   )):null,
+   h("div",{class:"ai-live-textbar"},
+    compIn,
+    h("button",{type:"button",class:"btn fill",disabled:CM.busy,onclick:()=>sendCompanionQuery()},ic("send",{s:15})," ",CM.busy?aiTr("يفكر…","Thinking…","…"):aiTr("إرسال","Send","Envoyer"))
+   )
+  ));
+ }
+
+ function renderLiveVoiceView(v){
+  renderVoiceCompanionCard(v);
+  const active=LIVE.status==="connecting"||LIVE.status==="listening"||LIVE.status==="speaking";
+  const discList=(window.Net&&Net.DISCIPLINES)||[];
+  const statusEl=h("div",{class:"ai-live-status "+LIVE.status},h("span",{class:"ai-live-dot"}),h("span",{},liveStatusLabel(LIVE.status)));
+  LIVE.statusEl=statusEl;
+
+  const meterFill=h("div",{class:"ai-live-meter-fill",style:"width:"+(LIVE.muted?0:Math.min(100,Math.round(LIVE.level*420)))+"%"});
+  LIVE.meterEl=meterFill;
+
+  const voiceSel=h("select",{class:"in ai-disc-sel",disabled:active,onchange:e=>{LIVE.voice=e.target.value}},
+   LIVE_VOICES.map(vx=>h("option",{value:vx.id,selected:LIVE.voice===vx.id},vx[S.lang]||vx.en))
+  );
+  const discSel=discList.length?h("select",{class:"in ai-disc-sel",disabled:active,onchange:e=>{AI.field=e.target.value}},
+   discList.map(d=>h("option",{value:d.id,selected:AI.field===d.id},d[S.lang]||d.en))
+  ):null;
+
+  const feed=h("div",{class:"ai-live-feed",id:"ai-live-feed"});
+  LIVE.feedEl=feed;
+  patchLiveFeedDom();
+
+  const textIn=h("input",{
+   id:"ai-live-text-in",
+   class:"in",
+   placeholder:aiTr("أرسل مداخلة نصية داخل الجلسة الصوتية (أو استخدم الميكروفون)…","Send a text prompt inside the live voice session…","Envoyer un texte pendant la session…"),
+   value:LIVE.draft,
+   disabled:!active||LIVE.status==="connecting",
+   oninput:e=>{LIVE.draft=e.target.value},
+   onkeydown:e=>{if(e.key==="Enter"){e.preventDefault();sendLiveTextTurn()}}
+  });
+
+  v.append(h("div",{class:"card ai-live-card"},
+   h("div",{class:"ai-live-top"},
+    statusEl,
+    h("span",{class:"ai-live-model"},"Gemini Live · 3.8")
+   ),
+   h("p",{class:"meta",style:"margin:4px 0 0"},
+    aiTr("ناقش مفاهيمك البحثية بصوت طبيعي منخفض الكمون مع دعم المقاطعة الفورية والتفريغ النصي المباشر.","Hold natural, low-latency academic voice conversations with instant interruption support and real-time transcript.","Discutez à voix haute avec latence minimale et transcription en direct.")
+   ),
+   h("div",{class:"ai-live-controls"},
+    h("button",{type:"button",class:"btn "+(active?"danger":"fill")+" ai-live-mainbtn",onclick:startLiveVoice},
+     ic(active?"phone":"mic",{s:17}),
+     active
+      ?aiTr("إنهاء الجلسة الصوتية","End Voice Session","Terminer")
+      :aiTr("بدء المحادثة الصوتية","Start Live Voice","Démarrer")
+    ),
+    active&&!LIVE.micUnavailable?h("button",{type:"button",class:"btn"+(LIVE.muted?" warn":""),onclick:()=>{
+     LIVE.muted=!LIVE.muted;
+     if(LIVE.stream)LIVE.stream.getAudioTracks().forEach(tr=>{tr.enabled=!LIVE.muted});
+     render();
+    }},ic(LIVE.muted?"mic-off":"mic",{s:16}),LIVE.muted?aiTr("إلغاء الكتم","Unmute","Activer micro"):aiTr("كتم الميكروفون","Mute","Muet")):null
+   ),
+   h("div",{class:"ai-live-opts"},
+    h("div",{class:"ai-live-opt"},h("label",{class:"lbl"},aiTr("صوت المساعد","Assistant Voice","Voix")),voiceSel),
+    discSel?h("div",{class:"ai-live-opt"},h("label",{class:"lbl"},aiTr("التخصص","Discipline","Discipline")),discSel):null
+   ),
+   active&&!LIVE.micUnavailable?h("div",{class:"ai-live-meter",ariaHidden:"true"},meterFill):null,
+   LIVE.error?h("div",{class:"ai-verif-line warn",style:"margin-top:6px"},ic("alert",{s:16}),h("span",{},LIVE.error)):null,
+   feed,
+   active?h("div",{class:"ai-live-textbar"},
+    textIn,
+    h("button",{type:"button",class:"btn fill",onclick:sendLiveTextTurn},ic("send",{s:15}),aiTr("إرسال","Send","Envoyer"))
+   ):null,
+   LIVE.turns.length?h("div",{class:"ai-msg-actions"},
+    h("button",{type:"button",class:"btn fill",disabled:Boolean(AI.convertingId),onclick:()=>{
+     const fullText=LIVE.turns.map(t=>(t.role==="user"?"Student: ":"Tutor: ")+t.text).join("\n");
+     convertToSmartFlashcards(fullText,AI.source?.title||aiTr("جلسة صوتية بحثية","Live Voice Tutoring Session","Session vocale"),[], "live_fc");
+    }},ic("cards",{s:15}),aiTr("تحويل الحوار إلى بطاقات","Convert to Flashcards","Convertir en fiches")),
+    h("button",{type:"button",class:"btn",disabled:Boolean(AI.savingId),onclick:()=>{
+     const fullText=LIVE.turns.map(t=>(t.role==="user"?aiTr("الطالب: ","Student: ","Étudiant : "):aiTr("المساعد: ","Tutor: ","Tuteur : "))+t.text).join("\n\n");
+     saveReportToLibrary({id:"live_rep",title:aiTr("تفريغ حوار صوتي: ","Voice Session: ","Session vocale : ")+(AI.source?.title||AI.field||aiTr("بحث علمي","Academic Study","Étude")),subtitle:"Gemini Live (gemini-3.8-live)",bodyText:fullText,citations:[]});
+    }},ic("book",{s:15}),aiTr("حفظ في المكتبة","Save to Library","Enregistrer")),
+    h("button",{type:"button",class:"btn",onclick:()=>{
+     LIVE.turns=[];
+     patchLiveFeedDom();
+     render();
+    }},ic("trash",{s:15}),aiTr("مسح السجل","Clear","Effacer"))
+   ):null
+  ));
+ }
+
+ async function runMapsGroundingQuery(customQuery){
+  const q=(customQuery!=null?customQuery:AI.mapsQuery).trim();
+  if(!q||AI.mapsBusy)return;
+  AI.mapsQuery=q;
+  AI.mapsBusy=true;
+  AI.mapsError="";
+  render();
+  try{
+   const body={query:q,lang:S.lang||"ar"};
+   if(AI.mapsCoords&&Number.isFinite(AI.mapsCoords.lat)&&Number.isFinite(AI.mapsCoords.lng)){
+    body.lat=AI.mapsCoords.lat;
+    body.lng=AI.mapsCoords.lng;
+   }
+   const data=await postAiJson("/api/ai/maps-grounding",body,90000);
+   AI.mapsResult=data;
+  }catch(e){
+   if(window.StudyMaps&&typeof window.StudyMaps.checkQuotaResponse==="function"){
+    window.StudyMaps.checkQuotaResponse(0,e&&e.message?e.message:"");
+   }
+   AI.mapsError=(e&&e.message)||aiTr("تعذر استرجاع نتائج خرائط Google.","Could not query Google Maps grounding.","Échec Google Maps.");
+  }finally{
+   AI.mapsBusy=false;
+   render();
+  }
+ }
+
+ function renderMapsGroundingView(v){
+  const presets=S.lang==="ar"
+   ?["أقرب مكتبة جامعية هادئة للدراسة","مقهى دراسة بالإنترنت السريع وهادئ","مركز أبحاث علمية ومصادر"]
+   :S.lang==="fr"
+   ?["Bibliothèque universitaire calme","Café d'étude avec Wi-Fi","Centre de recherche scientifique"]
+   :["Quiet university library for studying","Study friendly cafe with Wi-Fi","Academic research center"];
+
+  const qInp=h("input",{
+   class:"in",
+   value:AI.mapsQuery,
+   placeholder:aiTr("ابحث عن مكتبة جامعية، مقهى دراسة، أو حرم جامعي…","Search for libraries, campuses, or study cafes…","Rechercher une bibliothèque ou un campus…"),
+   oninput:e=>{AI.mapsQuery=e.target.value},
+   onkeydown:e=>{if(e.key==="Enter"){e.preventDefault();runMapsGroundingQuery()}}
+  });
+
+  v.append(h("div",{class:"card ai-maps-card"},
+   h("div",{class:"ai-wg-head"},
+    ic("map",{s:18}),
+    h("b",{},aiTr("خرائط الدراسة الموثّقة (Gemini · Google Maps)","Grounded Study Spaces (Gemini · Google Maps)","Lieux d'étude (Gemini · Google Maps)")),
+    h("span",{class:"ai-wg-badge"},"Google Maps Grounding")
+   ),
+   h("p",{class:"meta",style:"margin:0 0 10px"},aiTr("اعثر على مكتبات ومقاهي دراسة ومراكز أبحاث حقيقية بروابط وتقييمات موثّقة من خرائط Google أو افتح الخريطة التفاعلية.","Find real libraries, campuses, and quiet study spots with verified Google Maps links & reviews, or open the interactive map.","Trouvez de vraies bibliothèques et lieux d'étude via Google Maps.")),
+   h("div",{class:"gmp-search-row"},
+    qInp,
+    h("button",{type:"button",class:"btn fill",disabled:AI.mapsBusy,onclick:()=>runMapsGroundingQuery()},ic("search",{s:15}),AI.mapsBusy?aiTr("جارٍ البحث…","Searching…","Recherche…"):aiTr("بحث","Search","Chercher")),
+    h("button",{type:"button",class:"btn",onclick:async()=>{
+     if(!window.StudyMaps||typeof window.StudyMaps.getBrowserCoords!=="function")return;
+     toast(aiTr("جارٍ تحديد موقعك…","Getting location…","Localisation…"));
+     const c=await window.StudyMaps.getBrowserCoords();
+     if(!c)return toast(aiTr("تعذر الوصول للموقع الجغرافي.","Location unavailable.","Position indisponible."));
+     AI.mapsCoords=c;
+     toast(aiTr("تم تفعيل الإحداثيات للبحث القريب ✓","Location enabled for nearby search ✓","Localisation activée ✓"));
+     render();
+    }},ic("pin",{s:15}),aiTr("موقعي","Near Me","Ma position"))
+   ),
+   h("div",{class:"ai-maps-presets"},
+    presets.map(p=>h("button",{type:"button",class:"tchip",onclick:()=>{AI.mapsQuery=p;runMapsGroundingQuery(p)}},p)),
+    h("button",{type:"button",class:"btn",onclick:()=>window.StudyMaps&&window.StudyMaps.openStudyMapModal({initialQuery:AI.mapsQuery||undefined,coords:AI.mapsCoords||undefined})},ic("map",{s:15}),aiTr("فتح الخريطة التفاعلية الكاملة","Open Interactive Study Map","Ouvrir la carte interactive"))
+   )
+  ));
+
+  if(AI.mapsError){
+   v.append(h("div",{class:"card ai-msg err"},h("div",{class:"ai-verif-line warn"},ic("alert",{s:16}),h("span",{},AI.mapsError))));
+  }
+
+  if(AI.mapsResult){
+   const R=AI.mapsResult;
+   const prose=h("div",{class:"ai-msg-prose"});
+   prose.append(renderMarkdownDom(R.answer||""));
+   v.append(h("div",{class:"card ai-wg-card"},
+    h("div",{class:"ai-wg-head"},
+     ic("sparkles",{s:16}),
+     h("b",{},aiTr("نتائج موثّقة من خرائط Google","Verified Google Maps Grounding","Résultats Google Maps")),
+     R.modelUsed?h("span",{class:"ai-wg-badge",dir:"ltr"},R.modelUsed):null
+    ),
+    prose,
+    Array.isArray(R.places)&&R.places.length
+     ?h("div",{class:"gmp-results-list",style:"margin-top:10px"},R.places.map(pl=>
+      h("div",{class:"card gmp-place-card"},
+       h("div",{class:"gmp-place-head"},
+        h("span",{class:"gmp-place-idx"},String(pl.index||"•")),
+        h("b",{dir:"auto"},pl.title),
+        pl.rating?h("span",{class:"badge g"},"★ "+Number(pl.rating).toFixed(1)):null
+       ),
+       pl.address?h("div",{class:"meta",dir:"auto"},pl.address):null,
+       Array.isArray(pl.reviewSnippets)&&pl.reviewSnippets.length
+        ?h("div",{class:"gmp-snippets"},pl.reviewSnippets.map(rs=>h("div",{class:"gmp-snippet",dir:"auto"},"“",rs.text,"”")))
+        :null,
+       h("div",{class:"btns"},
+        pl.uri?h("a",{class:"btn fill",href:pl.uri,target:"_blank",rel:"noopener noreferrer"},ic("map",{s:14}),aiTr("فتح في خرائط Google","View on Google Maps","Google Maps")):null
+       )
+      )
+     ))
+     :null
+   ));
+  }
+ }
+
  function renderAiAssistant(v){
+  if(S.tab!=="ai"&&LIVE.ws)stopLiveVoice(true);
   v.append(h("div",{class:"ai-hero"},
    h("div",{class:"ai-hero-badge"},ic("sparkles",{s:15}),aiTr("المساعد البحثي الذكي","AI Academic Research Assistant","Assistant de Recherche IA")),
    h("h2",{},aiTr("ابحث بدليل وحلّل الأوراق بدقة جامعية","Source-Grounded Research & Paper Analyzer","Recherche ancrée et analyse académique")),
-   h("p",{},aiTr("اطرح الأسئلة العلمية، بسّط النظريات، ابنِ خطط البحث ومراجعات الأدبيات، وحوّل أي إجابة إلى بطاقات دراسة موثّقة بالمراجع.","Ask complex questions, simplify theories, draft outlines & literature reviews, analyze PDFs/lectures, and convert outputs into cited flashcards.","Posez vos questions, analysez PDF ou cours, et transformez les réponses en fiches."))
+   h("p",{},aiTr("اطرح الأسئلة العلمية، بسّط النظريات، تحدّث صوتيًا في الوقت الحقيقي، استكشف مكتبات الدراسة، أو حلّل ملفات PDF والمحاضرات بدقة موثّقة.","Ask complex questions, hold real-time voice conversations, locate study spaces, analyze PDFs/lectures, and convert outputs into cited flashcards.","Posez vos questions, discutez à voix haute, explorez les lieux d'étude, analysez PDF ou cours."))
   ));
 
   v.append(h("div",{class:"tabs ai-subtabs"},
    [["chat",aiTr("المحادثة البحثية","Research Chat","Discussion")],
+    ["live",aiTr("محادثة صوتية (Live)","Live Voice","Voix Live")],
     ["analyzer",aiTr("محلّل المستندات","Document Analyzer","Analyseur PDF/Cours")],
+    ["maps",aiTr("خرائط الدراسة","Study Maps","Cartes")],
     ["history",aiTr(`السجل (${AI.sessions.length})`,`History (${AI.sessions.length})`,`Historique (${AI.sessions.length})`)]
    ].map(([id,lab])=>h("button",{type:"button",class:AI.tab===id?"on":"",onclick:()=>{AI.tab=id;render()}},lab))
   ));
 
   v.append(renderSourceDock());
-  if(AI.tab==="analyzer")renderAnalyzerView(v);
+  if(AI.tab==="live")renderLiveVoiceView(v);
+  else if(AI.tab==="analyzer")renderAnalyzerView(v);
+  else if(AI.tab==="maps")renderMapsGroundingView(v);
   else if(AI.tab==="history")renderHistoryView(v);
   else renderChatView(v);
  }
 
  VIEWS.ai=renderAiAssistant;
+ if(typeof render==="function")render();
 
  window.openAiWithSource=async function(src){
   if(!src)return go("ai");

@@ -91,7 +91,10 @@ const P={
  "user-check":"<circle cx='9' cy='8' r='4'/><path d='M2 21c0-3.8 3.1-6 7-6s7 2.2 7 6'/><path d='m16 11 2 2 4-4'/>",
  "calendar-plus":"<rect x='3' y='4' width='18' height='18' rx='2'/><path d='M16 2v4M8 2v4M3 10h18'/><path d='M12 14v4M10 16h4'/>",
  headphones:"<path d='M3 18v-6a9 9 0 0 1 18 0v6'/><path d='M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z'/>",
- hash:"<path d='M4 9h16M4 15h16M10 3 8 21M16 3l-2 18'/>"
+ hash:"<path d='M4 9h16M4 15h16M10 3 8 21M16 3l-2 18'/>",
+ volume:"<polygon points='11 5 6 9 2 9 2 15 6 15 11 19 11 5'/><path d='M15.54 8.46a5 5 0 0 1 0 7.07'/><path d='M19.07 4.93a10 10 0 0 1 0 14.14'/>",
+ "volume-x":"<polygon points='11 5 6 9 2 9 2 15 6 15 11 19 11 5'/><line x1='22' y1='9' x2='16' y2='15'/><line x1='16' y1='9' x2='22' y2='15'/>",
+ square:"<rect x='5' y='5' width='14' height='14' rx='2'/>"
 };
 const A={},ALIAS={"arrow-start":"arrow-left"};
 const NS="http://www.w3.org/2000/svg";

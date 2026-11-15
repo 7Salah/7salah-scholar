@@ -3,23 +3,50 @@ import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 
 const VALID_MODEL_RX = /^gemini-\d[a-z0-9._-]*$/i;
 
+const SEARCH_GROUNDING_MODEL = "gemini-4-hydrogen";
+
 function primaryModel(): string {
   const raw = (process.env.GEMINI_MODEL || "").trim();
   if (VALID_MODEL_RX.test(raw) && !/^gemini-(?:1\.[05]|2\.0|2\.5)-/i.test(raw)) {
     return raw;
   }
-  return "gemini-3.1-flash-lite";
+  return SEARCH_GROUNDING_MODEL;
 }
 
-function modelCandidates(): string[] {
+function modelCandidates(preferSearchGrounding = false): string[] {
   const raw = (process.env.GEMINI_MODEL || "").trim();
-  const list = [
-    VALID_MODEL_RX.test(raw) ? raw : "",
-    "gemini-3.1-flash-lite",
-    "gemini-4-hydrogen",
-    "gemini-4-argon"
-  ];
+  const validRaw =
+    VALID_MODEL_RX.test(raw) &&
+    !/^gemini-(?:1\.[05]|2\.0|2\.5)-/i.test(raw) &&
+    !/carbon|argon|pro-image|nano-banana|omni|lyria/i.test(raw)
+      ? raw
+      : "";
+  const list = preferSearchGrounding
+    ? [
+        SEARCH_GROUNDING_MODEL,
+        validRaw,
+        "gemini-3.1-flash-lite"
+      ]
+    : [
+        validRaw,
+        SEARCH_GROUNDING_MODEL,
+        "gemini-3.1-flash-lite"
+      ];
   return list.filter((m, i) => Boolean(m) && list.indexOf(m) === i);
+}
+
+function resolveRouteSelection(routeRaw: string): { model: string; level: ThinkingLevel } {
+  const route = cleanText(routeRaw || "general", 24).toLowerCase();
+  if (route === "fast") {
+    return { model: "gemini-3.1-flash-lite", level: ThinkingLevel.LOW };
+  }
+  if (route === "deep") {
+    return { model: SEARCH_GROUNDING_MODEL, level: ThinkingLevel.HIGH };
+  }
+  if (route === "complex") {
+    return { model: SEARCH_GROUNDING_MODEL, level: ThinkingLevel.MEDIUM };
+  }
+  return { model: SEARCH_GROUNDING_MODEL, level: ThinkingLevel.LOW };
 }
 
 function buildConfigForModel(model: string, baseConfig: Record<string, any>, level: ThinkingLevel) {
@@ -48,6 +75,7 @@ function getAi(): GoogleGenAI {
   return new GoogleGenAI({
     apiKey,
     httpOptions: {
+      apiVersion: "v1beta",
       headers: {
         "User-Agent": "aistudio-build"
       }
@@ -82,15 +110,20 @@ async function generateWithFallback(
   ai: GoogleGenAI,
   contents: any,
   baseConfig: Record<string, any>,
-  thinkingLevel: ThinkingLevel
-) {
-  const candidates = modelCandidates();
+  thinkingLevel: ThinkingLevel,
+  preferredModel?: string
+): Promise<{ response: any; actualModel: string }> {
+  const hasSearchTool = Boolean(Array.isArray(baseConfig.tools) && baseConfig.tools.length);
+  const baseCandidates = modelCandidates(hasSearchTool);
+  const candidates = preferredModel
+    ? [preferredModel, ...baseCandidates.filter((m) => m !== preferredModel)]
+    : baseCandidates;
   let lastErr: any;
   for (let i = 0; i < candidates.length; i++) {
     const model = candidates[i];
     const cfg = buildConfigForModel(model, baseConfig, thinkingLevel);
     try {
-      return await withRetry(
+      const response = await withRetry(
         () =>
           ai.models.generateContent({
             model,
@@ -99,23 +132,11 @@ async function generateWithFallback(
           }),
         0
       );
+      return { response, actualModel: model };
     } catch (err: any) {
       lastErr = err;
       const status = Number(err?.status || 0);
       const msg = String(err?.message || "");
-      // If a model rejects tools or Search Grounding hits quota (429/400/5xx), retry cleanly without tools
-      if (cfg.tools && (status === 400 || status === 429 || status === 403 || status >= 500 || /tool|search|unsupported|quota|RESOURCE_EXHAUSTED/i.test(msg))) {
-        try {
-          const { tools: _ignored, ...noToolCfg } = cfg;
-          return await ai.models.generateContent({
-            model,
-            contents,
-            config: noToolCfg
-          });
-        } catch (innerErr: any) {
-          lastErr = innerErr;
-        }
-      }
       const shouldTryNext =
         status === 404 ||
         status === 429 ||
@@ -123,15 +144,31 @@ async function generateWithFallback(
         status >= 500 ||
         /NOT_FOUND|RESOURCE_EXHAUSTED|UNAVAILABLE|quota|unsupported|INVALID_ARGUMENT|high demand/i.test(msg);
       console.warn(`[ai-research] model ${model} fallback (${status}): ${msg.slice(0, 140)}`);
-      if (!shouldTryNext || i === candidates.length - 1) {
-        throw lastErr;
+      if (shouldTryNext && i < candidates.length - 1) {
+        continue;
       }
+      // As a final resort if every candidate failed with Search Grounding tools, retry without tools
+      if (cfg.tools) {
+        try {
+          const fallbackModel = candidates[candidates.length - 1] || SEARCH_GROUNDING_MODEL;
+          const { tools: _ignored, ...noToolCfg } = buildConfigForModel(fallbackModel, baseConfig, thinkingLevel);
+          const response = await ai.models.generateContent({
+            model: fallbackModel,
+            contents,
+            config: noToolCfg
+          });
+          return { response, actualModel: fallbackModel };
+        } catch (innerErr: any) {
+          lastErr = innerErr;
+        }
+      }
+      throw lastErr;
     }
   }
   throw lastErr;
 }
 
-function mapAiError(err: any, lang = "ar"): { status: number; message: string; code: string } {
+export function mapAiError(err: any, lang = "ar"): { status: number; message: string; code: string } {
   const rawStatus = Number(err?.status || 0);
   const msg = String(err?.message || "AI request failed");
   const pick = (ar: string, en: string, fr: string) => (lang === "ar" ? ar : lang === "fr" ? fr : en);
@@ -279,23 +316,27 @@ function formatCitationServer(c: RawCitation, style: string): string {
     .trim();
 }
 
-async function verifyDoiViaOpenAlex(query: string): Promise<RawCitation | null> {
-  const q = cleanText(query, 140);
-  if (!q || q.length < 4) return null;
+async function verifyDoiViaOpenAlex(query: string, explicitDoi?: string): Promise<RawCitation | null> {
   const ctrl = new AbortController();
   const tm = setTimeout(() => ctrl.abort(), 3500);
   try {
-    const res = await fetch(
-      `https://api.openalex.org/works?search=${encodeURIComponent(q)}&per-page=1`,
-      { signal: ctrl.signal }
-    );
+    let url = "";
+    const cleanDoi = cleanText(explicitDoi || "", 120).replace(/^https?:\/\/doi\.org\//i, "");
+    if (cleanDoi && /^10\.\d{4,9}\//.test(cleanDoi) && !/00000/.test(cleanDoi)) {
+      url = `https://api.openalex.org/works/https://doi.org/${encodeURIComponent(cleanDoi)}`;
+    } else {
+      const q = cleanText(query, 140);
+      if (!q || q.length < 4) return null;
+      url = `https://api.openalex.org/works?search=${encodeURIComponent(q)}&per-page=1`;
+    }
+    const res = await fetch(url, { signal: ctrl.signal });
     if (!res.ok) return null;
     const json: any = await res.json();
-    const w = json?.results?.[0];
-    if (!w) return null;
+    const w = cleanDoi ? json : json?.results?.[0];
+    if (!w || !w.id) return null;
     const doi = w.doi ? String(w.doi).replace(/^https?:\/\/doi\.org\//i, "") : "";
     return {
-      title: w.title || w.display_name || q,
+      title: w.title || w.display_name || query,
       authors: (w.authorships || [])
         .slice(0, 4)
         .map((a: any) => a?.author?.display_name)
@@ -335,8 +376,65 @@ export function registerAiResearchRoutes(app: Express) {
     res.json({
       ok: true,
       configured: Boolean(getApiKey()),
-      model: primaryModel()
+      model: primaryModel(),
+      searchGroundingModel: SEARCH_GROUNDING_MODEL,
+      liveModel: "gemini-3.8-live"
     });
+  });
+
+  // Live Google Search Grounding Synthesis for Academic Research Tab
+  app.post("/api/ai/web-grounding", async (req, res) => {
+    const lang = cleanText(req.body?.lang || "ar", 8);
+    try {
+      const ai = getAi();
+      const query = cleanText(req.body?.query || "", 400);
+      const citeStyle = cleanText(req.body?.citeStyle || "apa", 16).toLowerCase();
+      if (!query || query.length < 2) {
+        res.status(400).json({ error: "Search query is required." });
+        return;
+      }
+      const targetLangName = lang === "ar" ? "Arabic" : lang === "fr" ? "French" : "English";
+      const { response, actualModel } = await generateWithFallback(
+        ai,
+        `Provide an up-to-date, concise scholarly synthesis (2 short paragraphs max + 3 key verified takeaways with inline [1], [2] markers) on the academic topic: "${query}". Respond in ${targetLangName}. Rely ONLY on up-to-date verified Google Search findings and never invent citations or URLs.`,
+        {
+          systemInstruction:
+            "You are an academic search grounding synthesizer for university researchers. Summarize recent scholarly consensus, key recent developments/studies, and verified factual evidence concisely with inline markers [1], [2].",
+          tools: [{ googleSearch: {} }]
+        },
+        ThinkingLevel.MEDIUM
+      );
+
+      const gm: any = response.candidates?.[0]?.groundingMetadata;
+      const groundingChunks: any[] = Array.isArray(gm?.groundingChunks) ? gm.groundingChunks : [];
+      const seen = new Set<string>();
+      const sources: Array<{ index: number; title: string; url: string; formatted: string; verifiedSource: string }> = [];
+      for (const ch of groundingChunks) {
+        const uri = ch?.web?.uri;
+        if (!uri || seen.has(uri)) continue;
+        seen.add(uri);
+        const title = ch.web.title || uri;
+        sources.push({
+          index: sources.length + 1,
+          title,
+          url: uri,
+          verifiedSource: "Google Search Grounding",
+          formatted: formatCitationServer({ title, url: uri }, citeStyle)
+        });
+        if (sources.length >= 8) break;
+      }
+
+      res.json({
+        synthesis: (response.text || "").trim(),
+        modelUsed: actualModel,
+        webSearchQueries: Array.isArray(gm?.webSearchQueries) ? gm.webSearchQueries.slice(0, 5) : [],
+        sources
+      });
+    } catch (err: any) {
+      console.error("[ai/web-grounding]", err);
+      const mapped = mapAiError(err, lang);
+      res.status(mapped.status).json({ error: mapped.message, code: mapped.code });
+    }
   });
 
   // 1) Interactive AI Research Chat, Outline Builder & Literature Review Synthesizer
@@ -346,6 +444,8 @@ export function registerAiResearchRoutes(app: Express) {
       const ai = getAi();
       const messages = Array.isArray(req.body?.messages) ? req.body.messages.slice(-14) : [];
       const mode = cleanText(req.body?.mode || "qa", 32);
+      const taskRoute = cleanText(req.body?.taskRoute || "general", 24);
+      const persona = cleanText(req.body?.persona || "advisor", 24);
       const citeStyle = cleanText(req.body?.citeStyle || "apa", 16).toLowerCase();
       const field = cleanText(req.body?.field || "", 80);
       const useWebSearch = req.body?.useWebSearch !== false;
@@ -365,12 +465,20 @@ export function registerAiResearchRoutes(app: Express) {
         litreview: "Draft a comparative academic literature review synthesizing competing schools of thought, key empirical findings, methodological trends, and research gaps with inline citations."
       };
 
+      const personaInstructions: Record<string, string> = {
+        advisor: "Adopt the role of a senior University Research Advisor: structured, scholarly, and methodical.",
+        reviewer: "Adopt the role of a Peer Reviewer: probe assumptions, flag methodological blind spots, and highlight competing evidence.",
+        stem: "Adopt the role of an Interactive STEM & Quantitative Tutor: break derivations, formulas, and empirical designs down step-by-step.",
+        summarizer: "Adopt the role of a Rapid Academic Explainer: deliver concise, crystal-clear bullet takeaways and crisp definitions."
+      };
+
       const styleLabel = citeStyle === "mla" ? "MLA 9th" : citeStyle === "chicago" ? "Chicago 17th" : "APA 7th";
       const hasDoc = Boolean(doc && (doc.pdfBase64 || doc.text));
       const strictDocOnly = hasDoc && !useWebSearch;
 
       const systemInstruction = [
         "You are the 7Salah Scholar Academic Research Assistant (المساعد البحثي الذكي), serving university students and researchers worldwide.",
+        personaInstructions[persona] || personaInstructions.advisor,
         "Respond in the same language as the user's latest question (Arabic, English, or French); if ambiguous, prefer " + (lang === "ar" ? "Arabic" : lang === "fr" ? "French" : "English") + ".",
         modeInstructions[mode] || modeInstructions.qa,
         field ? `Academic discipline focus: ${field}.` : "",
@@ -385,45 +493,58 @@ export function registerAiResearchRoutes(app: Express) {
         .filter(Boolean)
         .join("\n");
 
-      const parts: any[] = [];
+      const docParts: any[] = [];
       if (doc?.pdfBase64) {
         const cleanB64 = String(doc.pdfBase64).replace(/^data:application\/pdf;base64,/i, "");
         if (cleanB64.length > 26_000_000) {
           res.status(400).json({ error: "PDF exceeds maximum 18MB limit for analysis." });
           return;
         }
-        parts.push({
+        docParts.push({
           inlineData: {
             mimeType: "application/pdf",
             data: cleanB64
           }
         });
-        parts.push({
+        docParts.push({
           text: `Attached Reference Document Title: "${cleanText(doc.title || "Uploaded Paper", 200)}". Ground analysis in this PDF.`
         });
       } else if (doc?.text) {
-        parts.push({
+        docParts.push({
           text: `Attached ${cleanText(doc.kind || "document", 30).toUpperCase()} ("${cleanText(doc.title || "Source Document", 200)}"):\n---\n${cleanText(doc.text, 65000)}\n---`
         });
       }
 
-      const conversationText = messages
-        .map((m: any) => `${m.role === "assistant" ? "Assistant" : "Researcher"}: ${cleanText(m.text, 8000)}`)
-        .join("\n\n");
-      parts.push({ text: conversationText });
+      // Build multi-turn conversation history cleanly
+      const contents = messages
+        .filter((m: any) => cleanText(m?.text, 8000).length > 0)
+        .map((m: any, idx: number) => {
+          const role = m.role === "assistant" ? "model" : "user";
+          const txt = cleanText(m.text, 8000);
+          const turnParts = idx === 0 && role === "user" && docParts.length
+            ? [...docParts, { text: txt }]
+            : [{ text: txt }];
+          return { role, parts: turnParts };
+        });
 
+      if (!contents.length || contents[0].role !== "user") {
+        contents.unshift({ role: "user", parts: docParts.length ? docParts : [{ text: "Hello" }] });
+      }
+
+      const routeSel = resolveRouteSelection(taskRoute);
       const baseConfig: Record<string, any> = {
         systemInstruction
       };
-      if (useWebSearch && !strictDocOnly) {
+      if (useWebSearch && !strictDocOnly && routeSel.model !== "gemini-3.1-flash-lite") {
         baseConfig.tools = [{ googleSearch: {} }];
       }
 
-      const response = await generateWithFallback(
+      const { response, actualModel } = await generateWithFallback(
         ai,
-        [{ role: "user", parts }],
+        contents,
         baseConfig,
-        ThinkingLevel.HIGH
+        routeSel.level,
+        routeSel.model
       );
 
       const rawText = response.text || "";
@@ -462,21 +583,25 @@ export function registerAiResearchRoutes(app: Express) {
       webChunks.forEach(pushRef);
 
       const candidates = [...mergedMap.values()].slice(0, 8);
-      // Verify up to 3 bibliographic references lacking DOI against OpenAlex when web grounding was enabled
+      // Verify bibliographic references against OpenAlex (stripping fabricated/placeholder DOIs)
       if (!strictDocOnly) {
         await Promise.all(
           candidates
-            .filter((c) => !c.doi && c.title && c.verifiedSource !== "Uploaded Document (PDF/Text)" && c.verifiedSource !== "Uploaded Lecture Transcript")
-            .slice(0, 3)
+            .filter((c) => c.title && c.verifiedSource !== "Uploaded Document (PDF/Text)" && c.verifiedSource !== "Uploaded Lecture Transcript" && c.verifiedSource !== "Google Search Grounding")
+            .slice(0, 4)
             .map(async (c) => {
-              const verified = await verifyDoiViaOpenAlex(c.title!);
+              const verified = await verifyDoiViaOpenAlex(c.title!, c.doi);
               if (verified) {
                 if (verified.doi) c.doi = verified.doi;
+                else delete c.doi;
                 if (!c.url && verified.url) c.url = verified.url;
                 if ((!c.authors || !c.authors.length) && verified.authors?.length) c.authors = verified.authors;
                 if (!c.year && verified.year) c.year = verified.year;
                 if (!c.journal && verified.journal) c.journal = verified.journal;
                 if (verified.doi) c.verifiedSource = verified.verifiedSource;
+              } else if (c.doi && /00000/.test(c.doi)) {
+                delete c.doi;
+                c.url = "";
               }
             })
         );
@@ -518,6 +643,9 @@ export function registerAiResearchRoutes(app: Express) {
 
       res.json({
         answer: cleanBody,
+        modelUsed: actualModel,
+        taskRoute,
+        persona,
         verification: {
           status,
           confidenceScore,
@@ -571,7 +699,7 @@ export function registerAiResearchRoutes(app: Express) {
         text: `Analyze this ${kind} titled "${title}" strictly based on the provided content. Output all prose descriptions, summaries, definitions, and flashcards in ${targetLangName} (preserve exact technical quotes from the document).`
       });
 
-      const response = await generateWithFallback(
+      const { response } = await generateWithFallback(
         ai,
         [{ role: "user", parts }],
         {
@@ -722,7 +850,7 @@ export function registerAiResearchRoutes(app: Express) {
       }
 
       const targetLangName = lang === "ar" ? "Arabic" : lang === "fr" ? "French" : "English";
-      const response = await generateWithFallback(
+      const { response } = await generateWithFallback(
         ai,
         `Extract 5 to 8 high-yield academic flashcards (question & concise verified answer) in ${targetLangName} strictly from this research response titled "${title}". Only include facts directly stated in the text.\n\n---\n${answerText}`,
         {
@@ -759,4 +887,270 @@ export function registerAiResearchRoutes(app: Express) {
       res.status(mapped.status).json({ error: mapped.message, code: mapped.code });
     }
   });
+
+  // 4) Google Maps Grounding via Gemini + Places API (New) grounded synthesis fallback
+  app.post("/api/ai/maps-grounding", async (req, res) => {
+    const lang = cleanText(req.body?.lang || "ar", 8);
+    try {
+      const query = cleanText(req.body?.query || "", 400);
+      if (!query || query.length < 2) {
+        res.status(400).json({ error: "Location or place query is required." });
+        return;
+      }
+      const lat = Number(req.body?.lat);
+      const lng = Number(req.body?.lng);
+      const hasCoords =
+        Number.isFinite(lat) &&
+        Number.isFinite(lng) &&
+        Math.abs(lat) <= 90 &&
+        Math.abs(lng) <= 180 &&
+        !(lat === 0 && lng === 0);
+
+      const targetLangName = lang === "ar" ? "Arabic" : lang === "fr" ? "French" : "English";
+      const cfg: Record<string, any> = {
+        systemInstruction:
+          "You are the 7Salah Scholar Campus & Study Location Assistant. Use the Google Maps grounding tool to recommend real libraries, university campuses, quiet study cafes, or research centers matching the user's request. Never invent addresses, coordinates, or Maps links; rely exclusively on Google Maps grounding results.",
+        tools: [{ googleMaps: {} }]
+      };
+      if (hasCoords) {
+        cfg.toolConfig = {
+          retrievalConfig: {
+            latLng: { latitude: lat, longitude: lng }
+          }
+        };
+      }
+
+      const ai = getApiKey() ? getAi() : null;
+      let geminiErr: any = null;
+
+      if (ai) {
+        for (const model of [SEARCH_GROUNDING_MODEL, "gemini-3.1-flash-lite"]) {
+          try {
+            const response = await ai.models.generateContent({
+              model,
+              contents: `Find real study locations, libraries, or academic spaces matching: "${query}". Respond clearly in ${targetLangName} using bullet points for top matches.`,
+              config: cfg
+            });
+            const gm: any = response.candidates?.[0]?.groundingMetadata;
+            const groundingChunks: any[] = Array.isArray(gm?.groundingChunks) ? gm.groundingChunks : [];
+            const seen = new Set<string>();
+            const places: Array<{
+              index: number;
+              title: string;
+              address?: string;
+              rating?: number | null;
+              lat?: number;
+              lng?: number;
+              uri: string;
+              placeId: string;
+              reviewSnippets: Array<{ text: string; uri: string }>;
+            }> = [];
+
+            for (const ch of groundingChunks) {
+              const m = ch?.maps;
+              if (!m || (!m.uri && !m.title && !m.placeId)) continue;
+              const key = String(m.placeId || m.uri || m.title).toLowerCase();
+              if (seen.has(key)) continue;
+              seen.add(key);
+
+              const rawSnippets: any[] = Array.isArray(m?.placeAnswerSources?.reviewSnippets)
+                ? m.placeAnswerSources.reviewSnippets
+                : [];
+              const reviewSnippets = rawSnippets
+                .slice(0, 3)
+                .map((rs: any) => ({
+                  text: cleanText(rs?.text || rs?.reviewUri || "", 260),
+                  uri: cleanText(rs?.googleMapsUri || rs?.reviewUri || m.uri || "", 400)
+                }))
+                .filter((x) => x.text || x.uri);
+
+              places.push({
+                index: places.length + 1,
+                title: cleanText(m.title || "Google Maps Place", 180),
+                uri: cleanText(m.uri || "", 400),
+                placeId: cleanText(m.placeId || "", 120),
+                reviewSnippets
+              });
+              if (places.length >= 10) break;
+            }
+
+            if (places.length > 0 || (response.text || "").trim().length > 20) {
+              res.json({
+                answer: (response.text || "").trim(),
+                modelUsed: model,
+                places
+              });
+              return;
+            }
+          } catch (e: any) {
+            geminiErr = e;
+            console.warn(`[ai/maps-grounding] ${model} fallback:`, String(e?.message || e).slice(0, 140));
+          }
+        }
+      }
+
+      // Grounded fallback via Google Places API (New) + Gemini Flash-Lite summary
+      const mapsKey = (
+        process.env.GOOGLE_MAPS_API_KEY ||
+        process.env.VITE_GOOGLE_MAPS_API_KEY ||
+        process.env.GOOGLE_MAPS_PLATFORM_API_KEY ||
+        process.env.MAPS_API_KEY ||
+        ""
+      ).trim();
+
+      if (mapsKey) {
+        const bodyReq: Record<string, any> = {
+          textQuery: query,
+          maxResultCount: 6,
+          languageCode: lang === "ar" ? "ar" : lang === "fr" ? "fr" : "en"
+        };
+        if (hasCoords) {
+          bodyReq.locationBias = {
+            circle: {
+              center: { latitude: lat, longitude: lng },
+              radius: 25000
+            }
+          };
+        }
+        const pr = await fetch("https://places.googleapis.com/v1/places:searchText", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": mapsKey,
+            "X-Goog-FieldMask":
+              "places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.rating,places.location"
+          },
+          body: JSON.stringify(bodyReq)
+        });
+        const pj: any = await pr.json().catch(() => ({}));
+        if (pr.status === 429 || pj?.error?.status === "RESOURCE_EXHAUSTED") {
+          res.status(429).json({
+            error: "Google Maps API quota exceeded.",
+            code: "RESOURCE_EXHAUSTED"
+          });
+          return;
+        }
+        if (pr.ok && Array.isArray(pj.places)) {
+          const places = pj.places.map((pl: any, idx: number) => ({
+            index: idx + 1,
+            title: cleanText(pl?.displayName?.text || "Google Maps Place", 180),
+            address: cleanText(pl?.formattedAddress || "", 260),
+            rating: Number.isFinite(Number(pl?.rating)) ? Number(pl.rating) : null,
+            lat: Number.isFinite(Number(pl?.location?.latitude)) ? Number(pl.location.latitude) : undefined,
+            lng: Number.isFinite(Number(pl?.location?.longitude)) ? Number(pl.location.longitude) : undefined,
+            uri: cleanText(pl?.googleMapsUri || "", 400),
+            placeId: cleanText(pl?.id || "", 120),
+            reviewSnippets: []
+          }));
+
+          let summary = "";
+          if (ai && places.length) {
+            try {
+              const summaryPrompt = `Summarize these verified Google Places results for the study query "${query}" in ${targetLangName} in concise bullet points. Mention ONLY these exact names/addresses:\n${places
+                .map((p: any) => `- ${p.title} (${p.address || "Verified Google Maps location"})${p.rating ? ` [★ ${p.rating}]` : ""}`)
+                .join("\n")}`;
+              const { response } = await generateWithFallback(
+                ai,
+                summaryPrompt,
+                {
+                  systemInstruction: "Summarize only the supplied Google Places records concisely for students. Do not invent facts or links."
+                },
+                ThinkingLevel.LOW,
+                "gemini-3.1-flash-lite"
+              );
+              summary = (response.text || "").trim();
+            } catch {}
+          }
+          if (!summary) {
+            summary = places.length
+              ? places.map((p: any) => `• **${p.title}**${p.address ? ` — ${p.address}` : ""}`).join("\n")
+              : (lang === "ar" ? "لم يتم العثور على أماكن مطابقة." : "No matching study spaces found.");
+          }
+
+          res.json({
+            answer: summary,
+            modelUsed: "gemini-3.1-flash-lite + Google Places API",
+            places
+          });
+          return;
+        }
+      }
+
+      if (geminiErr) throw geminiErr;
+      throw new Error("Maps grounding and Places API are currently unavailable.");
+    } catch (err: any) {
+      console.error("[ai/maps-grounding]", err);
+      const mapped = mapAiError(err, lang);
+      res.status(mapped.status).json({ error: mapped.message, code: mapped.code });
+    }
+  });
 }
+
+export async function generateCompanionReply(opts: {
+  message: string;
+  lang?: string;
+  field?: string;
+  studentContext?: {
+    name?: string;
+    field?: string;
+    university?: string;
+    academicTitle?: string;
+    lastTopic?: string;
+    memoryNotes?: string;
+  };
+}): Promise<{ reply: string; modelUsed: string; updatedNotes: string }> {
+  const ai = getAi();
+  const lang = cleanText(opts.lang || "ar", 8);
+  const message = cleanText(opts.message, 4000);
+  const ctx = opts.studentContext || {};
+  const field = cleanText(opts.field || ctx.field || "", 80);
+  const university = cleanText(ctx.university || "", 120);
+  const lastTopic = cleanText(ctx.lastTopic || "", 160);
+  const memoryNotes = cleanText(ctx.memoryNotes || "", 1200);
+  const studentName = cleanText(ctx.name || "", 80);
+
+  const memoryBlock = [
+    studentName ? `Student name: ${studentName}` : "",
+    ctx.academicTitle ? `Academic level/title: ${cleanText(ctx.academicTitle, 80)}` : "",
+    field ? `Academic discipline/major: ${field}` : "",
+    university ? `University/institution: ${university}` : "",
+    lastTopic ? `Most recent study topic: ${lastTopic}` : "",
+    memoryNotes ? `Persistent academic track memory:\n${memoryNotes}` : ""
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const targetLang = lang === "ar" ? "Arabic" : lang === "fr" ? "French" : "English";
+  const systemInstruction = [
+    "You are the 7Salah Scholar Personal Academic Voice Companion (المساعد الأكاديمي الشخصي بذاكرة المسار).",
+    `Respond naturally, clearly, and concisely in ${targetLang} (match the student's language if they write/speak in Arabic, French, or English) so your answer is pleasant to listen to via speech synthesis as well as easy to scan.`,
+    "Tailor explanations, examples, and methodological advice to the student's remembered discipline and previous study context when relevant.",
+    "Never fabricate DOIs, citations, or facts; if a claim requires verification, advise verifying against peer-reviewed sources.",
+    memoryBlock ? `--- REMEMBERED STUDENT CONTEXT ---\n${memoryBlock}` : ""
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const { response, actualModel } = await generateWithFallback(
+    ai,
+    [{ role: "user", parts: [{ text: message }] }],
+    { systemInstruction },
+    ThinkingLevel.LOW,
+    "gemini-3.1-flash-lite"
+  );
+
+  const reply = (response.text || "").trim();
+  const stamp = new Date().toISOString().slice(0, 10);
+  const snippet = `[${stamp}] ${message.slice(0, 90)}`;
+  const prevLines = memoryNotes
+    ? memoryNotes.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+    : [];
+  const nextNotes = [snippet, ...prevLines.filter((l) => l !== snippet)].slice(0, 8).join("\n");
+
+  return {
+    reply,
+    modelUsed: actualModel,
+    updatedNotes: nextNotes
+  };
+}
+

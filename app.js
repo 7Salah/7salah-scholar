@@ -348,8 +348,40 @@ function viaSite(q){
   _sc:ws.filter(w=>{const hay=normT([p.title,(p.authors||[]).join(" "),p.journal,(p.tags||[]).join(" ")].join(" "));const st=w.replace(/^(وال|بال|كال|فال|لل|ال)/,"");return hay.includes(w)||(st.length>1&&hay.includes(st))}).length}))
  .filter(p=>p._sc>0).sort((a,b)=>b._sc-a._sc)}
 let SEQ=0;
+async function fetchWebGrounding(q,seq){
+ S.webGrounding={loading:true,q,data:null,err:null};
+ if(S.tab==="res")render();
+ try{
+  const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
+  const tm=ctrl?setTimeout(()=>ctrl.abort(),45000):null;
+  const headers={"Content-Type":"application/json"};
+  try{
+   if(window.SC&&SC.sb&&SC.sb.auth){
+    const sRes=await SC.sb.auth.getSession();
+    const tok=sRes&&sRes.data&&sRes.data.session&&sRes.data.session.access_token;
+    if(tok)headers["Authorization"]="Bearer "+tok;
+   }
+  }catch(_){}
+  const res=await fetch("/api/ai/web-grounding",{
+   method:"POST",
+   headers,
+   body:JSON.stringify({query:q,lang:S.lang||"ar",citeStyle:S.citeStyle||"apa"}),
+   signal:ctrl?ctrl.signal:undefined
+  });
+  if(tm)clearTimeout(tm);
+  if(seq!==SEQ)return;
+  const json=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(json.error||("HTTP "+res.status));
+  S.webGrounding={loading:false,q,data:json,err:null};
+ }catch(e){
+  if(seq!==SEQ)return;
+  S.webGrounding={loading:false,q,data:null,err:e&&e.message?e.message:null};
+ }
+ if(S.tab==="res")render();
+}
 async function doSearch(){
- const q=S.q.trim();if(!q)return;const my=++SEQ;award("search");S.loading=true;S.err=false;S.res=null;S.show=20;render();
+ const q=S.q.trim();if(!q)return;const my=++SEQ;award("search");S.loading=true;S.err=false;S.res=null;S.show=20;S.webGrounding=null;render();
+ fetchWebGrounding(q,my);
  try{const site=viaSite(q);
   const run=qq=>{const L=[viaOpenAlex(qq),viaDOAJ(qq),viaArchive(qq)];if(!S.oa)L.push(viaCrossref(qq),viaOpenLibrary(qq),viaGBooks(qq));return Promise.allSettled(L)};
   const ok=r=>r.map(x=>x.status==="fulfilled"?x.value:[]);
@@ -367,7 +399,7 @@ function toggleSave(p){if(isSaved(p))S.saved=S.saved.filter(s=>keyOf(s)!==keyOf(
 
 // ===================== نوافذ وتدفّقات الإنشاء =====================
 function modal(...kids){const m=h("div",{class:"modal",onclick:e=>{if(e.target===m)m.remove()}},h("div",{class:"box"},...kids));document.body.append(m);return m}
-function brandLogoSvg(size){const w=document.createElement("span");w.style.cssText="display:block;width:100%;height:100%";w.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" width="${size||54}" height="${size||54}" role="img" aria-label="7Salah Scholar"><rect width="1254" height="1254" rx="280" fill="#001449"/><path fill="#FDC405" fill-rule="evenodd" d="M906 480 407 480 327 623 365 602 395 590 426 581 469 573 515 569 713 568 715 570 641 632 577 695 535 742 499 787 466 833 427 896 383 980 360 1030 361 1032 608 1031 626 952 649 879 674 816 710 743 744 685 792 615 845 548ZM355 390 355 477 370 466 396 453 443 438 515 424 592 417 682 418 761 427 830 442 899 465 901 464 901 390 899 388 850 367 802 351 754 339 708 331 655 326 599 326 522 335 488 342 434 357 385 375ZM144 339 148 342 323 409 324 370 327 367 367 347 405 332 477 311 534 300 590 294 647 293 699 297 761 307 819 322 869 339 912 358 932 370 933 409 1022 376 1023 452 1008 464 1001 481 1003 497 1015 514 974 677 989 683 1017 688 1060 687 1080 683 1095 677 1054 517 1054 512 1063 502 1067 492 1067 477 1060 463 1045 452 1045 367 1109 341 796 216 629 147Z"/></svg>`;return w.firstElementChild}
+function brandLogoSvg(size){const w=document.createElement("span");w.style.cssText="display:block;width:100%;height:100%";w.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${size||54}" height="${size||54}" role="img" aria-label="7Salah Scholar"><rect width="100" height="100" rx="22" fill="#001449"/><path d="M50 13 L87 28.5 L73 34.4 Q50 23.8 27 34.4 L13 28.5 Z" fill="#FACC15"/><path d="M28.2 37.2 Q50 27.6 71.8 37.2 L71.8 45.2 Q50 36.2 28.2 45.2 Z" fill="#FACC15"/><rect x="80.3" y="30" width="2.4" height="13.5" rx="1.2" fill="#FACC15"/><circle cx="81.5" cy="44" r="3.3" fill="#FACC15"/><path d="M79.3 46.2 L83.7 46.2 L86.6 58.6 Q81.5 60.8 76.4 58.6 Z" fill="#FACC15"/><path d="M35.5 48.2 L72 48.2 L72 55.6 C58.5 65.2 50 75.5 47.2 87 L30.2 87 C34.2 75.2 43 65 56.5 56 C44.5 56 34.8 57.6 27 61 Z" fill="#FACC15"/></svg>`;return w.firstElementChild}
 function newDeck(title,cards,o){o=o||{};const d={id:uid(),title:title||t("dNew"),emoji:o.emoji||EMO[Math.random()*EMO.length|0],created:Date.now(),cards:cards||[],exam:null,best:0};S.decks.unshift(d);persist();return d}
 function openDeck(id){S.deckId=id;S.tab="deck";render();window.scrollTo(0,0)}
 function go(tab){S.tab=tab;render();window.scrollTo(0,0)}
@@ -489,11 +521,13 @@ function challengeModal(o){const cards=o.c.slice(0,60).map(unslim),isC=o.k==="c"
    h("button",{class:"btn",onclick:()=>m.remove()},t("chLater"))))}
 async function handleHash(){
  const rawHash=location.hash||"";
+ const qRoom=new URLSearchParams(location.search||"").get("room");
  const mRoom=rawHash.match(/^#room=(.+)$/);
- if(mRoom){
+ const roomToken=mRoom?decodeURIComponent(mRoom[1]):(qRoom||"");
+ if(roomToken){
   if(typeof joinStudyRoom!=="function"){window.addEventListener("load",handleHash,{once:true});return}
   try{history.replaceState(null,"",location.pathname)}catch(e){}
-  joinStudyRoom(decodeURIComponent(mRoom[1]));return;
+  joinStudyRoom(roomToken);return;
  }
  const mUser=rawHash.match(/^#u=(.+)$/);
  if(mUser){
@@ -532,12 +566,15 @@ function exitStudy(){const f=S.study&&S.study.from;S.study=null;S.tab=(f&&f!=="s
 function rate(r){const st=S.study,[did,cid]=st.q[st.i],d=deckBy(did),c=d&&d.cards.find(x=>x.id===cid);
  if(c&&!st.cram){const first=!c.sr;c.sr=calc(c.sr,r);d.last=Date.now();if(first){const day=dkey(new Date());d.nd=d.nd&&d.nd.d===day?{d:day,n:d.nd.n+1}:{d:day,n:1}}}
  award("review",null,true);st.done++;if(r>0)st.ok++;else st.missed=(st.missed||0)+1;
+ if(todayN("review")===(S.prof.goal||20)){toast(S.lang==="ar"?"مبارك! حقّقت هدف المراجعة اليومي 🎯":S.lang==="fr"?"Objectif quotidien atteint 🎯":"Daily review goal reached! 🎯")}
  if(r===0&&!st.cram)st.q.push([did,cid]);   // بطاقات «نسيتها» تعود في آخر الجلسة
  st.i++;st.show=false;st.src=false;persist();render()}
 function renderStudy(v){const st=S.study;if(!st){S.tab="home";return render()}
  document.body.classList.add("focus");
  if(st.i>=st.q.length){const acc=Math.round(st.ok/Math.max(1,st.done)*100),more=!st.cram&&dueTotal()>0,an=srsAnalyze(st.deckId);
-  v.append(h("div",{class:"hero"},h("div",{class:"eyebrow"},"✓"),h("h1",{},t("sDone")),h("div",{},st.done+" "+t("sRev")+" · "+acc+"% "+t("sOk"))));
+  const doneHero=h("div",{class:"hero goal-shine-host goal-achieved-glow"},h("div",{class:"eyebrow"},"✓"),h("h1",{},t("sDone")),h("div",{},st.done+" "+t("sRev")+" · "+acc+"% "+t("sOk")));
+  v.append(doneHero);
+  if(window.triggerAchievementShine)setTimeout(()=>window.triggerAchievementShine(doneHero,{persistGlow:true,count:10}),30);
   v.append(h("div",{class:"card"},h("div",{class:"btns"},
    more?h("button",{class:"btn fill",onclick:()=>{const f=st.from,did=st.deckId;S.study=null;S.tab=f;startStudy(did)}},t("sMore")):null,
    an.weak.length?h("button",{class:"btn",onclick:()=>{const did=st.deckId;S.study=null;startAdaptiveQuiz(did)}},ic("zap"),t("srsWeakQuiz")):null,
@@ -696,16 +733,9 @@ const TABS=[["home","nHome",icp("home")],
  ["play","nPlay",icp("zap")],
  ["me","nMe",icp("user")]];
 const TABMAP={deck:"decks",study:"decks",quiz:"play"};
-let _tabSig="";
-function buildTabs(){const cur=TABMAP[S.tab]||S.tab,nd=dueTotal(),box=$("tabs");
- // لا نعيد بناء الشريط إلا عند تغيّر ما يظهر فيه فعلًا: يمنع اهتزاز الأيقونات وقفز التمرير أثناء التصفح
- const sig=S.lang+"|"+cur+"|"+nd+"|"+TABS.map(x=>x[0]+":"+x[1]).join(",");
- if(sig===_tabSig&&box.children.length===TABS.length)return;
- _tabSig=sig;const sx=box.scrollLeft;
- box.replaceChildren(...TABS.map(([id,k,svg])=>{const b=h("button",{type:"button",class:cur===id?"on":"",onclick:()=>go(id)});b.innerHTML="<svg viewBox='0 0 24 24'>"+svg+"</svg>";b.append(h("span",{},t(k)));
-  if(id==="decks"&&nd)b.append(h("span",{class:"dot"},nd>99?"99+":nd));return b}));
- box.scrollLeft=sx;
- try{const on=box.querySelector("button.on");if(on){const r=on.getBoundingClientRect(),c=box.getBoundingClientRect();if(r.left<c.left||r.right>c.right)box.scrollLeft+=(r.left+r.right)/2-(c.left+c.right)/2}}catch(e){}}
+function buildTabs(){const cur=TABMAP[S.tab]||S.tab,nd=dueTotal();
+ $("tabs").replaceChildren(...TABS.map(([id,k,svg])=>{const b=h("button",{class:cur===id?"on":"",onclick:()=>go(id)});b.innerHTML="<svg viewBox='0 0 24 24'>"+svg+"</svg>";b.append(h("span",{},t(k)));
+  if(id==="decks"&&nd)b.append(h("span",{class:"dot"},nd>99?"99+":nd));return b}))}
 
 function deckCard(d){const s=deckStats(d),ev=evRate(d);
  return h("div",{class:"card dk",onclick:()=>openDeck(d.id)},h("div",{class:"em"},d.emoji),h("div",{class:"tx"},h("h3",{dir:"auto"},d.title),
@@ -732,7 +762,7 @@ function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=
  v.append(h("div",{class:"qa"},
   h("button",{onclick:()=>notesModal()},h("b",{},"📝"),t("qNotes")),h("button",{onclick:()=>notesModal(true)},h("b",{},"📄"),t("qFile")),
   h("button",{onclick:()=>go("play")},h("b",{},"🔗"),t("qCode")),h("button",{onclick:()=>{S.sub="sav";go("res")}},h("b",{},"📚"),t("qSaved"))));
- v.append(h("div",{class:"card"},
+ v.append(h("div",{class:"card goal-shine-host"+(done>=goal?" goal-achieved-glow":"")},
   h("div",{class:"today"},h("div",{class:"ring",style:"--p:"+pc},h("div",{},done+"/"+goal,h("small",{},t("goalT")))),
    h("div",{style:"flex:1"},nDue?[h("div",{class:"big"},nDue+" "+t("dueNow")),h("button",{class:"btn fill",style:"margin-top:8px",onclick:()=>startStudy(null)},"🧠 "+t("studyNow"))]:h("div",{style:"line-height:1.7"},S.decks.length?t("nothingDue"):t("noDecks")))),
   an.total?h("div",{class:"srs-strip"},
@@ -948,6 +978,45 @@ function renderResearch(v){
   h("button",{class:"chip"+(S.oa?" on":""),onclick:()=>{S.oa=!S.oa;S.q.trim()?doSearch():render()}},t("oa")),
   h("button",{class:"chip"+(S.sort==="year"?" on":""),onclick:()=>{S.sort="year";S.q.trim()?doSearch():render()}},t("yr")),
   h("button",{class:"chip"+(S.sort==="rel"?" on":""),onclick:()=>{S.sort="rel";S.q.trim()?doSearch():render()}},t("rel"))));
+ const wg=S.webGrounding;
+ if(wg){
+  const tr=(a,e,f)=>S.lang==="ar"?a:S.lang==="fr"?(f||e):e;
+  if(wg.loading){
+   v.append(h("div",{class:"card ai-wg-card"},
+    h("div",{class:"ai-wg-head"},ic("globe",{s:16}),h("b",{},tr("ملخص الويب الموثّق (Google Search)…","Live Web Search Grounding…","Synthèse Web vérifiée…"))),
+    h("div",{class:"meta"},tr("جارٍ استخلاص أحدث النتائج العلمية وتوثيق روابطها…","Fetching up-to-date grounded sources and synthesis…","Recherche de sources à jour…"))
+   ));
+  }else if(wg.data&&wg.data.synthesis){
+   const d=wg.data;
+   v.append(h("div",{class:"card ai-wg-card"},
+    h("div",{class:"ai-wg-head"},
+     ic("globe",{s:16,cls:"gold"}),
+     h("b",{},tr("ملخص بحث Google الموثّق","Google Search Grounded Synthesis","Synthèse Google Search")),
+     h("span",{class:"ai-wg-badge"},d.sources?.length?d.sources.length+" "+tr("مصدر","sources","sources"):tr("محدّث","Live","Direct"))
+    ),
+    h("div",{class:"ai-wg-body",dir:"auto"},d.synthesis),
+    d.webSearchQueries&&d.webSearchQueries.length?h("div",{class:"ai-wg-queries"},
+     h("small",{class:"meta"},tr("استعلامات البحث:","Queries:","Requêtes :")),
+     d.webSearchQueries.map(qs=>h("span",{class:"ai-wg-q",dir:"auto"},qs))
+    ):null,
+    d.sources&&d.sources.length?h("div",{class:"ai-wg-links"},d.sources.map(s=>
+     h("a",{class:"ai-wg-link",href:s.url,target:"_blank",rel:"noopener noreferrer",dir:"auto"},
+      h("span",{class:"ai-wg-idx"},"["+s.index+"]"),
+      h("span",{},s.title)
+     )
+    )):null,
+    typeof window.openAiWithSource==="function"?h("div",{class:"btns",style:"margin-top:8px"},
+     h("button",{type:"button",class:"btn fill",onclick:()=>window.openAiWithSource({
+      kind:"text",
+      title:tr("نتائج البحث الموثّقة: ","Search Grounding: ","Recherche : ")+wg.q,
+      text:d.synthesis+"\n\n"+(d.sources||[]).map(s=>`[${s.index}] ${s.title} - ${s.url}`).join("\n"),
+      autoAnalyze:false,
+      prompt:wg.q
+     })},ic("sparkles",{s:15}),tr("تعمّق مع المساعد البحثي","Continue in AI Research","Approfondir avec l'IA"))
+    ):null
+   ));
+  }
+ }
  if(S.loading)v.append(h("div",{class:"msg"},t("load")));
  else if(S.err)v.append(h("div",{class:"msg"},t("err")));
  else if(S.res===null)v.append(h("div",{class:"msg"},t("empty")));
@@ -1075,7 +1144,7 @@ function renderLibrary(v){
  [["lecture",tr("محاضرة","Lecture")],["td",tr("أعمال موجهة TD","Tutorial / TD")],["summary",tr("ملخص","Summary")],["reference",tr("مرجع","Reference")],["other",tr("أخرى","Other")]].forEach(([value,label])=>kind.append(h("option",{value},label)));
  kindWrap.append(kind);
  const pick=h("input",{type:"file",accept:"application/pdf,.pdf",style:"display:none",onchange:async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){toast(tr("اختر ملف PDF صالحًا.","Choose a valid PDF file."));return}if(f.size>25*1024*1024){toast(tr("الحد الأقصى للملف 25 ميغابايت.","Maximum file size is 25 MB."));return}try{const id=uid(),now=Date.now(),meta={};[uni,faculty,dept,level,semester,course].forEach(x=>meta[x.el.dataset.meta]=x.el.value.trim());meta.kind=kind.value;await libraryPut({id,name:f.name,size:f.size,type:"application/pdf",created:now,updated:now,page:1,note:"",meta,blob:f});LIB_OPEN_ID=id;toast(tr("أُضيف الملف إلى مكتبتك مع تصنيفه ✓","PDF added with its classification ✓"));render()}catch(err){console.error("[library]",err);toast(tr("تعذر حفظ الملف. قد تكون مساحة التخزين غير كافية.","Could not save the file. Device storage may be full."))}}});
- const metaForm=h("div",{class:"lib-classifier card"},h("div",{class:"lib-classifier-title"},tr("تصنيف ملف جديد","Classify a new file")),h("div",{class:"lib-meta-grid"},uni.wrap,faculty.wrap,dept.wrap,level.wrap,semester.wrap,course.wrap,kindWrap),h("div",{class:"lib-toolbar-inner"},h("button",{class:"btn fill",onclick:()=>pick.click()},ic("plus"),tr("إضافة ملف PDF","Add PDF")),h("span",{class:"lib-hint"},tr("PDF فقط · حتى 25 MB للملف","PDF only · up to 25 MB per file")),pick));
+ const metaForm=h("div",{class:"lib-classifier card"},h("div",{class:"lib-classifier-title"},tr("تصنيف ملف جديد","Classify a new file")),h("div",{class:"lib-meta-grid"},uni.wrap,faculty.wrap,dept.wrap,level.wrap,semester.wrap,course.wrap,kindWrap),h("div",{class:"lib-toolbar-inner"},h("button",{class:"btn fill",onclick:()=>pick.click()},ic("plus")+" "+tr("إضافة ملف PDF","Add PDF")),h("span",{class:"lib-hint"},tr("PDF فقط · حتى 25 MB للملف","PDF only · up to 25 MB per file")),pick));
  v.append(metaForm);
  renderSharedAcademicLibrary(v);
  const layout=h("div",{class:"lib-layout"}),list=h("section",{class:"lib-list card"}),reader=h("section",{class:"lib-reader"});
@@ -1102,7 +1171,7 @@ function renderLibrary(v){
   const isPdf=!d.type||d.type==="application/pdf"||/\.pdf$/i.test(d.name||"");
   const saveNote=h("button",{class:"btn fill",onclick:async()=>{d.note=note.value;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظت الملاحظات ✓","Notes saved ✓"))}catch(e){toast(tr("تعذر حفظ الملاحظات.","Could not save notes."))}}},tr("حفظ الملاحظات","Save notes"));
   const analyze=isPdf?h("button",{class:"btn fill",type:"button",onclick:()=>{if(window.openAiWithSource)openAiWithSource({kind:"pdf",title:d.name,blob:d.blob,autoAnalyze:true});else go("ai")}},ic("sparkles",{s:15}),tr("تحليل بالمساعد الذكي","Analyze with AI")):null;
-  const download=h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download"),tr("فتح / تنزيل","Open / download"));
+  const download=h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download")+" "+tr("فتح / تنزيل","Open / download"));
   const publish=isPdf?h("button",{class:"btn",type:"button",onclick:()=>publishAcademicResource(d)},tr("إرسال للمكتبة المشتركة","Submit to shared library")):null;
   const del=h("button",{class:"btn danger",onclick:async()=>{if(!confirm(tr("حذف هذا الملف وملاحظاته من هذا الجهاز؟","Delete this item and its notes from this device?")))return;try{await libraryDelete(d.id);LIB_OPEN_ID=null;render()}catch(e){toast(tr("تعذر حذف الملف.","Could not delete file."))}}},tr("حذف","Delete"));
   const frame=h("iframe",{class:"lib-pdf-frame",src:isPdf?(LIB_OBJECT_URL+"#page="+(d.page||1)+"&view=FitH"):LIB_OBJECT_URL,title:tr("عارض المستند","Document viewer"),loading:"lazy"});
@@ -1114,17 +1183,125 @@ function renderLibrary(v){
 // ===================== العرض والتشغيل =====================
 // v20: الفرنسية تعود للإنجليزية في الجداول التي تُفهرَس بـ S.lang
 GT.fr=GT.en;IT.fr=IT.en;HT.fr=HT.en;BD.forEach(b=>{b.fr=b.en});
+function openScholarAccountModal(){
+ const authApi=window.ScholarAuth;
+ const user=authApi&&authApi.getUser();
+ if(!user){
+  if(authApi&&typeof authApi.signInWithGoogle==="function"){
+   authApi.signInWithGoogle().catch(err=>{
+    if(err&&err.code!=="auth/popup-closed-by-user"){
+     toast(tr("تعذر تسجيل الدخول عبر Google.","Could not sign in with Google."));
+    }
+   });
+  }
+  return;
+ }
+ const core=window.AcademicCoreInstance;
+ const mem=core&&core.memory;
+ const discList=(window.Net&&Net.DISCIPLINES)||[];
+ const nameIn=h("input",{class:"cin",maxlength:"80",value:S.prof.name||user.displayName||"",placeholder:t("mName")});
+ const fieldSel=h("select",{class:"cin"},discList.length?discList.map(d=>h("option",{value:d.id,selected:(S.prof.field||"")===d.id?"selected":null},d.id?(d[S.lang]||d.en):tr("اختر تخصصك…","Select your field…"))):[h("option",{value:S.prof.field||""},S.prof.field||tr("عام","General"))]);
+ const univIn=h("input",{class:"cin",maxlength:"120",value:S.prof.university||(mem&&mem.university)||"",placeholder:tr("الجامعة / المؤسسة","University / Institution")});
+ const titleIn=h("input",{class:"cin",maxlength:"80",value:(S.prof.academicTitle||""),placeholder:tr("الصفة الأكاديمية (طالب، باحث، أستاذ…)","Academic title (Student, Researcher…)")});
+ const bioIn=h("textarea",{class:"cta",rows:"2",maxlength:"300",placeholder:tr("نبذة أو محور البحث الحالي","Short bio or current research focus")},S.prof.bio||"");
+ const msgEl=h("div",{class:"meta",style:"margin-top:4px"},"");
+ const lastTopic=(mem&&(mem.lastTopic||mem.last_topic))||"";
+ const m=modal(
+  h("h3",{},ic("user")," ",tr("حساب الباحث ومساري الجامعي","Scholar Account & Academic Track")),
+  h("div",{class:"meta",style:"margin-bottom:8px"},(user.displayName||user.email||"Scholar")+(user.email?" · "+user.email:"")),
+  lastTopic?h("div",{class:"note",style:"margin-bottom:8px"},tr("آخر موضوع في ذاكرة المساعد: ","Last remembered research topic: ")+lastTopic):null,
+  h("label",{class:"lbl"},t("mName")),nameIn,
+  h("label",{class:"lbl"},tr("التخصص الجامعي","Academic Field")),fieldSel,
+  h("label",{class:"lbl"},tr("الجامعة / المؤسسة","University / Institution")),univIn,
+  h("label",{class:"lbl"},tr("الرتبة / الصفة","Academic Title")),titleIn,
+  h("label",{class:"lbl"},tr("الاهتمامات البحثية","Research Interests")),bioIn,
+  msgEl,
+  h("button",{class:"pri",type:"button",onclick:async()=>{
+   const name=nameIn.value.trim()||user.displayName||"Scholar";
+   const field=fieldSel.value||"";
+   const university=univIn.value.trim();
+   const academicTitle=titleIn.value.trim();
+   const bio=bioIn.value.trim();
+   S.prof.name=name;S.prof.field=field;S.prof.university=university;S.prof.academicTitle=academicTitle;S.prof.bio=bio;persist();
+   try{
+    if(core&&typeof core.saveAcademicProfile==="function"){
+     await core.saveAcademicProfile(user.uid,{name,field,university,academicTitle,bio});
+    }
+    if(window.Net&&typeof Net.syncDirectory==="function")await Net.syncDirectory();
+    m.remove();toast(tr("تم حفظ ملفك ومسارك الأكاديمي ✓","Academic profile & track saved ✓"));render();
+   }catch(err){
+    msgEl.textContent=(err&&err.message)||tr("تعذر الحفظ.","Could not save.");
+   }
+  }},tr("حفظ الملف الأكاديمي","Save Academic Profile")),
+  h("div",{class:"acts"},
+   h("button",{class:"btn danger",type:"button",onclick:async()=>{
+    try{await authApi.signOut();if(core)core.memory=null;m.remove();syncAuthBtn();toast(tr("تم تسجيل الخروج","Signed out"));render()}catch(e){}
+   }},ic("logout",{s:15})," ",tr("تسجيل الخروج","Sign out")),
+   h("button",{class:"btn",type:"button",onclick:()=>m.remove()},t("close"))
+  )
+ );
+}
+function syncAuthBtn(){
+ const btn=$("auth-btn");
+ if(!btn)return;
+ const user=window.ScholarAuth&&window.ScholarAuth.getUser();
+ if(user){
+  const shortName=(S.prof.name||user.displayName||user.email||"Scholar").split(/\s+/)[0].slice(0,14);
+  btn.classList.add("signed");
+  btn.setAttribute("aria-label",tr("حساب الباحث: ","Scholar account: ")+shortName);
+  btn.replaceChildren(ic("user",{s:15}),h("span",{dir:"auto"},shortName));
+ }else{
+  btn.classList.remove("signed");
+  btn.setAttribute("aria-label",tr("تسجيل الدخول بحساب Google","Sign in with Google"));
+  btn.replaceChildren(ic("login",{s:15}),h("span",{},S.lang==="ar"?"دخول Google":S.lang==="fr"?"Connexion":"Google Sign-In"));
+ }
+}
+if(window.ScholarAuth&&typeof window.ScholarAuth.onChange==="function"){
+ window.ScholarAuth.onChange(async user=>{
+  syncAuthBtn();
+  if(!user){
+   if(window.AcademicCoreInstance)window.AcademicCoreInstance.memory=null;
+   render();
+   return;
+  }
+  try{
+   const bundle=window.AcademicCoreInstance&&await window.AcademicCoreInstance.fetchAcademicBundle();
+   if(bundle){
+    const p=bundle.profile,mem=bundle.memory;
+    let changed=false;
+    if(p){
+     if(p.name&&!S.prof.name){S.prof.name=p.name;changed=true}
+     if(p.field&&!S.prof.field){S.prof.field=p.field;changed=true}
+     if(p.university&&!S.prof.university){S.prof.university=p.university;changed=true}
+     if(p.academicTitle&&!S.prof.academicTitle){S.prof.academicTitle=p.academicTitle;changed=true}
+     if(p.bio&&!S.prof.bio){S.prof.bio=p.bio;changed=true}
+    }else if(user.displayName&&!S.prof.name){
+     S.prof.name=user.displayName.slice(0,24);changed=true;
+    }
+    if(mem){
+     if(mem.field&&!S.prof.field){S.prof.field=mem.field;changed=true}
+     if(mem.university&&!S.prof.university){S.prof.university=mem.university;changed=true}
+    }
+    if(changed)persist();
+   }
+  }catch(e){}
+  syncAuthBtn();
+  render();
+ });
+}
 const VIEWS={home:renderHome,decks:renderDecks,deck:renderDeck,study:renderStudy,library:renderLibrary,res:renderResearch,play:renderPlay,quiz:renderQuiz,me:renderMe,help:renderHelp};
 function render(){
  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==="ar"?"rtl":"ltr";
  $("lang").textContent=S.lang==="ar"?"EN":S.lang==="en"?"FR":"ع";$("lang").setAttribute("aria-label",({ar:"Language: English",en:"Langue : français",fr:"اللغة: العربية"})[S.lang]);$("help").setAttribute("aria-label",S.lang==="ar"?"مساعدة":S.lang==="fr"?"Aide":"Help");
  if(window.ScholarTheme&&ScholarTheme.sync)ScholarTheme.sync();
  document.body.classList.remove("focus","inchat");if(S.tab!=="quiz")stopTimer();
- buildTabs();updChip();updInst();
+ buildTabs();updChip();syncAuthBtn();updInst();
  const v=$("view");v.replaceChildren();(VIEWS[S.tab]||renderHome)(v)}
 $("lang").onclick=()=>{S.lang=S.lang==="ar"?"en":S.lang==="en"?"fr":"ar";persist();render()};
 $("gchip").onclick=()=>{S.me="s";go("me")};
 $("help").onclick=()=>go("help");
+if($("auth-btn"))$("auth-btn").onclick=openScholarAccountModal;
+window.openScholarAccountModal=openScholarAccountModal;
 window.addEventListener("hashchange",handleHash);
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 setInterval(checkRem,15000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkRem()});
