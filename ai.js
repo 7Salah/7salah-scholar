@@ -11,6 +11,7 @@
  if(Array.isArray(TABS)&&!TABS.some(x=>x[0]==="ai")){
   const resIdx=TABS.findIndex(x=>x[0]==="res");
   TABS.splice(resIdx!==-1?resIdx+1:3,0,["ai","nAI",icp("sparkles")]);
+  if(typeof buildTabs==="function")buildTabs(); // يظهر الزر مع باقي الأيقونات فورًا بدل القفز عند أول تحديث
  }
 
  const MODES=[
@@ -354,18 +355,47 @@
   );
  }
 
+ async function postAiJson(endpoint,payload,timeoutMs){
+  const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
+  const tm=ctrl?setTimeout(()=>ctrl.abort(),timeoutMs||120000):null;
+  try{
+   const res=await fetch(endpoint,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload),
+    signal:ctrl?ctrl.signal:undefined
+   });
+   const raw=await res.text().catch(()=>"");
+   let data={};
+   if(raw){try{data=JSON.parse(raw)}catch(e){data={}}}
+   if(!res.ok){
+    if(data.error)throw new Error(data.error);
+    if(res.status===404||res.status===502||res.status===503){
+     throw new Error(aiTr(
+      "خدمة المساعد البحثي الذكي (/api/ai) غير متاحة على الخادم حاليًا. تأكد من تشغيل الخادم وضبط GEMINI_API_KEY في ملف .env.",
+      "AI Research backend (/api/ai) is unreachable right now. Ensure the Express server is running and GEMINI_API_KEY is configured in .env.",
+      "Le service IA (/api/ai) est inaccessible. Vérifiez le serveur et GEMINI_API_KEY."
+     ));
+    }
+    throw new Error(aiTr("تعذر إتمام الطلب البحثي (رمز "+res.status+").","Research request failed (HTTP "+res.status+").","Échec de la requête ("+res.status+")."));
+   }
+   return data;
+  }catch(err){
+   if(err&&err.name==="AbortError"){
+    throw new Error(aiTr("انتهت مهلة معالجة الطلب. حاول مجددًا بنص أقصر أو ملف أصغر.","Request timed out. Please retry with a shorter query or smaller file.","Délai dépassé."));
+   }
+   throw err;
+  }finally{
+   if(tm)clearTimeout(tm);
+  }
+ }
+
  async function convertToSmartFlashcards(text,title,citations,btnKey){
   if(AI.convertingId)return;
   AI.convertingId=btnKey;
   render();
   try{
-   const res=await fetch("/api/ai/flashcards",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({answerText:text,title:title||"AI Research",lang:S.lang})
-   });
-   const data=await res.json().catch(()=>({}));
-   if(!res.ok)throw new Error(data.error||"Failed to extract flashcards");
+   const data=await postAiJson("/api/ai/flashcards",{answerText:text,title:title||"AI Research",lang:S.lang},90000);
    const rawCards=Array.isArray(data.cards)?data.cards:[];
    if(!rawCards.length)throw new Error(aiTr("لم يتمكن المساعد من استخراج بطاقات من هذا النص.","Could not extract flashcards from this text.","Aucune carte extraite."));
 
@@ -519,13 +549,7 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
      text:AI.source.text||undefined
     };
    }
-   const res=await fetch("/api/ai/research",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(payload)
-   });
-   const data=await res.json().catch(()=>({}));
-   if(!res.ok)throw new Error(data.error||"Research request failed");
+   const data=await postAiJson("/api/ai/research",payload,120000);
 
    AI.messages.push({
     id:uid(),
@@ -544,7 +568,7 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
     id:uid(),
     role:"assistant",
     isError:true,
-    text:e.message||aiTr("تعذر إتمام الطلب البحثي. تأكد من الاتصال وحاول مجددًا.","Could not complete research request. Please verify configuration and retry.","Échec de la requête."),
+    text:e.message||aiTr("تعذر إتمام الطلب البحثي. تأكد من الاتصال وضبط GEMINI_API_KEY وحاول مجددًا.","Could not complete research request. Please verify connection and GEMINI_API_KEY configuration.","Échec de la requête."),
     ts:Date.now()
    });
   }finally{
@@ -559,20 +583,14 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
   AI.tab="analyzer";
   render();
   try{
-   const res=await fetch("/api/ai/analyze",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-     title:AI.source.title,
-     kind:AI.source.kind,
-     text:AI.source.text||"",
-     pdfBase64:AI.source.pdfBase64||"",
-     citeStyle:S.citeStyle||"apa",
-     lang:S.lang||"ar"
-    })
-   });
-   const data=await res.json().catch(()=>({}));
-   if(!res.ok)throw new Error(data.error||"Document analysis failed");
+   const data=await postAiJson("/api/ai/analyze",{
+    title:AI.source.title,
+    kind:AI.source.kind,
+    text:AI.source.text||"",
+    pdfBase64:AI.source.pdfBase64||"",
+    citeStyle:S.citeStyle||"apa",
+    lang:S.lang||"ar"
+   },180000);
    AI.analysis=data.analysis||null;
    toast(aiTr("اكتمل التحليل الموثّق للمصدر ✓","Source-grounded analysis complete ✓","Analyse terminée ✓"));
   }catch(e){

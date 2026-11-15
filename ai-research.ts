@@ -1,10 +1,41 @@
 import type { Express } from "express";
 import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 
-const MODEL_RESEARCH = "gemini-4-hydrogen";
+const VALID_MODEL_RX = /^gemini-\d[a-z0-9._-]*$/i;
+
+function primaryModel(): string {
+  const raw = (process.env.GEMINI_MODEL || "").trim();
+  if (VALID_MODEL_RX.test(raw) && !/^gemini-(?:1\.[05]|2\.0|2\.5)-/i.test(raw)) {
+    return raw;
+  }
+  return "gemini-3.1-flash-lite";
+}
+
+function modelCandidates(): string[] {
+  const raw = (process.env.GEMINI_MODEL || "").trim();
+  const list = [
+    VALID_MODEL_RX.test(raw) ? raw : "",
+    "gemini-3.1-flash-lite",
+    "gemini-4-hydrogen",
+    "gemini-4-argon"
+  ];
+  return list.filter((m, i) => Boolean(m) && list.indexOf(m) === i);
+}
+
+function buildConfigForModel(model: string, baseConfig: Record<string, any>, level: ThinkingLevel) {
+  const cfg = { ...baseConfig };
+  if (/^gemini-(?:3|4)/i.test(model) && !/lite/i.test(model)) {
+    cfg.thinkingConfig = { thinkingLevel: level };
+  }
+  return cfg;
+}
+
+function getApiKey(): string {
+  return (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "").trim();
+}
 
 function getAi(): GoogleGenAI {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = getApiKey();
   if (!apiKey) {
     const err = new Error("GEMINI_API_KEY is not configured on the server.") as Error & {
       status?: number;
@@ -28,7 +59,7 @@ function cleanText(val: unknown, max = 4000): string {
   return String(val ?? "").trim().slice(0, max);
 }
 
-async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, retries = 1): Promise<T> {
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -38,52 +69,126 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
       const status = Number(err?.status || err?.code || 0);
       const msg = String(err?.message || "");
       const retryable =
-        status === 429 ||
         status >= 500 ||
-        /timeout|network|ECONNRESET|temporarily|unavailable|503|504/i.test(msg);
+        /timeout|network|ECONNRESET/i.test(msg);
       if (!retryable || attempt >= retries) throw err;
-      await new Promise((r) => setTimeout(r, 1200 * Math.pow(2, attempt)));
+      await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
     }
   }
   throw lastErr;
 }
 
-function mapAiError(err: any): { status: number; message: string; code: string } {
+async function generateWithFallback(
+  ai: GoogleGenAI,
+  contents: any,
+  baseConfig: Record<string, any>,
+  thinkingLevel: ThinkingLevel
+) {
+  const candidates = modelCandidates();
+  let lastErr: any;
+  for (let i = 0; i < candidates.length; i++) {
+    const model = candidates[i];
+    const cfg = buildConfigForModel(model, baseConfig, thinkingLevel);
+    try {
+      return await withRetry(
+        () =>
+          ai.models.generateContent({
+            model,
+            contents,
+            config: cfg
+          }),
+        0
+      );
+    } catch (err: any) {
+      lastErr = err;
+      const status = Number(err?.status || 0);
+      const msg = String(err?.message || "");
+      // If a model rejects tools or Search Grounding hits quota (429/400/5xx), retry cleanly without tools
+      if (cfg.tools && (status === 400 || status === 429 || status === 403 || status >= 500 || /tool|search|unsupported|quota|RESOURCE_EXHAUSTED/i.test(msg))) {
+        try {
+          const { tools: _ignored, ...noToolCfg } = cfg;
+          return await ai.models.generateContent({
+            model,
+            contents,
+            config: noToolCfg
+          });
+        } catch (innerErr: any) {
+          lastErr = innerErr;
+        }
+      }
+      const shouldTryNext =
+        status === 404 ||
+        status === 429 ||
+        status === 400 ||
+        status >= 500 ||
+        /NOT_FOUND|RESOURCE_EXHAUSTED|UNAVAILABLE|quota|unsupported|INVALID_ARGUMENT|high demand/i.test(msg);
+      console.warn(`[ai-research] model ${model} fallback (${status}): ${msg.slice(0, 140)}`);
+      if (!shouldTryNext || i === candidates.length - 1) {
+        throw lastErr;
+      }
+    }
+  }
+  throw lastErr;
+}
+
+function mapAiError(err: any, lang = "ar"): { status: number; message: string; code: string } {
   const rawStatus = Number(err?.status || 0);
   const msg = String(err?.message || "AI request failed");
+  const pick = (ar: string, en: string, fr: string) => (lang === "ar" ? ar : lang === "fr" ? fr : en);
+
   if (err?.code === "MISSING_API_KEY") {
     return {
       status: 500,
       code: "MISSING_API_KEY",
-      message: "Gemini API key is not set on the server. Please configure GEMINI_API_KEY in Settings > Secrets."
+      message: pick(
+        "مفتاح GEMINI_API_KEY غير مضبوط على الخادم. يرجى إضافته في ملف .env أو إعدادات المفاتيح (Secrets).",
+        "GEMINI_API_KEY is not configured on the server. Add it to .env or Settings > Secrets.",
+        "Clé GEMINI_API_KEY manquante sur le serveur. Configurez .env ou les Secrets."
+      )
     };
   }
-  if (rawStatus === 403 || /PERMISSION_DENIED|API_KEY_INVALID/i.test(msg)) {
+  if (rawStatus === 403 || rawStatus === 401 || /PERMISSION_DENIED|API_KEY_INVALID|API key not valid/i.test(msg)) {
     return {
       status: 403,
       code: "API_KEY_INVALID",
-      message: "Gemini API authentication failed. Please verify GEMINI_API_KEY in Settings > Secrets."
+      message: pick(
+        "فشلت مصادقة مفتاح Gemini API. يرجى التحقق من صلاحية GEMINI_API_KEY في .env أو إعدادات الخادم.",
+        "Gemini API authentication failed. Please verify your GEMINI_API_KEY in .env or server Secrets.",
+        "Échec d'authentification Gemini API. Vérifiez votre GEMINI_API_KEY."
+      )
     };
   }
   if (rawStatus === 429 || /RESOURCE_EXHAUSTED|quota/i.test(msg)) {
     return {
       status: 429,
       code: "RATE_LIMIT",
-      message: "AI request quota temporarily reached. Please wait a moment and try again."
+      message: pick(
+        "تم بلوغ حد الحصة المؤقت لخدمة Gemini API حاليًا. يرجى الانتظار قليلًا ثم المحاولة مجددًا أو مراجعة حصة المفتاح في .env.",
+        "Gemini API quota limit temporarily reached. Please wait a moment and try again, or verify your key quota.",
+        "Quota Gemini API temporairement atteint. Patientez un instant et réessayez."
+      )
     };
   }
   if (rawStatus === 404 || /NOT_FOUND/i.test(msg)) {
     return {
       status: 502,
       code: "MODEL_NOT_FOUND",
-      message: "Requested Gemini model unavailable. Please try again."
+      message: pick(
+        "نموذج Gemini المطلوب غير متاح حاليًا لهذا المفتاح.",
+        "Requested Gemini model is unavailable for this API key.",
+        "Modèle Gemini indisponible pour cette clé."
+      )
     };
   }
   if (rawStatus === 400 || /INVALID_ARGUMENT/i.test(msg)) {
     return {
       status: 400,
       code: "BAD_REQUEST",
-      message: "The document or prompt could not be processed (check PDF size or format)."
+      message: pick(
+        "تعذرت معالجة المستند أو السؤال (تحقق من حجم PDF أو تنسيق النص).",
+        "The document or prompt could not be processed (check PDF size or format).",
+        "Impossible de traiter le document ou la question."
+      )
     };
   }
   return {
@@ -226,14 +331,22 @@ function extractTrailingRefs(rawText: string): { cleanBody: string; parsedRefs: 
 }
 
 export function registerAiResearchRoutes(app: Express) {
+  app.get("/api/ai/status", (_req, res) => {
+    res.json({
+      ok: true,
+      configured: Boolean(getApiKey()),
+      model: primaryModel()
+    });
+  });
+
   // 1) Interactive AI Research Chat, Outline Builder & Literature Review Synthesizer
   app.post("/api/ai/research", async (req, res) => {
+    const lang = cleanText(req.body?.lang || "ar", 8);
     try {
       const ai = getAi();
       const messages = Array.isArray(req.body?.messages) ? req.body.messages.slice(-14) : [];
       const mode = cleanText(req.body?.mode || "qa", 32);
       const citeStyle = cleanText(req.body?.citeStyle || "apa", 16).toLowerCase();
-      const lang = cleanText(req.body?.lang || "ar", 8);
       const field = cleanText(req.body?.field || "", 80);
       const useWebSearch = req.body?.useWebSearch !== false;
       const doc = req.body?.documentContext && typeof req.body.documentContext === "object"
@@ -299,20 +412,18 @@ export function registerAiResearchRoutes(app: Express) {
         .join("\n\n");
       parts.push({ text: conversationText });
 
-      const config: any = {
-        systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH }
+      const baseConfig: Record<string, any> = {
+        systemInstruction
       };
-      if (!strictDocOnly) {
-        config.tools = [{ googleSearch: {} }];
+      if (useWebSearch && !strictDocOnly) {
+        baseConfig.tools = [{ googleSearch: {} }];
       }
 
-      const response = await withRetry(() =>
-        ai.models.generateContent({
-          model: MODEL_RESEARCH,
-          contents: [{ role: "user", parts }],
-          config
-        })
+      const response = await generateWithFallback(
+        ai,
+        [{ role: "user", parts }],
+        baseConfig,
+        ThinkingLevel.HIGH
       );
 
       const rawText = response.text || "";
@@ -419,13 +530,14 @@ export function registerAiResearchRoutes(app: Express) {
       });
     } catch (err: any) {
       console.error("[ai/research]", err);
-      const mapped = mapAiError(err);
+      const mapped = mapAiError(err, lang);
       res.status(mapped.status).json({ error: mapped.message, code: mapped.code });
     }
   });
 
   // 2) Strict Document & Paper Analyzer (PDF / Lecture / Text)
   app.post("/api/ai/analyze", async (req, res) => {
+    const lang = cleanText(req.body?.lang || "ar", 8);
     try {
       const ai = getAi();
       const title = cleanText(req.body?.title || "Academic Document", 220);
@@ -433,7 +545,6 @@ export function registerAiResearchRoutes(app: Express) {
       const text = cleanText(req.body?.text || "", 80000);
       const pdfBase64 = req.body?.pdfBase64 ? String(req.body.pdfBase64) : "";
       const citeStyle = cleanText(req.body?.citeStyle || "apa", 16).toLowerCase();
-      const lang = cleanText(req.body?.lang || "ar", 8);
 
       if (!pdfBase64 && text.length < 30) {
         res.status(400).json({ error: "Provide a PDF file, lecture transcript, or at least 30 characters of text to analyze." });
@@ -460,90 +571,88 @@ export function registerAiResearchRoutes(app: Express) {
         text: `Analyze this ${kind} titled "${title}" strictly based on the provided content. Output all prose descriptions, summaries, definitions, and flashcards in ${targetLangName} (preserve exact technical quotes from the document).`
       });
 
-      const response = await withRetry(() =>
-        ai.models.generateContent({
-          model: MODEL_RESEARCH,
-          contents: [{ role: "user", parts }],
-          config: {
-            systemInstruction:
-              "You are a strict academic document analyzer. Extract ONLY verifiable facts, findings, methodologies, terminology, bibliography items, and flashcards directly supported by the provided document. Include verbatim short evidence quotes and page/section/timestamp references for each point. Never invent claims outside the source.",
-            thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                detectedTitle: { type: Type.STRING },
-                authors: { type: Type.ARRAY, items: { type: Type.STRING } },
-                year: { type: Type.STRING },
-                summary: { type: Type.STRING, description: "Rigorous scholarly summary grounded strictly in the source." },
-                keyFindings: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      claim: { type: Type.STRING },
-                      evidenceQuote: { type: Type.STRING },
-                      location: { type: Type.STRING }
-                    },
-                    required: ["claim", "evidenceQuote"]
-                  }
-                },
-                methodologies: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      name: { type: Type.STRING },
-                      description: { type: Type.STRING },
-                      evidenceQuote: { type: Type.STRING }
-                    },
-                    required: ["name", "description"]
-                  }
-                },
-                terminology: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      term: { type: Type.STRING },
-                      definition: { type: Type.STRING },
-                      contextQuote: { type: Type.STRING }
-                    },
-                    required: ["term", "definition"]
-                  }
-                },
-                limitations: { type: Type.ARRAY, items: { type: Type.STRING } },
-                extractedCitations: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      title: { type: Type.STRING },
-                      authors: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      year: { type: Type.STRING },
-                      journal: { type: Type.STRING },
-                      doi: { type: Type.STRING }
-                    },
-                    required: ["title"]
-                  }
-                },
-                flashcards: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      q: { type: Type.STRING },
-                      a: { type: Type.STRING },
-                      evidenceQuote: { type: Type.STRING }
-                    },
-                    required: ["q", "a"]
-                  }
+      const response = await generateWithFallback(
+        ai,
+        [{ role: "user", parts }],
+        {
+          systemInstruction:
+            "You are a strict academic document analyzer. Extract ONLY verifiable facts, findings, methodologies, terminology, bibliography items, and flashcards directly supported by the provided document. Include verbatim short evidence quotes and page/section/timestamp references for each point. Never invent claims outside the source.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              detectedTitle: { type: Type.STRING },
+              authors: { type: Type.ARRAY, items: { type: Type.STRING } },
+              year: { type: Type.STRING },
+              summary: { type: Type.STRING, description: "Rigorous scholarly summary grounded strictly in the source." },
+              keyFindings: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    claim: { type: Type.STRING },
+                    evidenceQuote: { type: Type.STRING },
+                    location: { type: Type.STRING }
+                  },
+                  required: ["claim", "evidenceQuote"]
                 }
               },
-              required: ["summary", "keyFindings", "methodologies", "terminology", "flashcards"]
-            }
+              methodologies: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    name: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    evidenceQuote: { type: Type.STRING }
+                  },
+                  required: ["name", "description"]
+                }
+              },
+              terminology: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    term: { type: Type.STRING },
+                    definition: { type: Type.STRING },
+                    contextQuote: { type: Type.STRING }
+                  },
+                  required: ["term", "definition"]
+                }
+              },
+              limitations: { type: Type.ARRAY, items: { type: Type.STRING } },
+              extractedCitations: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    title: { type: Type.STRING },
+                    authors: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    year: { type: Type.STRING },
+                    journal: { type: Type.STRING },
+                    doi: { type: Type.STRING }
+                  },
+                  required: ["title"]
+                }
+              },
+              flashcards: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    q: { type: Type.STRING },
+                    a: { type: Type.STRING },
+                    evidenceQuote: { type: Type.STRING }
+                  },
+                  required: ["q", "a"]
+                }
+              }
+            },
+            required: ["summary", "keyFindings", "methodologies", "terminology", "flashcards"]
           }
-        })
+        },
+        ThinkingLevel.MEDIUM
       );
 
       const parsed = JSON.parse((response.text || "{}").trim());
@@ -595,51 +704,49 @@ export function registerAiResearchRoutes(app: Express) {
       });
     } catch (err: any) {
       console.error("[ai/analyze]", err);
-      const mapped = mapAiError(err);
+      const mapped = mapAiError(err, lang);
       res.status(mapped.status).json({ error: mapped.message, code: mapped.code });
     }
   });
 
   // 3) Convert any AI Research Answer into Smart Flashcards
   app.post("/api/ai/flashcards", async (req, res) => {
+    const lang = cleanText(req.body?.lang || "ar", 8);
     try {
       const ai = getAi();
       const answerText = cleanText(req.body?.answerText || "", 20000);
       const title = cleanText(req.body?.title || "Research Synthesis", 180);
-      const lang = cleanText(req.body?.lang || "ar", 8);
       if (answerText.length < 20) {
         res.status(400).json({ error: "Answer text is too short to extract flashcards." });
         return;
       }
 
       const targetLangName = lang === "ar" ? "Arabic" : lang === "fr" ? "French" : "English";
-      const response = await withRetry(() =>
-        ai.models.generateContent({
-          model: MODEL_RESEARCH,
-          contents: `Extract 5 to 8 high-yield academic flashcards (question & concise verified answer) in ${targetLangName} strictly from this research response titled "${title}". Only include facts directly stated in the text.\n\n---\n${answerText}`,
-          config: {
-            thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-            responseMimeType: "application/json",
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                cards: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      q: { type: Type.STRING },
-                      a: { type: Type.STRING },
-                      citationIndex: { type: Type.INTEGER }
-                    },
-                    required: ["q", "a"]
-                  }
+      const response = await generateWithFallback(
+        ai,
+        `Extract 5 to 8 high-yield academic flashcards (question & concise verified answer) in ${targetLangName} strictly from this research response titled "${title}". Only include facts directly stated in the text.\n\n---\n${answerText}`,
+        {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              cards: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    q: { type: Type.STRING },
+                    a: { type: Type.STRING },
+                    citationIndex: { type: Type.INTEGER }
+                  },
+                  required: ["q", "a"]
                 }
-              },
-              required: ["cards"]
-            }
+              }
+            },
+            required: ["cards"]
           }
-        })
+        },
+        ThinkingLevel.LOW
       );
 
       const parsed = JSON.parse((response.text || "{}").trim());
@@ -648,7 +755,7 @@ export function registerAiResearchRoutes(app: Express) {
       });
     } catch (err: any) {
       console.error("[ai/flashcards]", err);
-      const mapped = mapAiError(err);
+      const mapped = mapAiError(err, lang);
       res.status(mapped.status).json({ error: mapped.message, code: mapped.code });
     }
   });

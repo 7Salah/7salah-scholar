@@ -48,15 +48,35 @@
   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
  }
 
+ function getLocalRooms(){return (LS.get("7s_local_rooms",[])||[]).filter(r=>r&&r.id)}
+ function saveLocalRoom(room){
+  const list=getLocalRooms().filter(r=>r.id!==room.id);
+  list.unshift(room);
+  LS.set("7s_local_rooms",list.slice(0,40));
+ }
+ function removeLocalRoom(id){
+  LS.set("7s_local_rooms",getLocalRooms().filter(r=>r.id!==id));
+ }
+ function genLocalRoomCode(){
+  const ch="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let a="",b="";
+  for(let i=0;i<3;i++){a+=ch[Math.random()*ch.length|0];b+=ch[Math.random()*ch.length|0]}
+  return a+"-"+b;
+ }
+
  async function loadRooms(){
   RM.loading=true;
+  let serverRooms=[];
   try{
    const q=new URLSearchParams();
    if(RM.filterField)q.set("field",RM.filterField);
    q.set("peerId",Net.ensurePeerId());
    const r=await Net.apiGet("/api/rooms?"+q.toString());
-   RM.rooms=r.rooms||[];
-  }catch(e){RM.rooms=[]}
+   serverRooms=r.rooms||[];
+  }catch(e){}
+  const locals=getLocalRooms().filter(r=>!RM.filterField||(r.field||"").toLowerCase().includes(RM.filterField.toLowerCase()));
+  const seen=new Set(serverRooms.map(x=>x.id));
+  RM.rooms=serverRooms.concat(locals.filter(x=>!seen.has(x.id)));
   RM.loading=false;
   if(S.tab==="rooms"&&!RM.active)render();
  }
@@ -105,30 +125,48 @@
     const dk=decks[+deckSel.value];
     if(dk)linkedItem={kind:"deck",title:dk.title,emoji:dk.emoji||"📘",index:0,revealed:false,cards:dk.cards.slice(0,40)};
    }
+   const payload={
+    title,
+    field:fd.value,
+    description:desc.value.trim(),
+    hostId:me.id,
+    hostName:me.name,
+    hostHandle:me.username,
+    visibility:vis.value,
+    scheduledAt:isSched.checked&&dt.value?new Date(dt.value).toISOString():null,
+    durationMin:+dur.value||60,
+    linkedItem
+   };
+   let createdRoom=null;
    try{
-    const res=await Net.apiPost("/api/rooms",{
-     title,
-     field:fd.value,
-     description:desc.value.trim(),
-     hostId:me.id,
-     hostName:me.name,
-     hostHandle:me.username,
-     visibility:vis.value,
-     scheduledAt:isSched.checked&&dt.value?new Date(dt.value).toISOString():null,
-     durationMin:+dur.value||60,
-     linkedItem
+    const res=await Net.apiPost("/api/rooms",payload);
+    createdRoom=res&&res.room;
+   }catch(e){
+    if(e&&e.status===400){
+     createBtn.disabled=false;
+     return toast(e.message||rTr("تحقّق من بيانات الغرفة","Check room details","Vérifiez les informations"));
+    }
+    createdRoom=Object.assign({},payload,{
+     id:"room_"+uid(),
+     code:genLocalRoomCode(),
+     activeParticipants:[],
+     createdAt:Date.now(),
+     _local:true
     });
+   }
+   if(createdRoom){
+    saveLocalRoom(createdRoom);
     m.remove();
-    toast(rTr("تم إنشاء غرفة الدراسة ✓ (الرمز: "+res.room.code+")","Study room created ✓ (Code: "+res.room.code+")","Salle créée ✓"));
+    toast(rTr("تم إنشاء غرفة الدراسة ✓ (الرمز: "+createdRoom.code+")","Study room created ✓ (Code: "+createdRoom.code+")","Salle créée ✓"));
     if(isSched.checked){
      await loadRooms();
      render();
     }else{
-     await joinStudyRoom(res.room.id);
+     await joinStudyRoom(createdRoom.id,Object.assign({},preset,{roomObj:createdRoom}));
     }
-   }catch(e){
+   }else{
     createBtn.disabled=false;
-    toast(e.message||rTr("تعذّر إنشاء الغرفة","Could not create room","Erreur"));
+    toast(rTr("تعذّر إنشاء الغرفة","Could not create room","Erreur"));
    }
   }},preset.scheduled?rTr("جدولة الغرفة","Schedule Room","Planifier"):rTr("إنشاء وبدء الجلسة","Create & Start Room","Créer et lancer"));
 
@@ -137,7 +175,7 @@
    h("label",{class:"lbl"},rTr("العنوان","Title","Titre")),ti,
    h("label",{class:"lbl"},rTr("التخصص العلمي","Academic Discipline","Discipline")),fd,
    h("label",{class:"lbl"},rTr("الخصوصية","Visibility","Visibilité")),vis,
-   !preset.linkedItem?[h("label",{class:"lbl"},rTr("إرفاق حزمة بطاقات للمراجعة الجماعية","Attach flashcard deck (optional)","Joindre un paquet")),deckSel]:null,
+   !preset.linkedItem?h("div",{},h("label",{class:"lbl"},rTr("إرفاق حزمة بطاقات للمراجعة الجماعية","Attach flashcard deck (optional)","Joindre un paquet")),deckSel):null,
    h("label",{class:"meta",style:"display:flex;align-items:center;gap:8px;margin-top:8px;cursor:pointer"},isSched,h("span",{},rTr("جدولة لوقت لاحق (مع تصدير للتقويم)","Schedule for later (with calendar export)","Planifier pour plus tard"))),
    schedBox,
    h("label",{class:"lbl"},rTr("تفاصيل الجلسة","Agenda / Notes","Notes")),desc,
@@ -406,8 +444,18 @@
   try{
    detail=await Net.apiGet("/api/rooms/"+encodeURIComponent(idOrCode));
   }catch(e){
-   toast(rTr("الغرفة غير موجودة أو أُغلقت","Study room not found or closed","Salle introuvable"));
-   return;
+   const key=String(idOrCode||"").trim().toUpperCase();
+   const fallbackRoom=(opts&&opts.roomObj)||RM.rooms.concat(getLocalRooms()).find(r=>r&&(r.id===idOrCode||(r.code&&r.code.toUpperCase()===key)));
+   if(fallbackRoom){
+    detail={
+     room:fallbackRoom,
+     messages:LS.get("7s_room_msgs_"+fallbackRoom.id,[])||[],
+     sharedMaterial:fallbackRoom.linkedItem||null
+    };
+   }else{
+    toast(rTr("الغرفة غير موجودة أو أُغلقت","Study room not found or closed","Salle introuvable"));
+    return;
+   }
   }
   let localStream=null,mic=false,cam=false;
   if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&!opts.observer){
@@ -677,7 +725,15 @@
   const sendChat=()=>{
    const txt=chatInp.value.trim();if(!txt)return;
    chatInp.value="";
-   Net.send({type:"chat:send",roomId:room.id,id:uid(),text:txt});
+   const msgId=uid();
+   const me=Net.myIdentity();
+   const entry={id:msgId,roomId:room.id,peerId:me.id,name:me.name,handle:me.username,text:txt,createdAt:Date.now()};
+   const sent=Net.send({type:"chat:send",roomId:room.id,id:msgId,text:txt});
+   if(!sent||!Net.wsConnected){
+    RM.active.messages.push(entry);
+    LS.set("7s_room_msgs_"+room.id,RM.active.messages.slice(-100));
+    paintRoomChat();
+   }
   };
   chatInp.onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing)sendChat()};
   const chatWrap=h("div",{class:"rm-chatwrap"},
@@ -788,7 +844,7 @@
      h("button",{class:"btn fill",type:"button",onclick:()=>joinStudyRoom(room.id)},ic("video"),rTr("دخول الغرفة","Join Video Room","Rejoindre")),
      h("button",{class:"btn",type:"button",onclick:()=>copyRoomInvite(room)},ic("link"),rTr("نسخ الدعوة","Copy Invite","Inviter")),
      room.scheduledAt?h("button",{class:"btn",type:"button",onclick:()=>downloadRoomIcs(room)},ic("calendar"),rTr("للتقويم","Calendar (.ics)","Calendrier")):null,
-     isHost?h("button",{class:"btn danger",type:"button",onclick:async()=>{if(!confirm(rTr("إغلاق الغرفة للجميع؟","Close this room?","Fermer la salle ?")))return;await Net.apiDel("/api/rooms/"+encodeURIComponent(room.id)+"?peerId="+encodeURIComponent(myId));loadRooms()}},ic("trash")):null
+     isHost?h("button",{class:"btn danger",type:"button",onclick:async()=>{if(!confirm(rTr("إغلاق الغرفة للجميع؟","Close this room?","Fermer la salle ?")))return;try{await Net.apiDel("/api/rooms/"+encodeURIComponent(room.id)+"?peerId="+encodeURIComponent(myId))}catch(e){}removeLocalRoom(room.id);loadRooms()}},ic("trash")):null
     )
    ));
   });

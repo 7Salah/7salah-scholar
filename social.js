@@ -572,9 +572,9 @@ const square=(f,n)=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>{cons
  c.getContext("2d").drawImage(i,(i.width-s)/2,(i.height-s)/2,s,s,0,0,n,n);c.toBlob(ok,"image/jpeg",.85)};i.onerror=no;i.src=URL.createObjectURL(f)});
 
 function editModal(p){
- const I=(v,ph)=>h("input",{class:"cin",value:v||"",placeholder:ph}),
+ const I=(v,ph)=>h("input",{class:"cin",value:typeof v==="string"?v:"",placeholder:ph}),
   nm=I(p.name,sTr("الاسم","Display Name","Nom")),
-  fl=h("select",{class:"cin"},Net.DISCIPLINES.map(d=>h("option",{value:d.id,selected:(p.field||"")===d.id?"selected":null},d.id?(d[S.lang]||d.en):sTr("اختر تخصصك…","Select your field…","Discipline…")))),
+  fl=h("input",{class:"cin",type:"text",maxlength:"80",autocomplete:"off",value:p.field?String(Net.discLabel(p.field)):"",placeholder:sTr("تخصصك الجامعي (اكتبه بحرية)","Your field of study (type freely)","Votre spécialité (saisie libre)")}),
   un=I(p.university,sTr("الجامعة / المؤسسة","University / Institution","Université")),
   bio=h("textarea",{class:"cta",maxlength:"300",placeholder:sTr("نبذة عن أبحاثك واهتماماتك","Academic bio & research interests","Biographie académique")},p.bio||""),
   file=SC.user?h("input",{type:"file",accept:"image/*"}):null;
@@ -585,7 +585,7 @@ function editModal(p){
   nm,fl,un,bio,
   h("button",{class:"pri",type:"button",onclick:async()=>{
    const name=nm.value.trim()||p.name||"Scholar";
-   const field=fl.value;
+   const field=fl.value.trim().slice(0,80);
    const univ=un.value.trim();
    const b=bio.value.trim();
    S.prof.name=name;S.prof.field=field;S.prof.university=univ;S.prof.bio=b;persist();

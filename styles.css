@@ -180,31 +180,6 @@ header{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .mapf{width:100%;height:220px;border:0;border-radius:12px;margin:6px 0}
 
 
-/* نبراس — أنميشن حيّ وخفيف */
-.nibras{min-height:1px;isolation:isolate}
-.nibras-svg{overflow:visible;display:block;filter:drop-shadow(0 7px 5px rgba(40,55,75,.13));animation:n-float 3.2s ease-in-out infinite;transform-origin:50% 75%}
-.n-cat{transform-origin:80px 112px;animation:n-breathe 3.8s ease-in-out infinite}
-.n-cap{transform-origin:80px 27px;animation:n-cap 4.2s ease-in-out infinite}
-.n-tail{transform-origin:112px 108px;animation:n-tail 2.1s ease-in-out infinite}
-.n-scarf-tail{transform-origin:108px 126px;animation:n-scarf 1.8s ease-in-out infinite}
-.n-paw{transform-origin:80px 120px;animation:n-paw 3.5s ease-in-out infinite}
-.n-sparkles{transform-origin:80px 75px;animation:n-sparkle 3.5s ease-in-out infinite}
-.n-orbit{animation:n-orbit 12s linear infinite;transform-origin:80px 75px}
-.n-iris{fill:url(#nEye);stroke:#175b62;stroke-width:1.5}
-.n-pupil{fill:#102b3a}
-.n-glint{fill:#fff}
-.n-eye-line{fill:none;stroke:#493329;stroke-width:3.5;stroke-linecap:round}
-.n-mouth{fill:#9d3e55;stroke:#74334a;stroke-width:1.2}
-.n-mouth-line{fill:none;stroke:#74334a;stroke-width:2.8;stroke-linecap:round}
-@keyframes n-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(1deg)}}
-@keyframes n-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.018,.985)}}
-@keyframes n-tail{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(13deg)}}
-@keyframes n-scarf{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(9deg)}}
-@keyframes n-paw{0%,75%,100%{transform:translateY(0) rotate(0)}82%{transform:translateY(-5px) rotate(-9deg)}90%{transform:translateY(0) rotate(5deg)}}
-@keyframes n-sparkle{0%,100%{opacity:.65;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
-@keyframes n-orbit{to{transform:rotate(360deg)}}
-@keyframes n-cap{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
-@media(prefers-reduced-motion:reduce){.nibras-svg,.n-cat,.n-cap,.n-tail,.n-scarf-tail,.n-paw,.n-sparkles,.n-orbit{animation:none!important}}
 
 
 /* =========================================================
@@ -603,7 +578,6 @@ body.inchat #view{flex:1;min-height:0;display:flex;flex-direction:column}
 
 .fname{display:flex;flex-direction:column;gap:1px;min-width:0}
 .fname small{font-size:11.5px;color:var(--mute);text-align:start}
-body.inchat .nbask{display:none!important}
 
 
 /* v19q+ — unified academic palette and explicit theme modes */
@@ -890,7 +864,6 @@ header{border-bottom:1px solid transparent;background-image:linear-gradient(90de
   .opt.ok{animation:v21Ok .45s}
   .opt.bad{animation:v21Shake .38s}
   .toast{animation:v21Drop .35s cubic-bezier(.2,.9,.3,1.2)}
-  #tabbar button.on svg{animation:v21Bounce .45s}
   .bar>i,.mini>i,.tbar i{background-image:linear-gradient(90deg,#d9ad45 0,#f6e2a0 50%,#d9ad45 100%);animation:v21Shine 3s linear infinite}
   .bd:not(.lock){position:relative;overflow:hidden}
   .bd:not(.lock)::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-120%);animation:v21Sweep 4.5s ease-in-out infinite}
@@ -977,30 +950,6 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
 .pset .ic{width:20px;height:20px;margin:0}
 .pset:active{transform:scale(.92);background:rgba(255,255,255,.3)}
 
-/* =========================================================
-   7Salah Scholar v23 — نبراس الجديد: يتفاعل بأربع حالات
-   happy · celebrate · think · sad  (data-mood على عنصر svg.nb)
-   ========================================================= */
-.nb .n-shut,.nb .m-smile,.nb .m-open,.nb .m-flat,.nb .m-sad,.nb .th,.nb .tear,.nb .brow-s,.nb .n-sparkles{display:none}
-.nb[data-mood=happy] .m-smile{display:block}
-.nb[data-mood=celebrate] .n-shut,.nb[data-mood=celebrate] .m-open,.nb[data-mood=celebrate] .n-sparkles{display:block}
-.nb[data-mood=celebrate] .n-open{display:none}
-.nb[data-mood=think] .m-flat,.nb[data-mood=think] .th{display:block}
-.nb[data-mood=sad] .m-sad,.nb[data-mood=sad] .tear,.nb[data-mood=sad] .brow-s{display:block}
-.nb .n-look{transition:transform .3s}
-.nb[data-mood=think] .n-look{transform:translate(2.4px,-3px)}
-.nb[data-mood=sad] .n-look{transform:translate(0,2.5px)}
-.nrow{display:flex;align-items:center;gap:8px;margin:10px 16px}
-.nbslot{width:92px;flex:none;cursor:pointer;-webkit-user-select:none;user-select:none}
-.nbslot svg{display:block;width:100%;height:auto}
-.nbub{position:relative;flex:1;min-width:0;padding:12px 14px;border-radius:18px;line-height:1.75;font-size:14.5px;font-weight:600;background-color:var(--g-bg2,var(--card));border:1px solid var(--g-brd,var(--line));box-shadow:var(--g-sh,var(--sh));-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
-.nbub::before{content:"";position:absolute;top:26px;inset-inline-start:-13px;border:7px solid transparent;border-inline-end-color:var(--g-bg2,var(--card))}
-@media(prefers-reduced-motion:no-preference){
-  .nb .n-open{animation:nbBlink 5.5s infinite;transform-box:fill-box;transform-origin:center}
-  .nbslot.pop{animation:nbPop .5s}
-}
-@keyframes nbBlink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
-@keyframes nbPop{30%{transform:scale(1.18) rotate(-6deg)}60%{transform:scale(.96) rotate(4deg)}}
 
 /* =========================================================
    7Salah Scholar v24 — واجهة وحدة المنصة (platform.js)
@@ -1111,19 +1060,19 @@ header.topbar,header{
   flex:0 0 34px;
   border-radius:10px;
   background:#001449!important;
-  border:1.5px solid rgba(255,204,0,.72)!important;
+  border:1.5px solid rgba(250,204,21,.75)!important;
   box-shadow:0 3px 10px rgba(0,20,73,.22)!important;
   display:grid;
   place-items:center;
-  padding:2px;
+  padding:0;
   overflow:hidden;
 }
-.brand .logo img{
+.brand .logo img,.brand .logo svg{
   width:100%;
   height:100%;
   object-fit:contain;
   display:block;
-  border-radius:6px;
+  border-radius:8px;
 }
 .brand-name,.brand span:last-child{
   min-width:0;
@@ -1242,19 +1191,19 @@ header #lang.lang{
   flex:0 0 62px;
   border-radius:16px;
   background:#001449;
-  border:1.5px solid rgba(255,204,0,.58);
+  border:1.5px solid rgba(250,204,21,.68);
   box-shadow:0 8px 22px rgba(0,10,36,.38),inset 0 1px 0 rgba(255,255,255,.14);
-  padding:4px;
+  padding:0;
   display:grid;
   place-items:center;
   overflow:hidden;
 }
-.hero-emblem img{
+.hero-emblem img,.hero-emblem svg{
   width:100%;
   height:100%;
   object-fit:contain;
   display:block;
-  border-radius:10px;
+  border-radius:14px;
 }
 .hero-title-wrap{
   flex:1;

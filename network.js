@@ -65,8 +65,15 @@
 
  async function apiJson(url,opts){
   const res=await fetch(url,Object.assign({headers:{"Content-Type":"application/json"}},opts||{}));
-  const data=await res.json().catch(()=>({}));
-  if(!res.ok)throw new Error(data.error||"Request failed");
+  const raw=await res.text().catch(()=>"");
+  let data={};
+  if(raw){try{data=JSON.parse(raw)}catch(e){data={}}}
+  if(!res.ok){
+   const err=new Error(data.error||(res.status>=500?tr3("خطأ في الخادم المؤقت","Server unavailable","Serveur indisponible"):res.status===404?tr3("المسار غير متاح","Endpoint unavailable","Service indisponible"):tr3("تعذر إتمام الطلب ("+res.status+")","Request error ("+res.status+")","Erreur ("+res.status+")")));
+   err.status=res.status;
+   if(data.code)err.code=data.code;
+   throw err;
+  }
   return data;
  }
 

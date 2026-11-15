@@ -13,6 +13,34 @@ const IS_PROD = process.env.NODE_ENV === "production";
 const DATA_DIR = path.join(__dirname, ".data");
 const STORE_PATH = path.join(DATA_DIR, "academic-network.json");
 
+function loadEnvFiles() {
+  for (const fname of [".env.local", ".env"]) {
+    const fpath = path.join(__dirname, fname);
+    if (!fs.existsSync(fpath)) continue;
+    try {
+      const content = fs.readFileSync(fpath, "utf8");
+      for (const rawLine of content.split(/\r?\n/)) {
+        const line = rawLine.trim();
+        if (!line || line.startsWith("#")) continue;
+        const eq = line.indexOf("=");
+        if (eq <= 0) continue;
+        const key = line.slice(0, eq).trim().replace(/^export\s+/, "");
+        let val = line.slice(eq + 1).trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        if (key && val && !process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    } catch {}
+  }
+  if (!process.env.GEMINI_API_KEY && process.env.VITE_GEMINI_API_KEY) {
+    process.env.GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY;
+  }
+}
+loadEnvFiles();
+
 interface ScholarProfile {
   id: string;
   username: string;

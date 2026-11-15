@@ -88,7 +88,7 @@ const persist=()=>{try{localStorage.setItem("7s_saved",JSON.stringify(S.saved));
 const safeUrl=(u,img)=>{u=String(u==null?"":u).trim();if(!u)return"";const c=u.replace(/[\u0000-\u0020\u00AD\u200B-\u200F\u2028\u2029\uFEFF]/g,"");
  if(/^(?:https?:|mailto:|tel:|blob:|#|\?|\.{0,2}\/)/i.test(c))return u;if(img&&/^data:image\/(?:png|jpe?g|gif|webp);/i.test(c))return u;if(/^[a-z][a-z0-9+.\-]*:/i.test(c))return"";return u};
 function h(tag,attrs,...kids){const e=document.createElement(tag);for(const k in(attrs||{})){const v=attrs[k];if(k==="class")e.className=v;else if(k.startsWith("on"))e.addEventListener(k.slice(2),v);else if(v!==false&&v!=null){if(k==="href"||k==="src"||k==="action"||k==="formaction"){const sv=safeUrl(v,tag==="img");if(!sv)continue;e.setAttribute(k,sv)}else e.setAttribute(k,v)}}
- kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:(window.iconize?iconize(c,tag,attrs):document.createTextNode(c)))});return e}
+ kids.flat(Infinity).forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:(window.iconize?iconize(c,tag,attrs):document.createTextNode(c)))});return e}
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
 let _u=0;const uid=()=>Date.now().toString(36)+(++_u).toString(36)+Math.random().toString(36).slice(2,5);
@@ -366,7 +366,8 @@ const isSaved=p=>S.saved.some(s=>keyOf(s)===keyOf(p));
 function toggleSave(p){if(isSaved(p))S.saved=S.saved.filter(s=>keyOf(s)!==keyOf(p));else{S.saved.unshift(p);award("save")}persist();render()}
 
 // ===================== نوافذ وتدفّقات الإنشاء =====================
-function modal(...kids){const m=h("div",{class:"modal",onclick:e=>{if(e.target===m)m.remove()}},h("div",{class:"box"},kids));document.body.append(m);return m}
+function modal(...kids){const m=h("div",{class:"modal",onclick:e=>{if(e.target===m)m.remove()}},h("div",{class:"box"},...kids));document.body.append(m);return m}
+function brandLogoSvg(size){const w=document.createElement("span");w.style.cssText="display:block;width:100%;height:100%";w.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1254 1254" width="${size||54}" height="${size||54}" role="img" aria-label="7Salah Scholar"><rect width="1254" height="1254" rx="280" fill="#001449"/><path fill="#FDC405" fill-rule="evenodd" d="M906 480 407 480 327 623 365 602 395 590 426 581 469 573 515 569 713 568 715 570 641 632 577 695 535 742 499 787 466 833 427 896 383 980 360 1030 361 1032 608 1031 626 952 649 879 674 816 710 743 744 685 792 615 845 548ZM355 390 355 477 370 466 396 453 443 438 515 424 592 417 682 418 761 427 830 442 899 465 901 464 901 390 899 388 850 367 802 351 754 339 708 331 655 326 599 326 522 335 488 342 434 357 385 375ZM144 339 148 342 323 409 324 370 327 367 367 347 405 332 477 311 534 300 590 294 647 293 699 297 761 307 819 322 869 339 912 358 932 370 933 409 1022 376 1023 452 1008 464 1001 481 1003 497 1015 514 974 677 989 683 1017 688 1060 687 1080 683 1095 677 1054 517 1054 512 1063 502 1067 492 1067 477 1060 463 1045 452 1045 367 1109 341 796 216 629 147Z"/></svg>`;return w.firstElementChild}
 function newDeck(title,cards,o){o=o||{};const d={id:uid(),title:title||t("dNew"),emoji:o.emoji||EMO[Math.random()*EMO.length|0],created:Date.now(),cards:cards||[],exam:null,best:0};S.decks.unshift(d);persist();return d}
 function openDeck(id){S.deckId=id;S.tab="deck";render();window.scrollTo(0,0)}
 function go(tab){S.tab=tab;render();window.scrollTo(0,0)}
@@ -695,9 +696,16 @@ const TABS=[["home","nHome",icp("home")],
  ["play","nPlay",icp("zap")],
  ["me","nMe",icp("user")]];
 const TABMAP={deck:"decks",study:"decks",quiz:"play"};
-function buildTabs(){const cur=TABMAP[S.tab]||S.tab,nd=dueTotal();
- $("tabs").replaceChildren(...TABS.map(([id,k,svg])=>{const b=h("button",{class:cur===id?"on":"",onclick:()=>go(id)});b.innerHTML="<svg viewBox='0 0 24 24'>"+svg+"</svg>";b.append(h("span",{},t(k)));
-  if(id==="decks"&&nd)b.append(h("span",{class:"dot"},nd>99?"99+":nd));return b}))}
+let _tabSig="";
+function buildTabs(){const cur=TABMAP[S.tab]||S.tab,nd=dueTotal(),box=$("tabs");
+ // لا نعيد بناء الشريط إلا عند تغيّر ما يظهر فيه فعلًا: يمنع اهتزاز الأيقونات وقفز التمرير أثناء التصفح
+ const sig=S.lang+"|"+cur+"|"+nd+"|"+TABS.map(x=>x[0]+":"+x[1]).join(",");
+ if(sig===_tabSig&&box.children.length===TABS.length)return;
+ _tabSig=sig;const sx=box.scrollLeft;
+ box.replaceChildren(...TABS.map(([id,k,svg])=>{const b=h("button",{type:"button",class:cur===id?"on":"",onclick:()=>go(id)});b.innerHTML="<svg viewBox='0 0 24 24'>"+svg+"</svg>";b.append(h("span",{},t(k)));
+  if(id==="decks"&&nd)b.append(h("span",{class:"dot"},nd>99?"99+":nd));return b}));
+ box.scrollLeft=sx;
+ try{const on=box.querySelector("button.on");if(on){const r=on.getBoundingClientRect(),c=box.getBoundingClientRect();if(r.left<c.left||r.right>c.right)box.scrollLeft+=(r.left+r.right)/2-(c.left+c.right)/2}}catch(e){}}
 
 function deckCard(d){const s=deckStats(d),ev=evRate(d);
  return h("div",{class:"card dk",onclick:()=>openDeck(d.id)},h("div",{class:"em"},d.emoji),h("div",{class:"tx"},h("h3",{dir:"auto"},d.title),
@@ -709,7 +717,7 @@ function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=
  const inp=h("input",{type:"search",value:S.hq,placeholder:t("homePh"),enterkeyhint:"go",oninput:e=>{S.hq=e.target.value},onkeydown:e=>{if(e.key==="Enter")studyTopic(S.hq)}});
  v.append(h("div",{class:"hero"},
   h("div",{class:"hero-top"},
-   h("div",{class:"hero-emblem"},h("img",{src:"/assets/aistudio/file_00000000baa482108ace7d3de05b5536_10fcdeca.png",alt:"7Salah Scholar",width:"54",height:"54"})),
+   h("div",{class:"hero-emblem"},brandLogoSvg(62)),
    h("div",{class:"hero-title-wrap"},h("div",{class:"eyebrow"},t("tag")),h("h1",{dir:"auto"},t("hi")+(S.prof.name?" "+S.prof.name:" 7Salah Scholar")))),
   h("p",{},t("tagD")),
   h("div",{class:"sb"},inp,h("button",{onclick:()=>studyTopic(S.hq)},t("homeGo"))),
@@ -773,23 +781,29 @@ async function loadAcademicLive(postsBox,msgBox,roomsBox){
    if(nr&&Array.isArray(nr.posts))posts=nr.posts.map(p=>({title:p.title,body:p.body,kind:p.kind,created_at:p.createdAt}));
   }catch(e){}
   if(roomsBox){
+   let rms=[];
    try{
     const rr=await Net.apiGet("/api/rooms?peerId="+encodeURIComponent(Net.ensurePeerId()));
-    const rms=(rr&&rr.rooms)||[];
-    roomsBox.replaceChildren();
-    if(!rms.length){
-     roomsBox.append(h("p",{class:"dash-empty"},arUI?"لا توجد غرف مفتوحة حاليًا — ابدأ جلسة فورية أو مجدولة.":"No open rooms right now — launch an instant or scheduled session."));
-    }else{
-     rms.slice(0,2).forEach(r=>{
-      const cnt=(r.activeParticipants&&r.activeParticipants.length)||0;
-      roomsBox.append(h("button",{class:"dash-post",onclick:()=>typeof joinStudyRoom==="function"?joinStudyRoom(r.id):go("rooms")},
-       h("span",{class:"dash-post-kind"},cnt>0?("🔴 "+cnt):(r.code||"ROOM")),
-       h("b",{dir:"auto"},r.title),
-       h("small",{},Net.discLabel(r.field))
-      ));
-     });
-    }
+    rms=(rr&&rr.rooms)||[];
    }catch(e){}
+   const localRms=LS.get("7s_local_rooms",[])||[];
+   if(localRms.length){
+    const seen=new Set(rms.map(x=>x.id));
+    localRms.forEach(lr=>{if(lr&&!seen.has(lr.id))rms.push(lr)});
+   }
+   roomsBox.replaceChildren();
+   if(!rms.length){
+    roomsBox.append(h("p",{class:"dash-empty"},arUI?"لا توجد غرف مفتوحة حاليًا — ابدأ جلسة فورية أو مجدولة.":"No open rooms right now — launch an instant or scheduled session."));
+   }else{
+    rms.slice(0,2).forEach(r=>{
+     const cnt=(r.activeParticipants&&r.activeParticipants.length)||0;
+     roomsBox.append(h("button",{class:"dash-post",onclick:()=>typeof joinStudyRoom==="function"?joinStudyRoom(r.id):go("rooms")},
+      h("span",{class:"dash-post-kind"},cnt>0?("🔴 "+cnt):(r.code||"ROOM")),
+      h("b",{dir:"auto"},r.title),
+      h("small",{},Net.discLabel(r.field))
+     ));
+    });
+   }
   }
  }
  if(window.SUPA&&SUPA.url&&SUPA.key){
@@ -1061,7 +1075,7 @@ function renderLibrary(v){
  [["lecture",tr("محاضرة","Lecture")],["td",tr("أعمال موجهة TD","Tutorial / TD")],["summary",tr("ملخص","Summary")],["reference",tr("مرجع","Reference")],["other",tr("أخرى","Other")]].forEach(([value,label])=>kind.append(h("option",{value},label)));
  kindWrap.append(kind);
  const pick=h("input",{type:"file",accept:"application/pdf,.pdf",style:"display:none",onchange:async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){toast(tr("اختر ملف PDF صالحًا.","Choose a valid PDF file."));return}if(f.size>25*1024*1024){toast(tr("الحد الأقصى للملف 25 ميغابايت.","Maximum file size is 25 MB."));return}try{const id=uid(),now=Date.now(),meta={};[uni,faculty,dept,level,semester,course].forEach(x=>meta[x.el.dataset.meta]=x.el.value.trim());meta.kind=kind.value;await libraryPut({id,name:f.name,size:f.size,type:"application/pdf",created:now,updated:now,page:1,note:"",meta,blob:f});LIB_OPEN_ID=id;toast(tr("أُضيف الملف إلى مكتبتك مع تصنيفه ✓","PDF added with its classification ✓"));render()}catch(err){console.error("[library]",err);toast(tr("تعذر حفظ الملف. قد تكون مساحة التخزين غير كافية.","Could not save the file. Device storage may be full."))}}});
- const metaForm=h("div",{class:"lib-classifier card"},h("div",{class:"lib-classifier-title"},tr("تصنيف ملف جديد","Classify a new file")),h("div",{class:"lib-meta-grid"},uni.wrap,faculty.wrap,dept.wrap,level.wrap,semester.wrap,course.wrap,kindWrap),h("div",{class:"lib-toolbar-inner"},h("button",{class:"btn fill",onclick:()=>pick.click()},ic("plus")+" "+tr("إضافة ملف PDF","Add PDF")),h("span",{class:"lib-hint"},tr("PDF فقط · حتى 25 MB للملف","PDF only · up to 25 MB per file")),pick));
+ const metaForm=h("div",{class:"lib-classifier card"},h("div",{class:"lib-classifier-title"},tr("تصنيف ملف جديد","Classify a new file")),h("div",{class:"lib-meta-grid"},uni.wrap,faculty.wrap,dept.wrap,level.wrap,semester.wrap,course.wrap,kindWrap),h("div",{class:"lib-toolbar-inner"},h("button",{class:"btn fill",onclick:()=>pick.click()},ic("plus"),tr("إضافة ملف PDF","Add PDF")),h("span",{class:"lib-hint"},tr("PDF فقط · حتى 25 MB للملف","PDF only · up to 25 MB per file")),pick));
  v.append(metaForm);
  renderSharedAcademicLibrary(v);
  const layout=h("div",{class:"lib-layout"}),list=h("section",{class:"lib-list card"}),reader=h("section",{class:"lib-reader"});
@@ -1088,7 +1102,7 @@ function renderLibrary(v){
   const isPdf=!d.type||d.type==="application/pdf"||/\.pdf$/i.test(d.name||"");
   const saveNote=h("button",{class:"btn fill",onclick:async()=>{d.note=note.value;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظت الملاحظات ✓","Notes saved ✓"))}catch(e){toast(tr("تعذر حفظ الملاحظات.","Could not save notes."))}}},tr("حفظ الملاحظات","Save notes"));
   const analyze=isPdf?h("button",{class:"btn fill",type:"button",onclick:()=>{if(window.openAiWithSource)openAiWithSource({kind:"pdf",title:d.name,blob:d.blob,autoAnalyze:true});else go("ai")}},ic("sparkles",{s:15}),tr("تحليل بالمساعد الذكي","Analyze with AI")):null;
-  const download=h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download")+" "+tr("فتح / تنزيل","Open / download"));
+  const download=h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download"),tr("فتح / تنزيل","Open / download"));
   const publish=isPdf?h("button",{class:"btn",type:"button",onclick:()=>publishAcademicResource(d)},tr("إرسال للمكتبة المشتركة","Submit to shared library")):null;
   const del=h("button",{class:"btn danger",onclick:async()=>{if(!confirm(tr("حذف هذا الملف وملاحظاته من هذا الجهاز؟","Delete this item and its notes from this device?")))return;try{await libraryDelete(d.id);LIB_OPEN_ID=null;render()}catch(e){toast(tr("تعذر حذف الملف.","Could not delete file."))}}},tr("حذف","Delete"));
   const frame=h("iframe",{class:"lib-pdf-frame",src:isPdf?(LIB_OBJECT_URL+"#page="+(d.page||1)+"&view=FitH"):LIB_OBJECT_URL,title:tr("عارض المستند","Document viewer"),loading:"lazy"});
