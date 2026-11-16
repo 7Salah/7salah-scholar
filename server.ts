@@ -47,8 +47,9 @@ function loadEnvFiles() {
       }
     } catch {}
   }
-  if (!process.env.GEMINI_API_KEY && process.env.VITE_GEMINI_API_KEY) {
-    process.env.GEMINI_API_KEY = process.env.VITE_GEMINI_API_KEY;
+  if (!process.env.GEMINI_API_KEY) {
+    const altKey = process.env.API_KEY || process.env.VITE_GEMINI_API_KEY;
+    if (altKey) process.env.GEMINI_API_KEY = altKey;
   }
 }
 loadEnvFiles();

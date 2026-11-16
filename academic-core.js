@@ -202,6 +202,7 @@
       const lang = opts.lang || (global.S && global.S.lang) || "ar";
       let result = null;
 
+      let lastErrMsg = "";
       if (headers["Authorization"]) {
         try {
           const response = await fetch(this.companionUrl, {
@@ -216,52 +217,40 @@
               studentContext: opts.studentContext || this.memory || {}
             })
           });
-          if (response.ok) {
-            result = await response.json().catch(() => null);
+          const j1 = await response.json().catch(() => null);
+          if (response.ok && j1 && j1.reply) {
+            result = j1;
+          } else if (j1 && j1.error) {
+            lastErrMsg = j1.error;
           }
         } catch (_) {}
       }
 
       if (!result || !result.reply) {
-        try {
-          const res2 = await fetch("/api/ai/research", {
-            method: "POST",
-            cache: "no-store",
-            credentials: "same-origin",
-            headers,
-            body: JSON.stringify({
-              messages: [{ role: "user", text: msg }],
-              mode: "qa",
-              taskRoute: "fast",
-              lang,
-              field: opts.field || ""
-            })
-          });
-          if (res2.ok) {
-            const j2 = await res2.json().catch(() => null);
-            if (j2 && j2.answer) result = { reply: j2.answer, modelUsed: j2.modelUsed || "gemini" };
-          }
-        } catch (_) {}
+        const res2 = await fetch("/api/ai/research", {
+          method: "POST",
+          cache: "no-store",
+          credentials: "same-origin",
+          headers,
+          body: JSON.stringify({
+            messages: [{ role: "user", text: msg }],
+            mode: "qa",
+            taskRoute: "fast",
+            lang,
+            field: opts.field || ""
+          })
+        });
+        const j2 = await res2.json().catch(() => null);
+        if (!res2.ok) {
+          throw new Error((j2 && j2.error) || lastErrMsg || ("Gemini API error (HTTP " + res2.status + ")"));
+        }
+        if (j2 && j2.answer) {
+          result = { reply: j2.answer, modelUsed: j2.modelUsed || "gemini" };
+        }
       }
 
       if (!result || !result.reply) {
-        let localWorks = [];
-        try {
-          const oa = await fetch("https://api.openalex.org/works?search=" + encodeURIComponent(msg.slice(0, 140)) + "&per-page=2");
-          if (oa.ok) {
-            const oj = await oa.json().catch(() => ({}));
-            localWorks = Array.isArray(oj.results) ? oj.results : [];
-          }
-        } catch (_) {}
-        const trackNote = (this.memory && (this.memory.field || opts.field)) ? ` (${this.memory && this.memory.field || opts.field})` : "";
-        const replyText = localWorks.length
-          ? (lang === "ar"
-            ? `أبرز الدراسات القريبة من موضوعك${trackNote}: ${localWorks.map((w) => `${w.title} (${w.publication_year || ""})`).join(" — ")}`
-            : `Related scholarly works${trackNote}: ${localWorks.map((w) => `${w.title} (${w.publication_year || ""})`).join(" — ")}`)
-          : (lang === "ar"
-            ? `تم استلام سؤالك حول «${msg.slice(0, 80)}»${trackNote}. يمكنك المتابعة عبر تبويب البحث أو إرفاق ملف نصي لتحليل معمّق.`
-            : `Question received regarding “${msg.slice(0, 80)}”${trackNote}. Use Research search or attach a text source for deeper study.`);
-        result = { reply: replyText, modelUsed: "local-companion" };
+        throw new Error(lastErrMsg || "لم يتم استلام رد من Gemini API.");
       }
 
       if (result.memory) {

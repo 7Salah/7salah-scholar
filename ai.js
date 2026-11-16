@@ -404,237 +404,52 @@
   return headers;
  }
 
- function makeUnavailableErr(status,msg){
-  const err=new Error(msg||aiTr("خدمة التحليل البعيدة غير متاحة حاليًا — تم التحويل للمحرك المحلي.","Remote AI service unavailable — switched to local engine.","Service distant indisponible — moteur local activé."));
-  err.isBackendUnavailable=true;
-  err.status=status||0;
-  return err;
- }
-
  async function postAiJson(endpoint,payload,timeoutMs){
   const url=resolveAiEndpoint(endpoint);
-  const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
-  const tm=ctrl?setTimeout(()=>ctrl.abort(),timeoutMs||120000):null;
-  try{
-   const headers=await getAiHeaders();
-   const res=await fetch(url,{
-    method:"POST",
-    mode:"cors",
-    cache:"no-store",
-    credentials:"same-origin",
-    headers,
-    body:JSON.stringify(payload||{}),
-    signal:ctrl?ctrl.signal:undefined
-   });
-   const raw=await res.text().catch(()=>"");
-   let data={};
-   if(raw){try{data=JSON.parse(raw)}catch(e){data={}}}
-   if(!res.ok){
-    if(res.status===404||res.status===405||res.status===501||res.status===502||res.status===503){
-     throw makeUnavailableErr(res.status,data.error||"");
-    }
-    if(data.error)throw new Error(data.error);
-    throw new Error(aiTr("تعذر إتمام الطلب البحثي مؤقتًا (رمز "+res.status+").","Research request could not be completed (HTTP "+res.status+").","Échec de la requête ("+res.status+")."));
-   }
-   return data;
-  }catch(err){
-   if(err&&err.name==="AbortError"){
-    throw new Error(aiTr("انتهت مهلة معالجة الطلب. حاول مجددًا بنص أقصر أو ملف أصغر.","Request timed out. Please retry with a shorter query or smaller file.","Délai dépassé."));
-   }
-   if(err&&(err.isBackendUnavailable||err.name==="TypeError")){
-    throw makeUnavailableErr(err.status||0,err.message);
-   }
-   throw err;
-  }finally{
-   if(tm)clearTimeout(tm);
-  }
- }
-
- function decodeOpenAlexAbstract(inv){
-  if(!inv||typeof inv!=="object")return"";
-  try{
-   const arr=[];
-   for(const [word,posList]of Object.entries(inv)){
-    if(Array.isArray(posList))for(const p of posList)arr[p]=word;
-   }
-   return arr.filter(Boolean).join(" ").trim();
-  }catch(e){return""}
- }
-
- async function fetchOpenAlexWorksClient(query){
-  const q=String(query||"").trim().slice(0,180);
-  if(!q)return[];
-  const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
-  const tm=ctrl?setTimeout(()=>ctrl.abort(),7000):null;
-  try{
-   const res=await fetch("https://api.openalex.org/works?search="+encodeURIComponent(q)+"&per-page=4",{signal:ctrl?ctrl.signal:undefined});
-   if(!res.ok)return[];
-   const json=await res.json().catch(()=>({}));
-   const list=Array.isArray(json.results)?json.results:[];
-   return list.map((w,i)=>{
-    const doi=w.doi?String(w.doi).replace(/^https?:\/\/doi\.org\//i,""):"";
-    const authors=(w.authorships||[]).slice(0,4).map(a=>a&&a.author&&a.author.display_name).filter(Boolean);
-    const journal=(w.primary_location&&w.primary_location.source&&w.primary_location.source.display_name)||"";
-    const url=doi?("https://doi.org/"+doi):((w.primary_location&&w.primary_location.landing_page_url)||w.id||"");
-    return{
-     index:i+1,
-     title:w.title||w.display_name||q,
-     authors,
-     year:w.publication_year||null,
-     journal,
-     doi:doi||undefined,
-     url,
-     abs:decodeOpenAlexAbstract(w.abstract_inverted_index),
-     verifiedSource:doi?"OpenAlex · Peer-Reviewed DOI":"OpenAlex"
-    };
-   });
-  }catch(e){
-   return[];
-  }finally{
-   if(tm)clearTimeout(tm);
-  }
- }
-
- async function localScholarFallback(opts){
-  const q=String((opts&&opts.query)||"").trim();
-  const mode=(opts&&opts.mode)||"qa";
-  const src=opts&&opts.source;
-  const tokens=q.toLowerCase().split(/[\s،,.;:!?()]+/).filter(w=>w.length>2).slice(0,8);
-
-  if(src&&src.text&&src.text.trim().length>20){
-   const sents=src.text.replace(/\r/g,"").split(/(?<=[.!؟\n])\s+/).map(s=>s.trim()).filter(s=>s.length>15);
-   const scored=sents.map(s=>{
-    const low=s.toLowerCase();
-    const sc=tokens.reduce((acc,tk)=>acc+(low.includes(tk)?1:0),0);
-    return{s,sc};
-   }).sort((a,b)=>b.sc-a.sc);
-   const best=(scored.filter(x=>x.sc>0).slice(0,4).map(x=>x.s));
-   const picks=best.length?best:sents.slice(0,3);
-   const answer=[
-    aiTr(`### إجابة مستخلصة من المصدر المرفق («${src.title}»)`,`### Source-Grounded Summary (“${src.title}”)`,`### Synthèse de la source (« ${src.title} »)`),
-    ...picks.map((p,i)=>`${i+1}. ${p} [1]`),
-    "",
-    aiTr("ملاحظة: يعتمد هذا الملخص على التحليل النصي المحلي لمحتوى المصدر المرفق في جلستك.","Note: Synthesized locally from the attached document in your session.","Note : Synthétisé localement à partir du document joint.")
-   ].join("\n");
-   return{
-    answer,
-    modelUsed:"local-source-engine",
-    verification:{status:"strict-document-grounded",confidenceScore:90,queries:[]},
-    citations:[{index:1,title:src.title,verifiedSource:src.kind==="lecture"?"Lecture Transcript":"Uploaded Source",quote:picks[0]?picks[0].slice(0,180):""}]
-   };
-  }
-
-  const works=await fetchOpenAlexWorksClient(q);
-  const deckHits=[];
-  try{
-   if(window.S&&Array.isArray(S.decks)){
-    for(const dk of S.decks){
-     for(const c of (dk.cards||[])){
-      const hay=((c.q||"")+" "+(c.a||"")).toLowerCase();
-      if(tokens.some(tk=>hay.includes(tk))){deckHits.push({q:c.q,a:c.a,deck:dk.title});if(deckHits.length>=3)break}
+  let lastErr=null;
+  for(let attempt=0;attempt<2;attempt++){
+   const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
+   const tm=ctrl?setTimeout(()=>ctrl.abort(),timeoutMs||120000):null;
+   try{
+    const headers=await getAiHeaders();
+    const res=await fetch(url,{
+     method:"POST",
+     mode:"cors",
+     cache:"no-store",
+     credentials:"same-origin",
+     headers,
+     body:JSON.stringify(payload||{}),
+     signal:ctrl?ctrl.signal:undefined
+    });
+    const raw=await res.text().catch(()=>"");
+    let data={};
+    if(raw){try{data=JSON.parse(raw)}catch(_){data={}}}
+    if(!res.ok){
+     const err=new Error(data.error||aiTr("تعذر إتمام الطلب عبر Gemini API (رمز "+res.status+").","Gemini API request could not be completed (HTTP "+res.status+").","Échec de la requête Gemini ("+res.status+")."));
+     err.status=res.status;
+     if((res.status===502||res.status===503||res.status===504)&&attempt===0){
+      lastErr=err;
+      await new Promise(r=>setTimeout(r,650));
+      continue;
      }
-     if(deckHits.length>=3)break;
+     throw err;
     }
+    return data;
+   }catch(err){
+    if(err&&err.name==="AbortError"){
+     throw new Error(aiTr("انتهت مهلة معالجة الطلب. حاول مجددًا بنص أقصر أو ملف أصغر.","Request timed out. Please retry with a shorter query or smaller file.","Délai dépassé."));
+    }
+    if(err&&err.name==="TypeError"&&attempt===0){
+     lastErr=err;
+     await new Promise(r=>setTimeout(r,650));
+     continue;
+    }
+    throw err;
+   }finally{
+    if(tm)clearTimeout(tm);
    }
-  }catch(e){}
-
-  if(works.length){
-   const lines=[];
-   if(mode==="outline"){
-    lines.push(aiTr(`### خطة بحث مقترحة حول: ${q}`,`### Structured Research Outline: ${q}`,`### Plan de recherche : ${q}`));
-    lines.push(aiTr("1. **المقدمة والإشكالية**: تحديد الإطار النظري للموضوع وأهميته المعاصرة.","1. **Introduction & Problem Statement**: Define the theoretical scope and research gap.","1. **Introduction et problématique**"));
-    lines.push(aiTr("2. **مراجعة الأدبيات والدراسات السابقة**: البناء على الدراسات الموثّقة أدناه [1]-[2].","2. **Literature Review**: Synthesize prior peer-reviewed findings below [1]-[2].","2. **Revue de littérature** [1]-[2]"));
-    lines.push(aiTr("3. **المنهجية وأدوات التحليل**: تصميم العينة، جمع البيانات، وضبط المتغيرات.","3. **Methodology**: Research design, sampling, and analytical framework.","3. **Méthodologie**"));
-    lines.push(aiTr("4. **المناقشة والخاتمة**: مقارنة النتائج بالدراسات المرجعية وصياغة التوصيات.","4. **Discussion & Conclusion**: Compare findings and state recommendations.","4. **Discussion et conclusion**"));
-   }else if(mode==="litreview"){
-    lines.push(aiTr(`### مراجعة أدبيات مبدئية حول: ${q}`,`### Comparative Literature Synthesis: ${q}`,`### Revue de littérature : ${q}`));
-   }else{
-    lines.push(aiTr(`### نتائج بحثية ومراجع علمية حول: ${q}`,`### Scholarly Findings & References: ${q}`,`### Résultats scientifiques : ${q}`));
-   }
-   works.forEach((w,i)=>{
-    const yr=w.year?` (${w.year})`:"";
-    const ex=w.abs?(" — "+w.abs.slice(0,220).trim()+"…"):"";
-    lines.push(`- **${w.title}**${yr} [${i+1}]${ex}`);
-   });
-   if(deckHits.length){
-    lines.push("");
-    lines.push(aiTr("#### من حزمك الدراسية المحفوظة:","#### From Your Saved Decks:","#### Depuis vos paquets :"));
-    deckHits.forEach(dh=>lines.push(`- **${dh.q.replace("_____","___")}**: ${dh.a} (${dh.deck})`));
-   }
-   return{
-    answer:lines.join("\n"),
-    modelUsed:"openalex-local-engine",
-    verification:{status:"web-grounded",confidenceScore:84,queries:[q],groundingChunksCount:works.length},
-    citations:works.map(w=>({index:w.index,title:w.title,authors:w.authors,year:w.year,journal:w.journal,doi:w.doi,url:w.url,verifiedSource:w.verifiedSource,quote:w.abs?w.abs.slice(0,160):""}))
-   };
   }
-
-  const localReply=deckHits.length
-   ? [aiTr(`### خلاصة مرتبطة بموضوع: ${q}`,`### Study Notes for: ${q}`,`### Notes d'étude : ${q}`),...deckHits.map(dh=>`- **${dh.q}**: ${dh.a}`)].join("\n")
-   : aiTr(
-    `تم استلام استفسارك حول «${q}». في وضع التشغيل الثابت الحالي بدون خادم خلفي مباشر، يمكنك إرفاق نص أو مقالة من أعلى لتحليلها واستخراج البطاقات فورًا، أو استخدام تبويب «بحث» للوصول المباشر لفهارس OpenAlex وDOAJ وCrossref.`,
-    `Query received: “${q}”. On static hosting without a live backend server, you can attach a text/article source above for instant on-device analysis and flashcard extraction, or open the Research tab to search OpenAlex, DOAJ, and Crossref directly.`,
-    `Requête reçue : « ${q} ». Sur hébergement statique sans serveur backend, joignez un texte ci-dessus pour l'analyser localement ou utilisez l'onglet Recherche.`
-   );
-
-  return{
-   answer:localReply,
-   modelUsed:"local-scholar-engine",
-   verification:{status:"preliminary",confidenceScore:68,queries:[]},
-   citations:[]
-  };
- }
-
- function localExtractFlashcards(text,title){
-  if(typeof notesToCards==="function"){
-   const c=notesToCards(text,title||"AI Study");
-   if(Array.isArray(c)&&c.length)return c.slice(0,25);
-  }
-  const sents=String(text||"").split(/(?<=[.!؟\n])\s+/).map(s=>s.trim()).filter(s=>s.length>24);
-  return sents.slice(0,8).map((s,i)=>({q:(title?title+" — ":"")+aiTr("النقطة الرئيسية ","Key Point ","Point clé ")+(i+1),a:s}));
- }
-
- function localAnalyzeSource(src){
-  const text=String((src&&src.text)||"").trim();
-  const title=(src&&src.title)||aiTr("مصدر مرفق","Attached Source","Source jointe");
-  if(!text){
-   return{
-    title,
-    authors:[],
-    year:null,
-    summary:aiTr("هذا الملف بصيغة PDF ثنائية على متصفح يعمل باستضافة ثابتة. للحصول على تحليل نصي كامل على جهازك دون خادم خلفي، انسخ نص الورقة وألصقه عبر «لصق مقال / نص».","This binary PDF was loaded on static hosting without a backend parser. For instant on-device analysis, copy key sections and attach them via “Paste Article”.","PDF binaire chargé sans serveur backend. Collez le texte via « Coller texte » pour l'analyser localement."),
-    keyFindings:[{claim:title,evidenceQuote:"",location:src&&src.sizeLabel?src.sizeLabel:"PDF"}],
-    methodologies:[],
-    terminology:[],
-    limitations:[aiTr("تحليل ملفات PDF الممسوحة ضوئيًا يتطلب خادمًا داعمًا أو لصق النص مباشرة.","Binary PDF parsing requires a backend server or pasted text.")],
-    flashcards:[],
-    citations:[{index:1,title,verifiedSource:"Uploaded Source"}],
-    verification:{status:"strict-document-grounded",confidenceScore:78}
-   };
-  }
-  const paras=text.split(/\n{2,}/).map(p=>p.trim()).filter(p=>p.length>25);
-  const sents=text.split(/(?<=[.!؟\n])\s+/).map(s=>s.trim()).filter(s=>s.length>25);
-  const summary=paras.slice(0,2).join("\n\n").slice(0,700)||(sents.slice(0,3).join(" ").slice(0,700));
-  const keyFindings=sents.slice(0,5).map((s,i)=>({claim:s.length>150?s.slice(0,147)+"…":s,evidenceQuote:s.slice(0,220),location:aiTr("مقطع ","Section ","Section ")+(i+1)}));
-  const termPairs=[];
-  for(const ln of text.split(/\n/)){
-   const m=ln.match(/^([^:–\-]{3,45})\s*[:–\-]\s*(.{15,240})$/);
-   if(m){termPairs.push({term:m[1].trim(),definition:m[2].trim(),contextQuote:ln.trim().slice(0,160)});if(termPairs.length>=6)break}
-  }
-  const cards=localExtractFlashcards(text,title).map(c=>({q:c.q,a:c.a}));
-  return{
-   title,
-   authors:[],
-   year:null,
-   summary:summary||text.slice(0,500),
-   keyFindings,
-   methodologies:[],
-   terminology:termPairs,
-   limitations:[],
-   flashcards:cards,
-   citations:[{index:1,title,verifiedSource:src&&src.kind==="lecture"?"Lecture Transcript":"Attached Text Source",quote:sents[0]?sents[0].slice(0,180):""}],
-   verification:{status:"strict-document-grounded",confidenceScore:90}
-  };
+  throw lastErr||new Error(aiTr("تعذر الاتصال بخادم Gemini API.","Could not reach Gemini API server.","Serveur Gemini API inaccessible."));
  }
 
  async function convertToSmartFlashcards(text,title,citations,btnKey){
@@ -642,18 +457,8 @@
   AI.convertingId=btnKey;
   render();
   try{
-   let rawCards=[];
-   try{
-    const data=await postAiJson("/api/ai/flashcards",{answerText:text,title:title||"AI Research",lang:S.lang},90000);
-    rawCards=Array.isArray(data.cards)?data.cards:[];
-   }catch(err){
-    if(err&&err.isBackendUnavailable){
-     rawCards=localExtractFlashcards(text,title);
-    }else{
-     throw err;
-    }
-   }
-   if(!rawCards.length)rawCards=localExtractFlashcards(text,title);
+   const data=await postAiJson("/api/ai/flashcards",{answerText:text,title:title||"AI Research",lang:S.lang},90000);
+   const rawCards=Array.isArray(data.cards)?data.cards:[];
    if(!rawCards.length)throw new Error(aiTr("لم يتمكن المساعد من استخراج بطاقات من هذا النص.","Could not extract flashcards from this text.","Aucune carte extraite."));
 
    const primarySrc=pickCardSrc(title,citations,0);
@@ -808,16 +613,7 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
      text:AI.source.text||undefined
     };
    }
-   let data;
-   try{
-    data=await postAiJson("/api/ai/research",payload,120000);
-   }catch(err){
-    if(err&&err.isBackendUnavailable){
-     data=await localScholarFallback({query:q,mode:AI.mode,lang:S.lang||"ar",source:AI.source});
-    }else{
-     throw err;
-    }
-   }
+   const data=await postAiJson("/api/ai/research",payload,120000);
 
    AI.messages.push({
     id:uid(),
@@ -839,7 +635,7 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
     id:uid(),
     role:"assistant",
     isError:true,
-    text:e.message||aiTr("تعذر إتمام الطلب البحثي مؤقتًا. حاول مجددًا بعد قليل.","Could not complete research request right now. Please try again shortly.","Échec temporaire de la requête."),
+    text:e.message||aiTr("تعذر إتمام الطلب عبر Gemini API مؤقتًا. حاول مجددًا بعد قليل.","Could not complete Gemini API request right now. Please try again shortly.","Échec temporaire de la requête."),
     ts:Date.now()
    });
   }finally{
@@ -854,25 +650,16 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
   AI.tab="analyzer";
   render();
   try{
-   try{
-    const data=await postAiJson("/api/ai/analyze",{
-     title:AI.source.title,
-     kind:AI.source.kind,
-     text:AI.source.text||"",
-     pdfBase64:AI.source.pdfBase64||"",
-     citeStyle:S.citeStyle||"apa",
-     lang:S.lang||"ar"
-    },180000);
-    AI.analysis=data.analysis||null;
-    toast(aiTr("اكتمل التحليل الموثّق للمصدر ✓","Source-grounded analysis complete ✓","Analyse terminée ✓"));
-   }catch(err){
-    if(err&&err.isBackendUnavailable){
-     AI.analysis=localAnalyzeSource(AI.source);
-     toast(aiTr("اكتمل التحليل المحلي للمصدر ✓","Local source analysis complete ✓","Analyse locale terminée ✓"));
-    }else{
-     throw err;
-    }
-   }
+   const data=await postAiJson("/api/ai/analyze",{
+    title:AI.source.title,
+    kind:AI.source.kind,
+    text:AI.source.text||"",
+    pdfBase64:AI.source.pdfBase64||"",
+    citeStyle:S.citeStyle||"apa",
+    lang:S.lang||"ar"
+   },180000);
+   AI.analysis=data.analysis||null;
+   toast(aiTr("اكتمل التحليل الموثّق للمصدر ✓","Source-grounded analysis complete ✓","Analyse terminée ✓"));
   }catch(e){
    toast(e.message||aiTr("تعذر تحليل المستند.","Could not analyze document.","Échec de l'analyse."));
   }finally{
@@ -1483,15 +1270,10 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
    if(AI.source){
     payload.documentContext={kind:AI.source.kind,title:AI.source.title,text:AI.source.text||undefined};
    }
-   try{
-    const data=await postAiJson("/api/ai/research",payload,45000);
-    replyText=(data&&data.answer)||"";
-   }catch(err){
-    const fb=await localScholarFallback({query:tx,mode:"qa",lang:S.lang||"ar",source:AI.source});
-    replyText=fb.answer||"";
-   }
+   const data=await postAiJson("/api/ai/research",payload,45000);
+   replyText=(data&&data.answer)||"";
   }catch(e){
-   replyText=aiTr("تم استلام سؤالك. حاول صياغته بعبارة أقصر للاستمرار.","Question received. Please rephrase briefly to continue.","Question reçue.");
+   replyText=(e&&e.message)||aiTr("تعذر الاتصال بـ Gemini API حاليًا. حاول مجددًا بعد لحظات.","Could not reach Gemini API right now. Please try again shortly.","Erreur de connexion Gemini API.");
   }finally{
    LIVE._busyTurn=false;
   }
@@ -1793,22 +1575,8 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
     body.lat=AI.mapsCoords.lat;
     body.lng=AI.mapsCoords.lng;
    }
-   try{
-    const data=await postAiJson("/api/ai/maps-grounding",body,90000);
-    AI.mapsResult=data;
-   }catch(err){
-    if(err&&err.isBackendUnavailable&&window.StudyMaps&&typeof window.StudyMaps.queryGeminiMapsGrounding==="function"){
-     AI.mapsResult=await window.StudyMaps.queryGeminiMapsGrounding(q,AI.mapsCoords);
-    }else if(err&&err.isBackendUnavailable){
-     AI.mapsResult={
-      answer:aiTr(`ابحث عن «${q}» مباشرة عبر خرائط Google باستخدام الخريطة التفاعلية أو الرابط المباشر.`, `Search “${q}” directly on Google Maps using the interactive map button above.`, `Rechercher « ${q} » sur Google Maps.`),
-      modelUsed:"local-maps-fallback",
-      places:[{index:1,title:q,address:"",rating:null,uri:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q),reviewSnippets:[]}]
-     };
-    }else{
-     throw err;
-    }
-   }
+   const data=await postAiJson("/api/ai/maps-grounding",body,90000);
+   AI.mapsResult=data;
   }catch(e){
    if(window.StudyMaps&&typeof window.StudyMaps.checkQuotaResponse==="function"){
     window.StudyMaps.checkQuotaResponse(0,e&&e.message?e.message:"");

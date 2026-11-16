@@ -7,7 +7,7 @@ const SEARCH_GROUNDING_MODEL = "gemini-4-hydrogen";
 
 function primaryModel(): string {
   const raw = (process.env.GEMINI_MODEL || "").trim();
-  if (VALID_MODEL_RX.test(raw) && !/^gemini-(?:1\.[05]|2\.0|2\.5)-/i.test(raw)) {
+  if (VALID_MODEL_RX.test(raw) && !/^gemini-(?:1\.[05]|2\.0)-/i.test(raw)) {
     return raw;
   }
   return SEARCH_GROUNDING_MODEL;
@@ -58,7 +58,7 @@ function buildConfigForModel(model: string, baseConfig: Record<string, any>, lev
 }
 
 function getApiKey(): string {
-  return (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "").trim();
+  return (process.env.GEMINI_API_KEY || process.env.API_KEY || process.env.VITE_GEMINI_API_KEY || "").trim();
 }
 
 function getAi(): GoogleGenAI {
@@ -147,22 +147,25 @@ async function generateWithFallback(
       if (shouldTryNext && i < candidates.length - 1) {
         continue;
       }
-      // As a final resort if every candidate failed with Search Grounding tools, retry without tools
-      if (cfg.tools) {
-        try {
-          const fallbackModel = candidates[candidates.length - 1] || SEARCH_GROUNDING_MODEL;
-          const { tools: _ignored, ...noToolCfg } = buildConfigForModel(fallbackModel, baseConfig, thinkingLevel);
-          const response = await ai.models.generateContent({
-            model: fallbackModel,
-            contents,
-            config: noToolCfg
-          });
-          return { response, actualModel: fallbackModel };
-        } catch (innerErr: any) {
-          lastErr = innerErr;
-        }
+      if (!shouldTryNext) {
+        throw lastErr;
       }
-      throw lastErr;
+    }
+  }
+  if (hasSearchTool) {
+    const { tools: _ignored, ...plainBase } = baseConfig;
+    for (const fallbackModel of [SEARCH_GROUNDING_MODEL, "gemini-3.1-flash-lite"]) {
+      try {
+        const noToolCfg = buildConfigForModel(fallbackModel, plainBase, thinkingLevel);
+        const response = await ai.models.generateContent({
+          model: fallbackModel,
+          contents,
+          config: noToolCfg
+        });
+        return { response, actualModel: fallbackModel };
+      } catch (innerErr: any) {
+        lastErr = innerErr;
+      }
     }
   }
   throw lastErr;
@@ -517,10 +520,10 @@ export function registerAiResearchRoutes(app: Express) {
 
       // Build multi-turn conversation history cleanly
       const contents = messages
-        .filter((m: any) => cleanText(m?.text, 8000).length > 0)
+        .filter((m: any) => cleanText(m?.text ?? m?.content, 8000).length > 0)
         .map((m: any, idx: number) => {
-          const role = m.role === "assistant" ? "model" : "user";
-          const txt = cleanText(m.text, 8000);
+          const role = m.role === "assistant" || m.role === "model" ? "model" : "user";
+          const txt = cleanText(m?.text ?? m?.content, 8000);
           const turnParts = idx === 0 && role === "user" && docParts.length
             ? [...docParts, { text: txt }]
             : [{ text: txt }];
