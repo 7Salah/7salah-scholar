@@ -32,7 +32,10 @@
     }
 
     async getAuthHeaders() {
-      const headers = { "Content-Type": "application/json" };
+      const headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      };
       try {
         if (global.ScholarAuth && typeof global.ScholarAuth.getFreshIdToken === "function") {
           const token = await global.ScholarAuth.getFreshIdToken();
@@ -79,20 +82,24 @@
       if (!roomCode) {
         throw new Error("يرجى إدخال رمز الغرفة أو الرابط.");
       }
-      const headers = await this.getAuthHeaders();
-      let res = await fetch("/api/rooms/" + encodeURIComponent(roomCode), { headers });
-      if (!res.ok) {
-        res = await fetch("/api/sql/rooms/" + encodeURIComponent(roomCode), { headers });
+      try {
+        const headers = await this.getAuthHeaders();
+        let res = await fetch("/api/rooms/" + encodeURIComponent(roomCode), { method: "GET", cache: "no-store", headers });
+        if (!res.ok) {
+          res = await fetch("/api/sql/rooms/" + encodeURIComponent(roomCode), { method: "GET", cache: "no-store", headers });
+        }
+        if (!res.ok) {
+          throw new Error("الغرفة غير متاحة حالياً أو انتهت الجلسة.");
+        }
+        const data = await res.json();
+        const room = data && (data.room || data);
+        if (!room || room.status === "closed") {
+          throw new Error("الغرفة غير متاحة حالياً أو انتهت الجلسة.");
+        }
+        return data;
+      } catch (e) {
+        throw new Error((e && e.message) || "الغرفة غير متاحة حالياً أو انتهت الجلسة.");
       }
-      if (!res.ok) {
-        throw new Error("الغرفة غير متاحة حالياً أو انتهت الجلسة.");
-      }
-      const data = await res.json();
-      const room = data && (data.room || data);
-      if (!room || room.status === "closed") {
-        throw new Error("الغرفة غير متاحة حالياً أو انتهت الجلسة.");
-      }
-      return data;
     }
 
     // 2. Strict user ID validation + academic profile persistence
@@ -107,6 +114,7 @@
       }
       const res = await fetch(this.profileUrl, {
         method: "PUT",
+        cache: "no-store",
         headers,
         body: JSON.stringify({
           userId: cleanId,
@@ -125,15 +133,19 @@
     }
 
     async fetchAcademicBundle() {
-      const headers = await this.getAuthHeaders();
-      if (!headers["Authorization"]) return null;
-      const res = await fetch(this.meUrl, { method: "GET", headers });
-      if (!res.ok) return null;
-      const bundle = await res.json().catch(() => null);
-      if (bundle && bundle.memory) {
-        this.memory = bundle.memory;
+      try {
+        const headers = await this.getAuthHeaders();
+        if (!headers["Authorization"]) return null;
+        const res = await fetch(this.meUrl, { method: "GET", cache: "no-store", headers });
+        if (!res.ok) return null;
+        const bundle = await res.json().catch(() => null);
+        if (bundle && bundle.memory) {
+          this.memory = bundle.memory;
+        }
+        return bundle;
+      } catch (_) {
+        return null;
       }
-      return bundle;
     }
 
     // 3. Personal Academic Voice Companion (SpeechRecognition + Persistent Memory + SpeechSynthesis)
@@ -187,25 +199,69 @@
       if (!msg) throw new Error("يرجى كتابة أو قول سؤالك أولاً.");
 
       const headers = await this.getAuthHeaders();
-      if (!headers["Authorization"]) {
-        throw new Error("يرجى تسجيل الدخول بحساب Google لتفعيل المساعد الصوتي وذاكرة مسارك الجامعي.");
+      const lang = opts.lang || (global.S && global.S.lang) || "ar";
+      let result = null;
+
+      if (headers["Authorization"]) {
+        try {
+          const response = await fetch(this.companionUrl, {
+            method: "POST",
+            cache: "no-store",
+            credentials: "same-origin",
+            headers,
+            body: JSON.stringify({
+              message: msg,
+              lang,
+              field: opts.field || "",
+              studentContext: opts.studentContext || this.memory || {}
+            })
+          });
+          if (response.ok) {
+            result = await response.json().catch(() => null);
+          }
+        } catch (_) {}
       }
 
-      const lang = opts.lang || (global.S && global.S.lang) || "ar";
-      const response = await fetch(this.companionUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          message: msg,
-          lang,
-          field: opts.field || "",
-          studentContext: opts.studentContext || this.memory || {}
-        })
-      });
+      if (!result || !result.reply) {
+        try {
+          const res2 = await fetch("/api/ai/research", {
+            method: "POST",
+            cache: "no-store",
+            credentials: "same-origin",
+            headers,
+            body: JSON.stringify({
+              messages: [{ role: "user", text: msg }],
+              mode: "qa",
+              taskRoute: "fast",
+              lang,
+              field: opts.field || ""
+            })
+          });
+          if (res2.ok) {
+            const j2 = await res2.json().catch(() => null);
+            if (j2 && j2.answer) result = { reply: j2.answer, modelUsed: j2.modelUsed || "gemini" };
+          }
+        } catch (_) {}
+      }
 
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result.error || "تعذر الاتصال بالمساعد الذكي (رمز: " + response.status + ")");
+      if (!result || !result.reply) {
+        let localWorks = [];
+        try {
+          const oa = await fetch("https://api.openalex.org/works?search=" + encodeURIComponent(msg.slice(0, 140)) + "&per-page=2");
+          if (oa.ok) {
+            const oj = await oa.json().catch(() => ({}));
+            localWorks = Array.isArray(oj.results) ? oj.results : [];
+          }
+        } catch (_) {}
+        const trackNote = (this.memory && (this.memory.field || opts.field)) ? ` (${this.memory && this.memory.field || opts.field})` : "";
+        const replyText = localWorks.length
+          ? (lang === "ar"
+            ? `أبرز الدراسات القريبة من موضوعك${trackNote}: ${localWorks.map((w) => `${w.title} (${w.publication_year || ""})`).join(" — ")}`
+            : `Related scholarly works${trackNote}: ${localWorks.map((w) => `${w.title} (${w.publication_year || ""})`).join(" — ")}`)
+          : (lang === "ar"
+            ? `تم استلام سؤالك حول «${msg.slice(0, 80)}»${trackNote}. يمكنك المتابعة عبر تبويب البحث أو إرفاق ملف نصي لتحليل معمّق.`
+            : `Question received regarding “${msg.slice(0, 80)}”${trackNote}. Use Research search or attach a text source for deeper study.`);
+        result = { reply: replyText, modelUsed: "local-companion" };
       }
 
       if (result.memory) {

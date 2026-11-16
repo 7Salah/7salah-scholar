@@ -30,9 +30,9 @@ declare global {
 
 const text = {
   ar: {
-    back: "العودة للمنصة", level: "المستوى", xp: "خبرة تجريبية", location: "ساحة الأكاديمية",
-    title: "أكاديميتك بانتظارك", intro: "ادخل الساحة الجامعية، تعرّف إلى شخصيتك، واستكشف أول مساحة تعليمية ثلاثية الأبعاد.",
-    "single-player": "استكشاف فردي", "no-xp": "الخبرة تجريبية", enter: "دخول الأكاديمية",
+    back: "العودة للمنصة", level: "المستوى", xp: "خبرة تجريبية", location: "الساحة الجامعية",
+    title: "الساحة الجامعية بانتظارك", intro: "ادخل الساحة الجامعية، تعرّف إلى شخصيتك، واستكشف أول مساحة تعليمية ثلاثية الأبعاد.",
+    "single-player": "استكشاف فردي", "no-xp": "الخبرة تجريبية", enter: "بدء الاستكشاف",
     "session-check": "يتم التحقق من جلسة المنصة عند الدخول…", character: "الشخصية",
     customize: "تخصيص المظهر", hair: "تسريحة الشعر", "hair-color": "لون الشعر", "eye-color": "لون العينين",
     outfit: "الزي المحتشم", shoes: "الحذاء", bag: "الحقيبة", accessory: "الإكسسوار",
@@ -41,11 +41,11 @@ const text = {
     settings: "الإعدادات", graphics: "جودة الرسوم",
     "settings-note": "تُحفظ هذه الخيارات على هذا الجهاز فقط. لن تُحفظ خبرة حقيقية أو بيانات حساب.",
     paused: "اللعبة متوقفة مؤقتاً", resume: "متابعة اللعب", return: "العودة إلى المنصة",
-    run: "جري", jump: "قفز", interact: "تفاعل", move: "حركة", menu: "القائمة", loading: "جارٍ تجهيز الأكاديمية…",
+    run: "جري", jump: "قفز", interact: "تفاعل", move: "حركة", menu: "القائمة", loading: "جارٍ تجهيز المشهد…",
     "session-ready": "تم العثور على جلسة المنصة الحالية.", "session-guest": "لم توجد جلسة محفوظة؛ يمكنك الاستكشاف كضيف.",
     "session-unavailable": "تعذر قراءة الجلسة؛ يمكنك الدخول كضيف.", loadingSdk: "جارٍ التحقق من جلسة المنصة…",
     loadingWorld: "جارٍ إنشاء المشهد ثلاثي الأبعاد…", "interaction-near": "تفاعل مع بوابة المعرفة",
-    "interaction-done": "مرحباً بك في أكاديمية 7Salah! هذه مساحة استكشاف أولية.",
+    "interaction-done": "مرحباً بك في ساحة 7Salah الجامعية! هذه مساحة استكشاف أولية.",
     "character-short": "قصير", "character-bob": "بوب", "character-long": "طويل", "character-ponytail": "ذيل حصان",
     "outfit-blue": "أزرق أكاديمي", "outfit-purple": "بنفسجي أنيق", "outfit-green": "أخضر هادئ", "outfit-coral": "مرجاني دافئ",
     "shoes-ivory": "عاجي", "shoes-navy": "كحلي", "shoes-leather": "جلدي",
@@ -281,7 +281,7 @@ async function enterAcademy() {
   } catch {
     el("session-note").textContent = copy["session-unavailable"];
   }
-  el<HTMLElement>("player-name").textContent = sessionState.name || (lang === "ar" ? "مستكشف الأكاديمية" : "Academy explorer");
+  el<HTMLElement>("player-name").textContent = sessionState.name || (lang === "ar" ? "مستكشف الساحة" : "Academy explorer");
   el<HTMLElement>("loading-screen").querySelector("b")!.textContent = copy.loadingWorld;
 
   try {

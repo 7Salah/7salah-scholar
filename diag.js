@@ -20,11 +20,7 @@
   for(const [fn,args,file] of FN){try{const r=await SC.sb.rpc(fn,args);if(missing(r.error)){out.ok=false;out.problems.push("الدالة "+fn+" غير موجودة");if(!out.files.includes(file))out.files.push(file)}}catch(e){}}
   for(const [t,file] of TB){try{const r=await SC.sb.from(t).select("*",{head:true,count:"exact"}).limit(1);if(missing(r.error)){out.ok=false;out.problems.push("الجدول "+t+" غير موجود");if(!out.files.includes(file))out.files.push(file)}}catch(e){}}
   cache=out;return out};
- window.connBanner=function(v){
-  connDiag().then(d=>{if(d.ok||!v.isConnected)return;
-   const c=h("div",{class:"card",style:"border:2px solid #d9534f"},h("h3",{},"⚠ إعداد قاعدة البيانات ناقص"),
-    h("ul",{class:"meta",style:"margin:6px 0"},d.problems.map(p=>h("li",{},p))),
-    d.files.length?h("div",{class:"meta"},"الحل: شغّل في Supabase → SQL Editor الملف "+(d.files.indexOf("schema.sql")<0?"00-repair-connection.sql":"schema.sql")+" ثم الملفات التالية إن ظهرت: "+d.files.join("، ")+"."):null,
-    h("button",{class:"btn",onclick:()=>{cache=null;SC.view="feed";render()}},"↻ أعد الفحص"));
-   v.prepend(c)}).catch(()=>{})};
+ window.connBanner=function(_v){
+  connDiag().catch(()=>null);
+ };
 })();

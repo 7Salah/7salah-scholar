@@ -42,10 +42,18 @@ const loadSb=()=>{
 };
 
 async function setUser(ss){
- SC.user=ss?ss.user:null;SC.me=null;
- if(SC.user)SC.me=(await SC.sb.from("profiles").select("*").eq("id",SC.user.id).maybeSingle()).data;
- SC.blocked=new Set(((SC.user?(await SC.sb.from("blocks").select("blocked").eq("blocker",SC.user.id)).data:null)||[]).map(x=>x.blocked));
- if(window.Net)Net.syncDirectory();
+ SC.user=ss?ss.user:null;SC.me=null;SC.blocked=new Set();
+ if(SC.user&&SC.sb){
+  try{
+   const pr=await SC.sb.from("profiles").select("*").eq("id",SC.user.id).maybeSingle();
+   if(!pr.error)SC.me=pr.data||null;
+  }catch(_){}
+  try{
+   const bl=await SC.sb.from("blocks").select("blocked").eq("blocker",SC.user.id);
+   if(!bl.error&&Array.isArray(bl.data))SC.blocked=new Set(bl.data.map(x=>x.blocked));
+  }catch(_){}
+ }
+ if(window.Net)try{Net.syncDirectory()}catch(_){}
 }
 
 function renderCom(v){
@@ -122,7 +130,7 @@ function comBody(v){
  const box=h("div",{});v.append(box);
  if(SC.kind==="foryou"&&u&&SC.sb)loadForYou(box);
  else if(SC.kind==="topdecks"&&SC.sb)loadTopDecks(box);
- else if(SC.kind==="following"&&u&&SC.sb)SC.sb.from("follows").select("followee").eq("follower",u.id).then(r=>loadPosts(box,{uids:(r.data||[]).map(x=>x.followee)}));
+ else if(SC.kind==="following"&&u&&SC.sb)Promise.resolve(SC.sb.from("follows").select("followee").eq("follower",u.id)).then(r=>loadPosts(box,{uids:((r&&r.data)||[]).map(x=>x.followee)})).catch(()=>loadPosts(box,{kind:"",field:SC.field||""}));
  else loadPosts(box,{kind:SC.kind&&SC.kind!=="following"&&SC.kind!=="foryou"?SC.kind:"",field:SC.field||""});
 }
 
@@ -289,13 +297,15 @@ function postCard(p,liked){
    try{
     const res=await Net.apiPost("/api/community/posts/"+encodeURIComponent(p.id)+"/like",{userId:myId});
     p._likes=res.likes||[];lk=p._likes.length;lked=p._likes.includes(myId);paint();
-   }catch(e){}
+   }catch(_){}
    return;
   }
-  if(!SC.user)return authModal();
+  if(!SC.user||!SC.sb)return authModal();
   lked=!lked;lk+=lked?1:-1;paint();
-  const r=lked?await SC.sb.from("likes").insert({post_id:p.id,user_id:SC.user.id}):await SC.sb.from("likes").delete().match({post_id:p.id,user_id:SC.user.id});
-  if(r.error){lked=!lked;lk+=lked?1:-1;paint()}
+  try{
+   const r=lked?await SC.sb.from("likes").insert({post_id:p.id,user_id:SC.user.id}):await SC.sb.from("likes").delete().match({post_id:p.id,user_id:SC.user.id});
+   if(r.error)throw r.error;
+  }catch(_){lked=!lked;lk+=lked?1:-1;paint()}
  };
 
  const own=(isSrv&&p.user_id===myId)||(SC.user&&SC.user.id===p.user_id);
@@ -337,9 +347,14 @@ function postCard(p,liked){
    ),
    own?h("button",{class:"pbtn danger","aria-label":sTr("حذف","Delete","Supprimer"),onclick:async()=>{
     if(!confirm(sTr("حذف المنشور؟","Delete this post?","Supprimer ?")))return;
-    if(isSrv){await Net.apiDel("/api/community/posts/"+encodeURIComponent(p.id)+"?userId="+encodeURIComponent(myId));render();return}
-    if(p.file_path)await SC.sb.storage.from("posts").remove([p.file_path]);
-    await SC.sb.from("posts").delete().eq("id",p.id);render();
+    try{
+     if(isSrv){await Net.apiDel("/api/community/posts/"+encodeURIComponent(p.id)+"?userId="+encodeURIComponent(myId));render();return}
+     if(SC.sb){
+      if(p.file_path)await SC.sb.storage.from("posts").remove([p.file_path]).catch(()=>{});
+      await SC.sb.from("posts").delete().eq("id",p.id);
+     }
+     render();
+    }catch(_){toast(sTr("تعذر حذف المنشور مؤقتًا.","Could not delete post right now.","Suppression impossible"))}
    }},ic("trash")):
    (!isSrv?h("button",{class:"pbtn","aria-label":sTr("إبلاغ","Report","Signaler"),onclick:()=>reportModal({post_id:p.id,target_user:p.user_id})},ic("flag")):null)
   ),
@@ -355,21 +370,25 @@ async function loadComments(p,box){
   const inp=h("input",{class:"cin",placeholder:sTr("اكتب تعليقًا…","Write a comment…","Écrire un commentaire…"),maxlength:"500"});
   const go=async()=>{
    const b=inp.value.trim();if(!b)return;
-   const r=await Net.apiPost("/api/community/posts/"+encodeURIComponent(p.id)+"/comments",{userId:me.id,authorName:me.name,authorHandle:me.username,body:b});
-   p._comments=r.comments||[];
-   const cntSpan=box.closest("article")&&box.closest("article").querySelector('[data-k="com"] span');
-   if(cntSpan)cntSpan.textContent=String(p._comments.length);
-   loadComments(p,box);
+   try{
+    const r=await Net.apiPost("/api/community/posts/"+encodeURIComponent(p.id)+"/comments",{userId:me.id,authorName:me.name,authorHandle:me.username,body:b});
+    p._comments=r.comments||[];
+    const cntSpan=box.closest("article")&&box.closest("article").querySelector('[data-k="com"] span');
+    if(cntSpan)cntSpan.textContent=String(p._comments.length);
+    loadComments(p,box);
+   }catch(_){toast(sTr("تعذر إرسال التعليق مؤقتًا.","Could not post comment right now.","Erreur d'envoi"))}
   };
   inp.onkeydown=e=>{if(e.key==="Enter"&&!e.isComposing)go()};
   box.append(h("div",{class:"ccomp"},inp,h("button",{class:"sendb",type:"button","aria-label":sTr("إرسال","Send","Envoyer"),onclick:go},ic("send"))));
   return;
  }
- const {data}=await SC.sb.from("comments").select("*,profiles(username,name)").eq("post_id",p.id).order("created_at").limit(50);
- box.replaceChildren(...(data||[]).filter(c=>!SC.blocked.has(c.user_id)).map(c=>{const o=h("div",{class:"trout"});return h("div",{class:"meta",dir:"auto"},h("b",{},(c.profiles&&(c.profiles.name||c.profiles.username))||"?"),": "+c.body,trBtn(()=>c.body,o,"flag"),o)}));
+ try{
+  const {data}=await SC.sb.from("comments").select("*,profiles(username,name)").eq("post_id",p.id).order("created_at").limit(50);
+  box.replaceChildren(...(data||[]).filter(c=>!SC.blocked.has(c.user_id)).map(c=>{const o=h("div",{class:"trout"});return h("div",{class:"meta",dir:"auto"},h("b",{},(c.profiles&&(c.profiles.name||c.profiles.username))||"?"),": "+c.body,trBtn(()=>c.body,o,"flag"),o)}));
+ }catch(_){box.replaceChildren(h("div",{class:"meta"},sTr("تعذر تحميل التعليقات مؤقتًا.","Comments temporarily unavailable.","Commentaires indisponibles")))}
  const inp=h("input",{class:"cin",placeholder:sTr("اكتب تعليقًا…","Write a comment…","Commenter…"),maxlength:"500"});
- box.append(h("div",{class:"ccomp"},inp,h("button",{class:"sendb","aria-label":sTr("إرسال","Send","Envoyer"),onclick:async()=>{const b=inp.value.trim();if(!b)return;if(!SC.user)return authModal();
-  const r=await SC.sb.from("comments").insert({post_id:p.id,user_id:SC.user.id,body:b});if(r.error)return toast(r.error.message);loadComments(p,box)}},ic("send"))));
+ box.append(h("div",{class:"ccomp"},inp,h("button",{class:"sendb","aria-label":sTr("إرسال","Send","Envoyer"),onclick:async()=>{const b=inp.value.trim();if(!b)return;if(!SC.user||!SC.sb)return authModal();
+  try{const r=await SC.sb.from("comments").insert({post_id:p.id,user_id:SC.user.id,body:b});if(r.error)return toast(r.error.message);loadComments(p,box)}catch(_){toast(sTr("تعذر إرسال التعليق مؤقتًا.","Could not post comment.","Erreur"))}}},ic("send"))));
 }
 
 // ---- Global Network & Connection Requests Sub-view ----
@@ -698,9 +717,9 @@ function authModal(){
  const em=I(sTr("البريد الإلكتروني","Email","E-mail"),{type:"email",dir:"ltr"}),pw=I(sTr("كلمة المرور (8 أحرف على الأقل)","Password (8+ chars)","Mot de passe"),{type:"password"}),nm=I(sTr("الاسم الظاهر","Display Name","Nom")),un=I(sTr("اسم المستخدم بالإنجليزية: salah_01","Username (e.g. salah_01)","Identifiant"),{dir:"ltr"});
  const ag=h("input",{type:"checkbox"}),ex=h("div",{style:"display:none"},nm,un,h("label",{class:"meta",style:"display:flex;gap:6px;align-items:center"},ag,h("span",{},"أوافق على ",h("a",{href:"#",onclick:e=>{e.preventDefault();typeof legalModal==="function"&&legalModal()}},"الشروط وسياسة الخصوصية"),"، وعمري 16 سنة فأكثر"))),go=h("button",{class:"pri"},sTr("دخول","Sign in","Connexion")),sw=h("button",{class:"btn"},sTr("ليس لديك حساب؟ سجّل","Create account","Créer un compte"));
  sw.onclick=()=>{up=!up;ex.style.display=up?"":"none";go.textContent=up?sTr("إنشاء حساب","Sign up","S'inscrire"):sTr("دخول","Sign in","Connexion");sw.textContent=up?sTr("لديك حساب؟ ادخل","Already have an account?","Déjà un compte ?"):sTr("ليس لديك حساب؟ سجّل","Create account","Créer un compte")};
- go.onclick=async()=>{await loadSb();const e=em.value.trim(),p=pw.value;if(!e||p.length<8)return toast("أدخل بريدًا صحيحًا وكلمة مرور من 8 أحرف على الأقل");
+ go.onclick=async()=>{try{await loadSb();const e=em.value.trim(),p=pw.value;if(!e||p.length<8)return toast("أدخل بريدًا صحيحًا وكلمة مرور من 8 أحرف على الأقل");
   if(up){if(!ag.checked)return toast("يجب الموافقة على الشروط وسياسة الخصوصية");const u=un.value.trim().toLowerCase();if(!/^[a-z0-9_]{3,20}$/.test(u))return toast("اسم المستخدم: 3–20 حرفًا إنجليزيًا أو أرقامًا أو _");
    const r=await SC.sb.auth.signUp({email:e,password:p,options:{data:{username:u,name:nm.value.trim()||u},emailRedirectTo:location.origin+location.pathname}});if(r.error)return toast(authMsg(r.error));if(!r.data.session){toast("أرسلنا رابط تأكيد إلى بريدك الإلكتروني.");return}}
-  else{const r=await SC.sb.auth.signInWithPassword({email:e,password:p});if(r.error)return toast(authMsg(r.error))}m.remove()};
+  else{const r=await SC.sb.auth.signInWithPassword({email:e,password:p});if(r.error)return toast(authMsg(r.error))}m.remove()}catch(err){toast(authMsg(err))}};
  const m=modal(h("h3",{},sTr("👤 حساب Supabase الأكاديمي","👤 Supabase Academic Account","👤 Compte Supabase")),em,pw,ex,go,h("div",{class:"acts"},sw,h("button",{class:"btn",onclick:()=>m.remove()},t("cancel"))));
 }

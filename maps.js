@@ -78,8 +78,8 @@
 
  async function getMapsConfig(){
   if(!cfgPromise){
-   cfgPromise=fetch("/api/maps/config")
-    .then(r=>r.json())
+   cfgPromise=fetch("/api/maps/config",{cache:"no-store"})
+    .then(r=>r.ok?r.json():{configured:false,apiKey:"",attributionId:ATTRIBUTION_ID})
     .catch(()=>({configured:false,apiKey:"",attributionId:ATTRIBUTION_ID}));
   }
   return cfgPromise;
@@ -156,17 +156,63 @@
    body.lat=coords.lat;
    body.lng=coords.lng;
   }
-  const res=await fetch("/api/ai/maps-grounding",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify(body)
-  });
-  const data=await res.json().catch(()=>({}));
-  if(!res.ok){
+  try{
+   const res=await fetch("/api/ai/maps-grounding",{
+    method:"POST",
+    cache:"no-store",
+    credentials:"same-origin",
+    headers:{"Content-Type":"application/json","Accept":"application/json"},
+    body:JSON.stringify(body)
+   });
+   const data=await res.json().catch(()=>({}));
+   if(res.ok)return data;
    checkQuotaResponse(res.status,data);
-   throw new Error(data.error||mTr("تعذر البحث عبر خرائط Gemini.","Maps grounding request failed.","Échec de la recherche Maps."));
+   if(res.status!==404&&res.status!==405&&res.status<500){
+    throw new Error(data.error||mTr("تعذر البحث عبر خرائط الدراسة.","Maps query failed.","Échec de la recherche."));
+   }
+  }catch(err){
+   if(err&&err.message&&!/failed to fetch|load failed|network/i.test(err.message)){
+    throw err;
+   }
   }
-  return data;
+  // Static-host fallback using OpenStreetMap Nominatim + Google Maps deep links
+  try{
+   const osmRes=await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=6&q="+encodeURIComponent(query));
+   if(osmRes.ok){
+    const arr=await osmRes.json().catch(()=>[]);
+    if(Array.isArray(arr)&&arr.length){
+     const places=arr.map((it,idx)=>({
+      index:idx+1,
+      title:String((it.name||it.display_name||query)).split(",")[0].trim(),
+      address:String(it.display_name||""),
+      rating:null,
+      lat:Number(it.lat),
+      lng:Number(it.lon),
+      uri:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(it.lat+","+it.lon),
+      placeId:"osm_"+(it.place_id||idx),
+      reviewSnippets:[]
+     }));
+     return{
+      answer:places.map(p=>`• **${p.title}** — ${p.address}`).join("\n"),
+      modelUsed:"OpenStreetMap Fallback",
+      places
+     };
+    }
+   }
+  }catch(_){}
+  return{
+   answer:mTr(`افتح البحث مباشرة في خرائط Google لـ «${query}».`,`Open “${query}” directly on Google Maps.`,`Ouvrir « ${query} » sur Google Maps.`),
+   modelUsed:"Google Maps Direct Link",
+   places:[{
+    index:1,
+    title:query,
+    address:"",
+    rating:null,
+    uri:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(query),
+    placeId:"direct",
+    reviewSnippets:[]
+   }]
+  };
  }
 
  function getBrowserCoords(){

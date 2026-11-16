@@ -352,6 +352,15 @@ function leaveRoom(peer: LivePeer, roomId: string) {
 async function startServer() {
   const app = express();
   app.use(express.json({ limit: "30mb" }));
+  app.use("/api", (req, res, next) => {
+    if (req.method === "OPTIONS") {
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
 
   app.get("/api/health", (_req, res) => {
     res.json({
@@ -1418,6 +1427,10 @@ async function startServer() {
   wss.on("close", () => clearInterval(heartbeat));
   server.on("close", () => {
     try { liveWss.close(); } catch {}
+  });
+
+  app.use("/api", (_req, res) => {
+    res.status(404).json({ error: "API endpoint not found" });
   });
 
   if (!IS_PROD) {

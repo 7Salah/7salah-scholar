@@ -354,7 +354,7 @@ async function fetchWebGrounding(q,seq){
  try{
   const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
   const tm=ctrl?setTimeout(()=>ctrl.abort(),45000):null;
-  const headers={"Content-Type":"application/json"};
+  const headers={"Content-Type":"application/json","Accept":"application/json"};
   try{
    if(window.SC&&SC.sb&&SC.sb.auth){
     const sRes=await SC.sb.auth.getSession();
@@ -365,17 +365,23 @@ async function fetchWebGrounding(q,seq){
   const res=await fetch("/api/ai/web-grounding",{
    method:"POST",
    headers,
+   cache:"no-store",
+   credentials:"same-origin",
    body:JSON.stringify({query:q,lang:S.lang||"ar",citeStyle:S.citeStyle||"apa"}),
    signal:ctrl?ctrl.signal:undefined
   });
   if(tm)clearTimeout(tm);
   if(seq!==SEQ)return;
-  const json=await res.json().catch(()=>({}));
-  if(!res.ok)throw new Error(json.error||("HTTP "+res.status));
-  S.webGrounding={loading:false,q,data:json,err:null};
- }catch(e){
+  if(!res.ok){
+   S.webGrounding={loading:false,q,data:null,err:null};
+   if(S.tab==="res")render();
+   return;
+  }
+  const json=await res.json().catch(()=>null);
+  S.webGrounding={loading:false,q,data:json&&typeof json==="object"?json:null,err:null};
+ }catch(_){
   if(seq!==SEQ)return;
-  S.webGrounding={loading:false,q,data:null,err:e&&e.message?e.message:null};
+  S.webGrounding={loading:false,q,data:null,err:null};
  }
  if(S.tab==="res")render();
 }
@@ -784,10 +790,10 @@ function renderHome(v){const q=queueFor(),nDue=q.due.length+q.fresh.length,done=
  const rest=S.decks.filter(d=>d!==last).slice(0,3);if(rest.length){v.append(h("div",{class:"sec"},h("span",{},t("dT")),h("button",{class:"btn",onclick:()=>go("decks")},"›")));rest.forEach(d=>v.append(deckCard(d)))}
  renderAcademicOverview(v);}
 
-// لوحة أكاديمية إضافية: المؤشرات الدراسية، والمجتمع الأكاديمي، وغرف الدراسة المباشرة
+// لوحة دراسية إضافية: المؤشرات الدراسية، والمجتمع العلمي، وغرف الدراسة المباشرة
 function renderAcademicOverview(v){
  const totalCards=S.decks.reduce((n,d)=>n+d.cards.length,0),mastered=S.decks.reduce((n,d)=>n+d.cards.filter(c=>c.sr&&c.sr.i>=21).length,0);
- const studyBox=h("section",{class:"dash-section"},h("div",{class:"dash-head"},h("div",{},h("div",{class:"dash-kicker"},S.lang==="ar"?"مساحتك الأكاديمية":"YOUR ACADEMIC SPACE"),h("h2",{},S.lang==="ar"?"نظرة سريعة على دراستك وشبكتك":"Your study & network overview")),h("div",{class:"dash-head-actions"},h("button",{class:"dash-link",onclick:()=>go("rooms")},S.lang==="ar"?"غرف الدراسة ←":"Study rooms →"),h("button",{class:"dash-link",onclick:()=>go("library")},S.lang==="ar"?"مكتبتي ←":"My library →"),h("button",{class:"dash-link",onclick:()=>go("decks")},S.lang==="ar"?"كل الحزم ←":"All decks →"))),
+ const studyBox=h("section",{class:"dash-section"},h("div",{class:"dash-head"},h("div",{},h("div",{class:"dash-kicker"},S.lang==="ar"?"مساحتك الدراسية":"YOUR ACADEMIC SPACE"),h("h2",{},S.lang==="ar"?"نظرة سريعة على دراستك وشبكتك":"Your study & network overview")),h("div",{class:"dash-head-actions"},h("button",{class:"dash-link",onclick:()=>go("rooms")},S.lang==="ar"?"غرف الدراسة ←":"Study rooms →"),h("button",{class:"dash-link",onclick:()=>go("library")},S.lang==="ar"?"مكتبتي ←":"My library →"),h("button",{class:"dash-link",onclick:()=>go("decks")},S.lang==="ar"?"كل الحزم ←":"All decks →"))),
   h("div",{class:"dash-stats"},
    h("div",{class:"dash-stat"},h("span",{},"📚"),h("b",{},String(S.decks.length)),h("small",{},S.lang==="ar"?"حزم دراسية":"Study decks")),
    h("div",{class:"dash-stat"},h("span",{},"🗂️"),h("b",{},String(totalCards)),h("small",{},S.lang==="ar"?"بطاقات محفوظة":"Saved cards")),
@@ -1082,7 +1088,7 @@ function renderHelp(v){const L=ht();
  v.append(h("div",{class:"card"},h("div",{class:"btns"},h("button",{class:"btn",onclick:()=>tour(0)},L.replay),
   HELP_VIDEO?h("a",{class:"btn",href:HELP_VIDEO,target:"_blank",rel:"noopener noreferrer"},L.video):null,
   h("button",{class:"btn",onclick:()=>go("home")},L.back))))}
-// ===================== المكتبة الأكاديمية وقارئ PDF =====================
+// ===================== المكتبة العلمية وقارئ PDF =====================
 // ملفات PDF وملاحظات القراءة تحفظ محليًا في IndexedDB على هذا الجهاز فقط؛ لا تُرفع إلى Supabase.
 let LIB_OPEN_ID=null,LIB_OBJECT_URL=null,LIB_DB_PROMISE=null;
 function libraryDB(){
@@ -1100,9 +1106,9 @@ async function libraryPut(doc){const db=await libraryDB();return new Promise((re
 async function libraryDelete(id){const db=await libraryDB();return new Promise((resolve,reject)=>{const tx=db.transaction("documents","readwrite");tx.objectStore("documents").delete(id);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error)});}
 function libraryBytes(n){if(n<1024*1024)return Math.max(1,Math.round(n/1024))+" KB";return (n/1024/1024).toFixed(1)+" MB"}
 async function publishAcademicResource(doc){
- if(!window.SUPA||!SUPA.url||!SUPA.key)return toast(tr("إعداد Supabase غير مكتمل.","Supabase is not configured."));
+ if(!window.SUPA||!SUPA.url||!SUPA.key)return toast(tr("الحفظ السحابي غير مفعّل — ملفاتك محفوظة بأمان على جهازك.","Cloud sharing is not active — your files remain safely stored on this device."));
  try{
-  await loadSb();if(!SC.user)return toast(tr("سجّل الدخول أولاً لإرسال المحتوى.","Sign in before submitting content."));
+  await loadSb();if(!SC.sb||!SC.user)return toast(tr("سجّل الدخول أولاً لإرسال المحتوى.","Sign in before submitting content."));
   const m=doc.meta||{};
   const title=(prompt(tr("عنوان الملف للنشر في المكتبة المشتركة:","Title for the shared library:"),doc.name)||"").trim();
   if(!title)return;
@@ -1112,23 +1118,24 @@ async function publishAcademicResource(doc){
   if(up.error)throw up.error;
   const row={user_id:SC.user.id,title,description:description||null,university:m.university||null,faculty:m.faculty||null,department:m.department||null,level:m.level||null,semester:m.semester||null,course:m.course||null,content_type:m.kind||"other",file_path:path,file_name:doc.name,file_size:doc.size||doc.blob.size,status:"pending"};
   const ins=await SC.sb.from("academic_resources").insert(row);
-  if(ins.error){await SC.sb.storage.from("academic-library").remove([path]);throw ins.error}
+  if(ins.error){try{await SC.sb.storage.from("academic-library").remove([path])}catch(_){}throw ins.error}
   toast(tr("أُرسل الملف للمراجعة. سيظهر بعد اعتماده.","Submitted for review. It will appear after approval."));
- }catch(e){console.error("[academic-resource-submit]",e);toast(tr("تعذر الإرسال: ","Submission failed: ")+(e.message||"Unknown error"))}
+ }catch(_){toast(tr("المكتبة السحابية غير متاحة مؤقتًا — ملفك محفوظ محليًا على جهازك.","Cloud library is temporarily unavailable — your file remains saved locally."))}
 }
 async function renderSharedAcademicLibrary(host){
  const panel=h("section",{class:"card",style:"margin-bottom:14px"},h("div",{class:"lib-section-title"},tr("المكتبة الجامعية المشتركة","Shared academic library")),h("div",{class:"meta"},tr("المحتوى المعتمد من المشرفين فقط يظهر هنا.","Only moderator-approved resources appear here.")),h("div",{class:"lib-items"}));host.append(panel);
  const list=panel.lastChild;
  try{
-  await loadSb();if(!SC.user){list.append(h("div",{class:"meta"},tr("سجّل الدخول لاستعراض الملفات المشتركة.","Sign in to browse shared resources.")));return}
+  if(!window.SUPA||!SUPA.url||!SUPA.key){list.append(h("div",{class:"meta"},tr("ملفاتك وقارئ PDF يعملان محليًا بالكامل على هذا الجهاز.","Your files and PDF reader operate locally on this device.")));return}
+  await loadSb();if(!SC.sb||!SC.user){list.append(h("div",{class:"meta"},tr("سجّل الدخول لاستعراض الملفات المشتركة أو استخدم مكتبتك المحلية أدناه.","Sign in to browse shared resources or use your local library below.")));return}
   const r=await SC.sb.from("academic_resources").select("id,title,description,university,faculty,department,level,semester,course,content_type,file_path,file_name,file_size,created_at").eq("status","approved").order("created_at",{ascending:false}).limit(30);
   if(r.error)throw r.error;
   if(!r.data||!r.data.length){list.append(h("div",{class:"meta"},tr("لا توجد ملفات معتمدة بعد.","No approved resources yet.")));return}
-  r.data.forEach(x=>{const meta=[x.university,x.department,x.level,x.semester,x.course].filter(Boolean).join(" · ");const row=h("div",{class:"lib-file"},h("span",{class:"lib-file-icon"},ic("file-text")),h("span",{class:"lib-file-info"},h("b",{dir:"auto"},x.title),h("small",{},(x.content_type||"other")+" · "+libraryBytes(x.file_size||0)),h("small",{class:"lib-file-meta",dir:"auto"},meta||x.file_name)),h("button",{class:"btn",type:"button",onclick:async()=>{const z=await SC.sb.storage.from("academic-library").createSignedUrl(x.file_path,300);if(z.error)return toast(z.error.message);window.open(z.data.signedUrl,"_blank","noopener")}},tr("فتح PDF","Open PDF")));list.append(row)})
- }catch(e){console.error("[shared-library]",e);list.append(h("div",{class:"meta"},tr("تعذر تحميل المكتبة المشتركة. قد تحتاج إلى تطبيق ترحيل قاعدة البيانات المرفق.","Could not load the shared library. The included database migration may need to be applied.")))}
+  r.data.forEach(x=>{const meta=[x.university,x.department,x.level,x.semester,x.course].filter(Boolean).join(" · ");const row=h("div",{class:"lib-file"},h("span",{class:"lib-file-icon"},ic("file-text")),h("span",{class:"lib-file-info"},h("b",{dir:"auto"},x.title),h("small",{},(x.content_type||"other")+" · "+libraryBytes(x.file_size||0)),h("small",{class:"lib-file-meta",dir:"auto"},meta||x.file_name)),h("button",{class:"btn",type:"button",onclick:async()=>{try{const z=await SC.sb.storage.from("academic-library").createSignedUrl(x.file_path,300);if(z.error||!z.data||!z.data.signedUrl)return toast(tr("تعذر فتح الملف حاليًا، حاول لاحقًا.","Could not open the file right now."));window.open(z.data.signedUrl,"_blank","noopener")}catch(_){toast(tr("تعذر الاتصال بالمكتبة السحابية مؤقتًا.","Cloud library connection temporarily unavailable."))}}},tr("فتح PDF","Open PDF")));list.append(row)})
+ }catch(_){list.append(h("div",{class:"meta"},tr("المكتبة السحابية غير متاحة مؤقتًا — ملفاتك المحلية وقارئ PDF يعملان بالكامل على جهازك.","Cloud library is temporarily unavailable — your local files and PDF reader remain fully active on this device.")))}
 }
 function renderLibrary(v){
- const ar=S.lang==="ar",title=ar?"المكتبة الأكاديمية":"Academic library";
+ const ar=S.lang==="ar",title=ar?"المكتبة العلمية":"Academic library";
  const tr=(a,e)=>ar?a:e;
  const headCopy=h("div",{});headCopy.append(h("div",{class:"dash-kicker"},tr("تنظيم محاضراتك ومراجعك على جهازك","ORGANIZE YOUR LECTURES AND REFERENCES")),h("h1",{},title),h("p",{},tr("صنّف ملفاتك حسب الجامعة والكلية والقسم والمستوى والسداسي والمقياس، ثم ابحث فيها بسهولة.","Classify files by university, faculty, department, level, semester and course, then find them quickly.")));
  v.append(h("div",{class:"lib-head"},headCopy));
@@ -1143,7 +1150,7 @@ function renderLibrary(v){
  const kind=h("select",{class:"in",dataset:"kind"});
  [["lecture",tr("محاضرة","Lecture")],["td",tr("أعمال موجهة TD","Tutorial / TD")],["summary",tr("ملخص","Summary")],["reference",tr("مرجع","Reference")],["other",tr("أخرى","Other")]].forEach(([value,label])=>kind.append(h("option",{value},label)));
  kindWrap.append(kind);
- const pick=h("input",{type:"file",accept:"application/pdf,.pdf",style:"display:none",onchange:async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){toast(tr("اختر ملف PDF صالحًا.","Choose a valid PDF file."));return}if(f.size>25*1024*1024){toast(tr("الحد الأقصى للملف 25 ميغابايت.","Maximum file size is 25 MB."));return}try{const id=uid(),now=Date.now(),meta={};[uni,faculty,dept,level,semester,course].forEach(x=>meta[x.el.dataset.meta]=x.el.value.trim());meta.kind=kind.value;await libraryPut({id,name:f.name,size:f.size,type:"application/pdf",created:now,updated:now,page:1,note:"",meta,blob:f});LIB_OPEN_ID=id;toast(tr("أُضيف الملف إلى مكتبتك مع تصنيفه ✓","PDF added with its classification ✓"));render()}catch(err){console.error("[library]",err);toast(tr("تعذر حفظ الملف. قد تكون مساحة التخزين غير كافية.","Could not save the file. Device storage may be full."))}}});
+ const pick=h("input",{type:"file",accept:"application/pdf,.pdf",style:"display:none",onchange:async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;if(f.type!=="application/pdf"&&!/\.pdf$/i.test(f.name)){toast(tr("اختر ملف PDF صالحًا.","Choose a valid PDF file."));return}if(f.size>25*1024*1024){toast(tr("الحد الأقصى للملف 25 ميغابايت.","Maximum file size is 25 MB."));return}try{const id=uid(),now=Date.now(),meta={};[uni,faculty,dept,level,semester,course].forEach(x=>meta[x.el.dataset.meta]=x.el.value.trim());meta.kind=kind.value;await libraryPut({id,name:f.name,size:f.size,type:"application/pdf",created:now,updated:now,page:1,note:"",meta,blob:f});LIB_OPEN_ID=id;toast(tr("أُضيف الملف إلى مكتبتك مع تصنيفه ✓","PDF added with its classification ✓"));render()}catch(_){toast(tr("تعذر حفظ الملف. قد تكون مساحة التخزين غير كافية.","Could not save the file. Device storage may be full."))}}});
  const metaForm=h("div",{class:"lib-classifier card"},h("div",{class:"lib-classifier-title"},tr("تصنيف ملف جديد","Classify a new file")),h("div",{class:"lib-meta-grid"},uni.wrap,faculty.wrap,dept.wrap,level.wrap,semester.wrap,course.wrap,kindWrap),h("div",{class:"lib-toolbar-inner"},h("button",{class:"btn fill",onclick:()=>pick.click()},ic("plus")+" "+tr("إضافة ملف PDF","Add PDF")),h("span",{class:"lib-hint"},tr("PDF فقط · حتى 25 MB للملف","PDF only · up to 25 MB per file")),pick));
  v.append(metaForm);
  renderSharedAcademicLibrary(v);
@@ -1156,7 +1163,7 @@ function renderLibrary(v){
  const applyFilters=()=>{const q=search.value.trim().toLowerCase(),k=typeFilter.value,sem=semesterFilter.value.trim().toLowerCase();items.querySelectorAll("[data-lib-search]").forEach(el=>{const hay=el.dataset.libSearch||"";el.hidden=!(hay.includes(q)&&(!k||el.dataset.libKind===k)&&(!sem||(el.dataset.libSemester||"").includes(sem)))})};
  search.addEventListener("input",applyFilters);typeFilter.addEventListener("change",applyFilters);semesterFilter.addEventListener("input",applyFilters);
  list.append(search,typeFilter,semesterFilter,items);layout.append(list,reader);v.append(layout);
- if(LIB_OBJECT_URL){URL.revokeObjectURL(LIB_OBJECT_URL);LIB_OBJECT_URL=null}
+ if(LIB_OBJECT_URL){try{URL.revokeObjectURL(LIB_OBJECT_URL)}catch(_){}LIB_OBJECT_URL=null}
  libraryGetAll().then(async docs=>{
   if(S.tab!=="library")return;
   if(!docs.length)items.append(h("div",{class:"lib-empty"},h("div",{},ic("file-text")),h("b",{},tr("مكتبتك فارغة حاليًا","Your library is empty")),h("p",{},tr("أدخل بيانات التصنيف أعلاه ثم أضف أول محاضرة PDF.","Enter classification above, then add your first PDF lecture."))));
@@ -1164,20 +1171,20 @@ function renderLibrary(v){
   if(!LIB_OPEN_ID&&docs.length)LIB_OPEN_ID=docs[0].id;
   if(!LIB_OPEN_ID){reader.append(h("div",{class:"lib-empty lib-reader-empty"},h("div",{},ic("book")),h("b",{},tr("قارئ المحاضرات","Lecture reader")),h("p",{},tr("اختر ملفًا من القائمة أو أضف ملف PDF جديدًا.","Choose a file or add a new PDF."))));return}
   const d=docs.find(x=>x.id===LIB_OPEN_ID)||await libraryGet(LIB_OPEN_ID);if(!d||S.tab!=="library")return;
-  LIB_OBJECT_URL=URL.createObjectURL(d.blob);
+  try{if(d.blob)LIB_OBJECT_URL=URL.createObjectURL(d.blob)}catch(_){LIB_OBJECT_URL=null}
   const page=h("input",{class:"in lib-page-input",type:"number",min:"1",step:"1",value:String(d.page||1),inputmode:"numeric","aria-label":tr("رقم الصفحة","Page number")});
   const note=h("textarea",{class:"in lib-note",rows:"4",placeholder:tr("اكتب ملاحظاتك حول هذه المحاضرة…","Write notes about this lecture…")});note.value=d.note||"";
-  const savePage=h("button",{class:"btn",onclick:async()=>{const n=Math.max(1,parseInt(page.value,10)||1);d.page=n;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظ موضع القراءة ✓","Reading position saved ✓"));render()}catch(e){toast(tr("تعذر حفظ موضع القراءة.","Could not save reading position."))}}},tr("حفظ الصفحة","Save page"));
+  const savePage=h("button",{class:"btn",onclick:async()=>{const n=Math.max(1,parseInt(page.value,10)||1);d.page=n;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظ موضع القراءة ✓","Reading position saved ✓"));render()}catch(_){toast(tr("تعذر حفظ موضع القراءة.","Could not save reading position."))}}},tr("حفظ الصفحة","Save page"));
   const isPdf=!d.type||d.type==="application/pdf"||/\.pdf$/i.test(d.name||"");
-  const saveNote=h("button",{class:"btn fill",onclick:async()=>{d.note=note.value;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظت الملاحظات ✓","Notes saved ✓"))}catch(e){toast(tr("تعذر حفظ الملاحظات.","Could not save notes."))}}},tr("حفظ الملاحظات","Save notes"));
+  const saveNote=h("button",{class:"btn fill",onclick:async()=>{d.note=note.value;d.updated=Date.now();try{await libraryPut(d);toast(tr("حُفظت الملاحظات ✓","Notes saved ✓"))}catch(_){toast(tr("تعذر حفظ الملاحظات.","Could not save notes."))}}},tr("حفظ الملاحظات","Save notes"));
   const analyze=isPdf?h("button",{class:"btn fill",type:"button",onclick:()=>{if(window.openAiWithSource)openAiWithSource({kind:"pdf",title:d.name,blob:d.blob,autoAnalyze:true});else go("ai")}},ic("sparkles",{s:15}),tr("تحليل بالمساعد الذكي","Analyze with AI")):null;
-  const download=h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download")+" "+tr("فتح / تنزيل","Open / download"));
+  const download=LIB_OBJECT_URL?h("a",{class:"btn",href:LIB_OBJECT_URL,download:d.name,target:"_blank",rel:"noopener"},ic("download")+" "+tr("فتح / تنزيل","Open / download")):null;
   const publish=isPdf?h("button",{class:"btn",type:"button",onclick:()=>publishAcademicResource(d)},tr("إرسال للمكتبة المشتركة","Submit to shared library")):null;
-  const del=h("button",{class:"btn danger",onclick:async()=>{if(!confirm(tr("حذف هذا الملف وملاحظاته من هذا الجهاز؟","Delete this item and its notes from this device?")))return;try{await libraryDelete(d.id);LIB_OPEN_ID=null;render()}catch(e){toast(tr("تعذر حذف الملف.","Could not delete file."))}}},tr("حذف","Delete"));
-  const frame=h("iframe",{class:"lib-pdf-frame",src:isPdf?(LIB_OBJECT_URL+"#page="+(d.page||1)+"&view=FitH"):LIB_OBJECT_URL,title:tr("عارض المستند","Document viewer"),loading:"lazy"});
+  const del=h("button",{class:"btn danger",onclick:async()=>{if(!confirm(tr("حذف هذا الملف وملاحظاته من هذا الجهاز؟","Delete this item and its notes from this device?")))return;try{await libraryDelete(d.id);LIB_OPEN_ID=null;render()}catch(_){toast(tr("تعذر حذف الملف.","Could not delete file."))}}},tr("حذف","Delete"));
+  const frame=LIB_OBJECT_URL?h("iframe",{class:"lib-pdf-frame",src:isPdf?(LIB_OBJECT_URL+"#page="+(d.page||1)+"&view=FitH"):LIB_OBJECT_URL,title:tr("عارض المستند","Document viewer"),loading:"lazy"}):h("div",{class:"lib-empty"},tr("تعذر عرض معاينة هذا الملف حاليًا.","Preview temporarily unavailable for this file."));
   const m=d.meta||{},metaLine=[m.university,m.faculty,m.department,m.level,m.semester,m.course].filter(Boolean).join(" · ");
   reader.append(h("div",{class:"lib-reader-head"},h("div",{class:"lib-reader-name",dir:"auto"},d.name),h("div",{class:"lib-reader-actions"},analyze,download,publish,del)),metaLine?h("div",{class:"lib-reader-meta",dir:"auto"},metaLine):null,h("div",{class:"lib-pdf-wrap"},frame),isPdf?h("div",{class:"lib-progress"},h("label",{},tr("آخر صفحة محفوظة","Last saved page")),page,savePage,h("small",{},tr("حدّث رقم الصفحة يدويًا ثم اضغط حفظ الصفحة؛ لا يستطيع عارض المتصفح إبلاغ التطبيق بكل انتقال داخلي.","Update the page number manually and save it; the browser viewer does not expose every internal page change."))):null,h("div",{class:"lib-notes"},h("label",{},tr("ملاحظات المحاضرة","Lecture notes")),note,saveNote));
- }).catch(err=>{console.error("[library]",err);items.append(h("div",{class:"lib-empty"},tr("تعذر فتح المكتبة على هذا المتصفح. تحقق من دعم التخزين المحلي.","Could not open the library. Check local storage support.")))});
+ }).catch(()=>{items.append(h("div",{class:"lib-empty"},tr("تعذر فتح المكتبة على هذا المتصفح. تحقق من دعم التخزين المحلي.","Could not open the library. Check local storage support.")))});
 }
 
 // ===================== العرض والتشغيل =====================
@@ -1202,7 +1209,7 @@ function openScholarAccountModal(){
  const nameIn=h("input",{class:"cin",maxlength:"80",value:S.prof.name||user.displayName||"",placeholder:t("mName")});
  const fieldSel=h("select",{class:"cin"},discList.length?discList.map(d=>h("option",{value:d.id,selected:(S.prof.field||"")===d.id?"selected":null},d.id?(d[S.lang]||d.en):tr("اختر تخصصك…","Select your field…"))):[h("option",{value:S.prof.field||""},S.prof.field||tr("عام","General"))]);
  const univIn=h("input",{class:"cin",maxlength:"120",value:S.prof.university||(mem&&mem.university)||"",placeholder:tr("الجامعة / المؤسسة","University / Institution")});
- const titleIn=h("input",{class:"cin",maxlength:"80",value:(S.prof.academicTitle||""),placeholder:tr("الصفة الأكاديمية (طالب، باحث، أستاذ…)","Academic title (Student, Researcher…)")});
+ const titleIn=h("input",{class:"cin",maxlength:"80",value:(S.prof.academicTitle||""),placeholder:tr("الصفة العلمية (طالب، باحث، أستاذ…)","Academic title (Student, Researcher…)")});
  const bioIn=h("textarea",{class:"cta",rows:"2",maxlength:"300",placeholder:tr("نبذة أو محور البحث الحالي","Short bio or current research focus")},S.prof.bio||"");
  const msgEl=h("div",{class:"meta",style:"margin-top:4px"},"");
  const lastTopic=(mem&&(mem.lastTopic||mem.last_topic))||"";

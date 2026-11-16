@@ -185,33 +185,6 @@ header{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .mapf{width:100%;height:220px;border:0;border-radius:12px;margin:6px 0}
 
 
-/* نبراس — أنميشن حيّ وخفيف */
-.nibras{min-height:1px;isolation:isolate}
-.nibras-svg{overflow:visible;display:block;filter:drop-shadow(0 7px 5px rgba(40,55,75,.13));animation:n-float 3.2s ease-in-out infinite;transform-origin:50% 75%}
-.n-cat{transform-origin:80px 112px;animation:n-breathe 3.8s ease-in-out infinite}
-.n-cap{transform-origin:80px 27px;animation:n-cap 4.2s ease-in-out infinite}
-.n-tail{transform-origin:112px 108px;animation:n-tail 2.1s ease-in-out infinite}
-.n-scarf-tail{transform-origin:108px 126px;animation:n-scarf 1.8s ease-in-out infinite}
-.n-paw{transform-origin:80px 120px;animation:n-paw 3.5s ease-in-out infinite}
-.n-sparkles{transform-origin:80px 75px;animation:n-sparkle 3.5s ease-in-out infinite}
-.n-orbit{animation:n-orbit 12s linear infinite;transform-origin:80px 75px}
-.n-iris{fill:url(#nEye);stroke:#175b62;stroke-width:1.5}
-.n-pupil{fill:#102b3a}
-.n-glint{fill:#fff}
-.n-eye-line{fill:none;stroke:#493329;stroke-width:3.5;stroke-linecap:round}
-.n-mouth{fill:#9d3e55;stroke:#74334a;stroke-width:1.2}
-.n-mouth-line{fill:none;stroke:#74334a;stroke-width:2.8;stroke-linecap:round}
-@keyframes n-float{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-5px) rotate(1deg)}}
-@keyframes n-breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.018,.985)}}
-@keyframes n-tail{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(13deg)}}
-@keyframes n-scarf{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(9deg)}}
-@keyframes n-paw{0%,75%,100%{transform:translateY(0) rotate(0)}82%{transform:translateY(-5px) rotate(-9deg)}90%{transform:translateY(0) rotate(5deg)}}
-@keyframes n-sparkle{0%,100%{opacity:.65;transform:scale(.92)}50%{opacity:1;transform:scale(1.08)}}
-@keyframes n-orbit{to{transform:rotate(360deg)}}
-@keyframes n-cap{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
-@media(prefers-reduced-motion:reduce){.nibras-svg,.n-cat,.n-cap,.n-tail,.n-scarf-tail,.n-paw,.n-sparkles,.n-orbit{animation:none!important}}
-
-
 /* =========================================================
    7Salah Scholar — visual-only refinement (v19p2)
    Scope: colors, surfaces, typography, states and icon styling.
@@ -608,7 +581,6 @@ body.inchat #view{flex:1;min-height:0;display:flex;flex-direction:column}
 
 .fname{display:flex;flex-direction:column;gap:1px;min-width:0}
 .fname small{font-size:11.5px;color:var(--mute);text-align:start}
-body.inchat .nbask{display:none!important}
 
 
 /* v19q+ — unified academic palette and explicit theme modes */
@@ -979,30 +951,6 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
 .pset .ic{width:20px;height:20px;margin:0}
 .pset:active{transform:scale(.92);background:rgba(255,255,255,.3)}
 
-/* =========================================================
-   7Salah Scholar v23 — نبراس الجديد: يتفاعل بأربع حالات
-   happy · celebrate · think · sad  (data-mood على عنصر svg.nb)
-   ========================================================= */
-.nb .n-shut,.nb .m-smile,.nb .m-open,.nb .m-flat,.nb .m-sad,.nb .th,.nb .tear,.nb .brow-s,.nb .n-sparkles{display:none}
-.nb[data-mood=happy] .m-smile{display:block}
-.nb[data-mood=celebrate] .n-shut,.nb[data-mood=celebrate] .m-open,.nb[data-mood=celebrate] .n-sparkles{display:block}
-.nb[data-mood=celebrate] .n-open{display:none}
-.nb[data-mood=think] .m-flat,.nb[data-mood=think] .th{display:block}
-.nb[data-mood=sad] .m-sad,.nb[data-mood=sad] .tear,.nb[data-mood=sad] .brow-s{display:block}
-.nb .n-look{transition:transform .3s}
-.nb[data-mood=think] .n-look{transform:translate(2.4px,-3px)}
-.nb[data-mood=sad] .n-look{transform:translate(0,2.5px)}
-.nrow{display:flex;align-items:center;gap:8px;margin:10px 16px}
-.nbslot{width:92px;flex:none;cursor:pointer;-webkit-user-select:none;user-select:none}
-.nbslot svg{display:block;width:100%;height:auto}
-.nbub{position:relative;flex:1;min-width:0;padding:12px 14px;border-radius:18px;line-height:1.75;font-size:14.5px;font-weight:600;background-color:var(--g-bg2,var(--card));border:1px solid var(--g-brd,var(--line));box-shadow:var(--g-sh,var(--sh));-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
-.nbub::before{content:"";position:absolute;top:26px;inset-inline-start:-13px;border:7px solid transparent;border-inline-end-color:var(--g-bg2,var(--card))}
-@media(prefers-reduced-motion:no-preference){
-  .nb .n-open{animation:nbBlink 5.5s infinite;transform-box:fill-box;transform-origin:center}
-  .nbslot.pop{animation:nbPop .5s}
-}
-@keyframes nbBlink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
-@keyframes nbPop{30%{transform:scale(1.18) rotate(-6deg)}60%{transform:scale(.96) rotate(4deg)}}
 [hidden]{display:none!important}</style></head><body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <symbol id="i-cap" viewBox="0 0 24 24"><path d="m22 10-10-5L2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></symbol>
@@ -1017,33 +965,6 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
 <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></symbol>
 <symbol id="i-ok" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
 <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 22c4 0 7-3 7-7 0-3-2-5-3-7-1 2-2 3-3 3 0-3-1-6-4-9 0 4-4 6-4 12 0 4 3 8 7 8Z"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"/></symbol><symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol><symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol><symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol></defs></svg>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="nEye" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fb6b0"/><stop offset="1" stop-color="#14707a"/></linearGradient></defs></svg>
-<template id="nbt"><svg class="nibras-svg nb" viewBox="0 0 160 160" data-mood="happy" role="img" aria-label="نبراس">
-<ellipse cx="80" cy="150" rx="34" ry="5" fill="rgba(16,36,70,.16)"/>
-<path class="n-tail" d="M112 132c26 2 40-22 28-40" fill="none" stroke="#c9d7ec" stroke-width="12" stroke-linecap="round"/>
-<g class="n-cat">
-<ellipse cx="80" cy="120" rx="34" ry="29" fill="#dbe6f5"/><ellipse cx="80" cy="128" rx="19" ry="19" fill="#fff"/>
-<ellipse cx="62" cy="146" rx="12" ry="7" fill="#dbe6f5"/><ellipse cx="98" cy="146" rx="12" ry="7" fill="#dbe6f5"/>
-<g class="n-paw"><ellipse cx="113" cy="116" rx="7" ry="11" fill="#dbe6f5" transform="rotate(-20 113 116)"/></g>
-<path d="M50 98q30 18 60 0v10q-30 18-60 0Z" fill="#d9ad45"/><path class="n-scarf-tail" d="M96 108l14 26-11 4-9-24Z" fill="#c8962a"/>
-<path d="M48 52 44 20 72 38Z" fill="#dbe6f5"/><path d="M112 52 116 20 88 38Z" fill="#dbe6f5"/>
-<path d="M50 46 49 29 63 38Z" fill="#f2b8c0"/><path d="M110 46 111 29 97 38Z" fill="#f2b8c0"/>
-<ellipse cx="80" cy="68" rx="38" ry="33" fill="#dbe6f5"/>
-<ellipse cx="50" cy="80" rx="6" ry="4" fill="#f2a0ae" opacity=".55"/><ellipse cx="110" cy="80" rx="6" ry="4" fill="#f2a0ae" opacity=".55"/>
-<g class="n-open"><ellipse cx="64" cy="68" rx="9" ry="10.5" fill="#fff"/><g class="n-look"><circle class="n-iris" cx="64" cy="69" r="6.6"/><circle class="n-pupil" cx="64" cy="69" r="3.4"/><circle class="n-glint" cx="66.2" cy="66.6" r="1.8"/></g></g>
-<g class="n-open"><ellipse cx="96" cy="68" rx="9" ry="10.5" fill="#fff"/><g class="n-look"><circle class="n-iris" cx="96" cy="69" r="6.6"/><circle class="n-pupil" cx="96" cy="69" r="3.4"/><circle class="n-glint" cx="98.2" cy="66.6" r="1.8"/></g></g>
-<g class="n-shut"><path class="n-eye-line" d="M55 70q9-10 18 0"/><path class="n-eye-line" d="M87 70q9-10 18 0"/></g>
-<path class="brow-s" d="M55 54l17 5M105 54l-17 5" stroke="#493329" stroke-width="3" stroke-linecap="round" fill="none"/>
-<path d="M76 77h8l-4 5Z" fill="#e58fa0"/>
-<path class="m-smile n-mouth-line" d="M71 84q9 9 18 0"/><path class="m-open n-mouth" d="M70 83q10 17 20 0Z"/>
-<path class="m-flat n-mouth-line" d="M74 87h12"/><path class="m-sad n-mouth-line" d="M72 90q8-7 16 0"/>
-<path d="M44 78l-14-2M44 82l-14 3M116 78l14-2M116 82l14 3" stroke="#8fa3c2" stroke-width="1.6" stroke-linecap="round"/>
-<path class="tear" d="M55 81c-4 6-4 10 0 10s4-4 0-10Z" fill="#7fb8ec"/>
-<g class="n-cap"><path d="M62 38v10q18 9 36 0V38Z" fill="#081d3e"/><path d="M38 31 80 14l42 17-42 17Z" fill="#0b2854"/><path d="M120 32l6 20" stroke="#d9ad45" stroke-width="2.5" stroke-linecap="round"/><circle cx="126" cy="54" r="4" fill="#d9ad45"/></g>
-</g>
-<g class="th" fill="#8fa3c2"><circle cx="124" cy="42" r="2.6"/><circle cx="132" cy="31" r="3.8"/><circle cx="143" cy="17" r="5.4"/></g>
-<g class="n-sparkles" fill="#f5c84b"><path d="M0-8 2.2-2.2 8 0 2.2 2.2 0 8-2.2 2.2-8 0-2.2-2.2Z" transform="translate(20 44)"/><path d="M0-8 2.2-2.2 8 0 2.2 2.2 0 8-2.2 2.2-8 0-2.2-2.2Z" transform="translate(142 62) scale(.8)"/><path d="M0-8 2.2-2.2 8 0 2.2 2.2 0 8-2.2 2.2-8 0-2.2-2.2Z" transform="translate(132 18) scale(.6)"/></g>
-</svg></template>
 <header>
   <div class="brand"><span class="logo"><svg class="ic"><use href="#i-cap"/></svg></span><span>7Salah Scholar</span></div>
   <button class="gchip"><svg class="ic gold"><use href="#i-flame"/></svg>7 أيام</button>
@@ -1054,12 +975,11 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
 <section class="scr" id="s-home">
   <div class="hero">
     <div class="eyebrow">أهلًا بك من جديد</div>
-    <h1>واصل رحلتك الأكاديمية</h1>
+    <h1>واصل رحلتك الدراسية</h1>
     <p>راجع بطاقاتك اليوم وحافظ على سلسلتك.</p>
     <div class="sb"><input placeholder="ابحث في موادك وملفاتك"><button>بحث</button></div>
     <div class="chips"><button class="chip on">الكل</button><button class="chip">أحياء</button><button class="chip">كيمياء</button></div>
   </div>
-  <div class="nrow" data-n="home"><div class="nbslot" tabindex="0" role="button" aria-label="نبراس"></div><div class="nbub" aria-live="polite"></div></div>
   <div class="card today">
     <div class="ring" style="--p:68"><div>68%<small>اليوم</small></div></div>
     <div><div class="big">١٧ بطاقة متبقية</div><div class="meta">هدفك اليومي ٢٥ بطاقة</div><div class="btns"><button class="btn fill" data-go="study">ابدأ المراجعة</button></div></div>
@@ -1082,7 +1002,6 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
     <div class="ans" id="ans" hidden>إنتاج الطاقة على شكل ATP</div>
     <div class="meta" id="hint">اضغط البطاقة لإظهار الإجابة</div>
   </div>
-  <div class="nrow" data-n="study"><div class="nbslot" tabindex="0" role="button" aria-label="نبراس"></div><div class="nbub" aria-live="polite"></div></div>
   <div class="rate"><button class="r0">مرة أخرى<small>١ د</small></button><button class="r1">صعب<small>٢ د</small></button><button class="r2">جيد<small>٣ أيام</small></button><button class="r3">سهل<small>٧ أيام</small></button></div>
 </section>
 
@@ -1091,7 +1010,6 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
   <div class="tbar"><i style="width:60%"></i></div>
   <div class="qq">أي عضية تُسمّى «محطة الطاقة» في الخلية؟</div>
   <div id="opts"><button class="opt">النواة</button><button class="opt" data-c="1">الميتوكوندريا</button><button class="opt">الريبوسوم</button><button class="opt">جهاز جولجي</button></div>
-  <div class="nrow" data-n="quiz"><div class="nbslot" tabindex="0" role="button" aria-label="نبراس"></div><div class="nbub" aria-live="polite"></div></div>
 </section>
 
 <section class="scr" id="s-badges" hidden>
@@ -1207,28 +1125,4 @@ header{background-color:var(--g-bg2)!important;-webkit-backdrop-filter:var(--g-b
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",apply);else apply();
 })();
 </script>
-<script>
-(function(){
-  var T=document.getElementById("nbt");
-  function say(k,m,t){var r=document.querySelector('[data-n="'+k+'"]');if(!r)return;
-    var s=r.querySelector(".nbslot");s.firstElementChild.dataset.mood=m;r.querySelector(".nbub").textContent=t;
-    s.classList.remove("pop");void s.offsetWidth;s.classList.add("pop")}
-  document.querySelectorAll(".nbslot").forEach(function(s){s.appendChild(T.content.cloneNode(true))});
-  var hi=[["happy","أنا هنا لأشجعك، كل بطاقة تقرّبك من هدفك!"],["celebrate","سلسلتك ٧ أيام، أنت رائع!"],["think","هل راجعت الأحياء اليوم؟"],["happy","أهلًا بك! عندك ١٧ بطاقة اليوم، نبدأ؟"]],hn=0;
-  say("home","happy","أهلًا بك! عندك ١٧ بطاقة اليوم، نبدأ؟");
-  var rate=[["sad","لا بأس، سأعيدها إليك قريبًا."],["think","سنراجعها بعد قليل."],["happy","جيد! أحسنت."],["celebrate","ممتاز! ستغيب هذه البطاقة أسبوعًا."]];
-  document.addEventListener("click",function(e){
-    var t=e.target,g=t.closest("[data-go]");
-    if(g){var n=g.dataset.go;
-      if(n==="home")say("home","happy","أهلًا بعودتك! نكمل المراجعة؟");
-      if(n==="study")say("study","think","فكّر قليلًا، ثم اضغط البطاقة.");
-      if(n==="quiz")say("quiz","think","اختر بتركيز، الوقت يمر!")}
-    if(t.closest("#fc"))say("study","happy","هل تذكّرتها؟ قيّم نفسك بصدق.");
-    var rb=t.closest(".rate button");
-    if(rb){var i=[].indexOf.call(rb.parentNode.children,rb);say("study",rate[i][0],rate[i][1])}
-    var o=t.closest(".opt");
-    if(o)o.dataset.c?say("quiz","celebrate","إجابة صحيحة، أحسنت!"):say("quiz","sad","قريب! الصحيح هو «الميتوكوندريا».");
-    if(t.closest('[data-n="home"] .nbslot')){var h=hi[hn++%hi.length];say("home",h[0],h[1])}
-  });
-})();
-</script></body></html>
+</body></html>

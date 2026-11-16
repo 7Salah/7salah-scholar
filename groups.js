@@ -61,7 +61,7 @@ async function discoverModal(){
   }catch(e){toast(e.message||gTr("رمز الدعوة غير صحيح","Invalid invite code","Code invalide"))}
  };
  const m=modal(
-  h("h3",{},ic("compass")," ",gTr("اكتشف المجموعات الأكاديمية","Discover Academic Groups","Découvrir des groupes")),
+  h("h3",{},ic("compass")," ",gTr("اكتشف المجموعات الدراسية","Discover Academic Groups","Découvrir des groupes")),
   h("div",{style:"display:flex;gap:6px;align-items:center"},inv,h("button",{class:"btn",type:"button",onclick:joinPrivate},gTr("دخول برمز","Join Code","Rejoindre"))),
   q,lv,
   h("button",{class:"btn",type:"button",onclick:load},ic("search"),gTr("بحث","Search","Rechercher")),

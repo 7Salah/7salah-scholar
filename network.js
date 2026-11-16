@@ -64,12 +64,14 @@
  }
 
  async function apiJson(url,opts){
-  const res=await fetch(url,Object.assign({headers:{"Content-Type":"application/json"}},opts||{}));
+  opts=opts||{};
+  const mergedHeaders=Object.assign({"Content-Type":"application/json","Accept":"application/json"},opts.headers||{});
+  const res=await fetch(url,Object.assign({cache:"no-store",credentials:"same-origin"},opts,{headers:mergedHeaders}));
   const raw=await res.text().catch(()=>"");
   let data={};
   if(raw){try{data=JSON.parse(raw)}catch(e){data={}}}
   if(!res.ok){
-   const err=new Error(data.error||(res.status>=500?tr3("خطأ في الخادم المؤقت","Server unavailable","Serveur indisponible"):res.status===404?tr3("المسار غير متاح","Endpoint unavailable","Service indisponible"):tr3("تعذر إتمام الطلب ("+res.status+")","Request error ("+res.status+")","Erreur ("+res.status+")")));
+   const err=new Error(data.error||(res.status>=500?tr3("خطأ في الخادم المؤقت","Server unavailable","Serveur indisponible"):res.status===404||res.status===405?tr3("الخدمة البعيدة غير متاحة حاليًا","Remote service unavailable","Service indisponible"):tr3("تعذر إتمام الطلب ("+res.status+")","Request error ("+res.status+")","Erreur ("+res.status+")")));
    err.status=res.status;
    if(data.code)err.code=data.code;
    throw err;
@@ -85,7 +87,7 @@
  }
  function emit(type,payload){
   const set=listeners.get(type);
-  if(set)set.forEach(fn=>{try{fn(payload)}catch(e){console.error("[NetWS]",type,e)}});
+  if(set)set.forEach(fn=>{try{fn(payload)}catch(e){}});
  }
 
  const Net={
@@ -99,21 +101,27 @@
   apiDel:url=>apiJson(url,{method:"DELETE"}),
   ws:null,
   wsConnected:false,
+  wsDisabled:false,
+  _wsFailures:0,
+  _wsEverOpened:false,
   onlinePeers:[],
   incomingCount:0,
   _reconTimer:null,
-  _reconDelay:1000,
+  _reconDelay:1200,
   _queue:[],
 
   connect(){
+   if(this.wsDisabled||typeof WebSocket==="undefined")return;
    if(this.ws&&(this.ws.readyState===WebSocket.OPEN||this.ws.readyState===WebSocket.CONNECTING))return;
    const proto=location.protocol==="https:"?"wss://":"ws://";
    let ws;
-   try{ws=new WebSocket(proto+location.host+"/ws")}catch(e){this.scheduleReconnect();return}
+   try{ws=new WebSocket(proto+location.host+"/ws")}catch(e){this._wsFailures++;this.scheduleReconnect();return}
    this.ws=ws;
    ws.onopen=()=>{
     this.wsConnected=true;
-    this._reconDelay=1000;
+    this._wsEverOpened=true;
+    this._wsFailures=0;
+    this._reconDelay=1200;
     this.sendHello();
     while(this._queue.length&&ws.readyState===WebSocket.OPEN){
      ws.send(JSON.stringify(this._queue.shift()));
@@ -139,6 +147,14 @@
    ws.onclose=()=>{
     this.wsConnected=false;
     this.ws=null;
+    if(!this._wsEverOpened){
+     this._wsFailures++;
+     if(this._wsFailures>=2){
+      this.wsDisabled=true;
+      this._queue.length=0;
+      return;
+     }
+    }
     emit("ws:close",{});
     this.scheduleReconnect();
    };
@@ -146,23 +162,26 @@
   },
 
   scheduleReconnect(){
-   if(this._reconTimer)return;
+   if(this.wsDisabled||this._reconTimer)return;
    const d=this._reconDelay;
-   this._reconDelay=Math.min(15000,Math.round(d*1.6));
+   this._reconDelay=Math.min(20000,Math.round(d*1.8));
    this._reconTimer=setTimeout(()=>{this._reconTimer=null;this.connect()},d);
   },
 
   send(payload){
+   if(this.wsDisabled)return false;
    if(this.ws&&this.ws.readyState===WebSocket.OPEN){
     this.ws.send(JSON.stringify(payload));
     return true;
    }
    this._queue.push(payload);
+   if(this._queue.length>20)this._queue.shift();
    this.connect();
    return false;
   },
 
   sendHello(){
+   if(this.wsDisabled)return;
    const me=myIdentity();
    this.send({
     type:"hello",

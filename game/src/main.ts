@@ -30,9 +30,9 @@ declare global {
 
 const text = {
   ar: {
-    back: "العودة للمنصة", level: "المستوى", xp: "خبرة تجريبية", location: "ساحة الأكاديمية",
-    title: "أكاديميتك بانتظارك", intro: "ادخل الساحة الجامعية، تعرّف إلى شخصيتك، واستكشف أول مساحة تعليمية ثلاثية الأبعاد.",
-    "single-player": "استكشاف فردي", "no-xp": "الخبرة تجريبية", enter: "دخول الأكاديمية",
+    back: "العودة للمنصة", level: "المستوى", xp: "خبرة تجريبية", location: "الساحة الجامعية",
+    title: "الساحة الجامعية بانتظارك", intro: "ادخل الساحة الجامعية، تعرّف إلى شخصيتك، واستكشف أول مساحة تعليمية ثلاثية الأبعاد.",
+    "single-player": "استكشاف فردي", "no-xp": "الخبرة تجريبية", enter: "بدء الاستكشاف",
     "session-check": "يتم التحقق من جلسة المنصة عند الدخول…", character: "الشخصية",
     customize: "تخصيص المظهر", hair: "تسريحة الشعر", "hair-color": "لون الشعر", "eye-color": "لون العينين",
     outfit: "الزي المحتشم", shoes: "الحذاء", bag: "الحقيبة", accessory: "الإكسسوار",
@@ -41,11 +41,12 @@ const text = {
     settings: "الإعدادات", graphics: "جودة الرسوم",
     "settings-note": "تُحفظ هذه الخيارات على هذا الجهاز فقط. لن تُحفظ خبرة حقيقية أو بيانات حساب.",
     paused: "اللعبة متوقفة مؤقتاً", resume: "متابعة اللعب", return: "العودة إلى المنصة",
-    run: "جري", jump: "قفز", interact: "تفاعل", move: "حركة", menu: "القائمة", loading: "جارٍ تجهيز الأكاديمية…",
+    run: "جري", jump: "قفز", interact: "تفاعل", move: "حركة", mic: "تبديل الميكروفون", controls: "لوحة التحكم", menu: "القائمة",
+    "hints-label": "اختصارات لوحة المفاتيح", "mic-on": "تم تفعيل الميكروفون", "mic-off": "تم كتم الميكروفون", loading: "جارٍ تجهيز المشهد…",
     "session-ready": "تم العثور على جلسة المنصة الحالية.", "session-guest": "لم توجد جلسة محفوظة؛ يمكنك الاستكشاف كضيف.",
     "session-unavailable": "تعذر قراءة الجلسة؛ يمكنك الدخول كضيف.", loadingSdk: "جارٍ التحقق من جلسة المنصة…",
     loadingWorld: "جارٍ إنشاء المشهد ثلاثي الأبعاد…", "interaction-near": "تفاعل مع بوابة المعرفة",
-    "interaction-done": "مرحباً بك في أكاديمية 7Salah! هذه مساحة استكشاف أولية.",
+    "interaction-done": "مرحباً بك في ساحة 7Salah الجامعية! هذه مساحة استكشاف أولية.",
     "character-short": "قصير", "character-bob": "بوب", "character-long": "طويل", "character-ponytail": "ذيل حصان",
     "outfit-blue": "أزرق أكاديمي", "outfit-purple": "بنفسجي أنيق", "outfit-green": "أخضر هادئ", "outfit-coral": "مرجاني دافئ",
     "shoes-ivory": "عاجي", "shoes-navy": "كحلي", "shoes-leather": "جلدي",
@@ -68,7 +69,8 @@ const text = {
     settings: "Settings", graphics: "Graphics quality",
     "settings-note": "Preferences stay on this device. No real XP or account data is saved.",
     paused: "Game paused", resume: "Resume", return: "Return to the platform",
-    run: "Run", jump: "Jump", interact: "Interact", move: "Move", menu: "Menu", loading: "Preparing the academy…",
+    run: "Run", jump: "Jump", interact: "Interact", move: "Move", mic: "Toggle mic", controls: "Control panel", menu: "Menu",
+    "hints-label": "Keyboard shortcuts", "mic-on": "Microphone enabled", "mic-off": "Microphone muted", loading: "Preparing the academy…",
     "session-ready": "Your current platform session was found.", "session-guest": "No saved session was found; you can explore as a guest.",
     "session-unavailable": "Could not read the session; you can continue as a guest.", loadingSdk: "Checking your platform session…",
     loadingWorld: "Building the 3D scene…", "interaction-near": "Interact with the knowledge gate",
@@ -102,6 +104,7 @@ function localize() {
     const key = node.dataset.copy as keyof typeof copy;
     if (key in copy) node.textContent = copy[key];
   });
+  document.querySelector<HTMLElement>("[data-hints-label]")?.setAttribute("aria-label", copy["hints-label"]);
   const optionLabels: Record<string, Record<string, keyof typeof copy>> = {
     "hair-style": { short: "character-short", bob: "character-bob", long: "character-long", ponytail: "character-ponytail" },
     outfit: { "#345f91": "outfit-blue", "#745b91": "outfit-purple", "#3e766b": "outfit-green", "#b06755": "outfit-coral" },
@@ -281,7 +284,7 @@ async function enterAcademy() {
   } catch {
     el("session-note").textContent = copy["session-unavailable"];
   }
-  el<HTMLElement>("player-name").textContent = sessionState.name || (lang === "ar" ? "مستكشف الأكاديمية" : "Academy explorer");
+  el<HTMLElement>("player-name").textContent = sessionState.name || (lang === "ar" ? "مستكشف الساحة" : "Academy explorer");
   el<HTMLElement>("loading-screen").querySelector("b")!.textContent = copy.loadingWorld;
 
   try {
@@ -320,13 +323,56 @@ el<HTMLButtonElement>("resume-game").addEventListener("click", () => {
   setPause(false);
   el<HTMLCanvasElement>("academy-canvas").focus({ preventScroll: true });
 });
-el<HTMLButtonElement>("customize-open").addEventListener("click", () => { el("customize-panel").hidden = false; });
-el<HTMLButtonElement>("settings-open").addEventListener("click", () => { el("settings-panel").hidden = false; });
+const toggleControlPanel = (force?: boolean) => {
+  const panel = el("customize-panel");
+  const open = typeof force === "boolean" ? force : panel.hidden;
+  if (open) {
+    el("settings-panel").hidden = true;
+    panel.hidden = false;
+    panel.querySelector<HTMLButtonElement>("[data-close]")?.focus({ preventScroll: true });
+  } else {
+    panel.hidden = true;
+    el<HTMLCanvasElement>("academy-canvas").focus({ preventScroll: true });
+  }
+};
+
+let micEnabled = readLocal<boolean>("academicQuest:mic", false);
+const syncMicHint = () => {
+  const hintMic = document.getElementById("hint-mic");
+  if (hintMic) hintMic.dataset.micActive = micEnabled ? "true" : "false";
+};
+syncMicHint();
+const toggleMicrophone = () => {
+  micEnabled = !micEnabled;
+  writeLocal("academicQuest:mic", micEnabled);
+  syncMicHint();
+  showToast(copy[micEnabled ? "mic-on" : "mic-off"]);
+};
+
+el<HTMLButtonElement>("customize-open").addEventListener("click", () => toggleControlPanel(true));
+el<HTMLButtonElement>("settings-open").addEventListener("click", () => {
+  el("customize-panel").hidden = true;
+  el("settings-panel").hidden = false;
+});
 document.querySelectorAll<HTMLButtonElement>("[data-close]").forEach((button) => {
   button.addEventListener("click", () => {
     el(button.dataset.close!).hidden = true;
     el<HTMLCanvasElement>("academy-canvas").focus({ preventScroll: true });
   });
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+  const target = event.target as HTMLElement | null;
+  if (target?.closest("input, select, textarea, [contenteditable=true]")) return;
+  if (!el("welcome-screen").hidden || !el("loading-screen").hidden || paused) return;
+  if (event.code === "KeyM") {
+    event.preventDefault();
+    toggleMicrophone();
+  } else if (event.code === "KeyC") {
+    event.preventDefault();
+    toggleControlPanel();
+  }
 });
 
 const lookControls = ["hair-style", "hair-color", "eye-color", "outfit", "shoes", "bag", "accessory", "theme", "details"];

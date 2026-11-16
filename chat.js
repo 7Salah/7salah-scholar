@@ -24,12 +24,12 @@ async function chatList(v){
  // Collaborative Academic Groups from server (/api/groups)
  if(window.Net){
   const gBox=h("div",{class:"clist"}),myId=Net.ensurePeerId(),me=Net.myIdentity();
-  v.append(h("div",{class:"sec"},h("span",{},cTr("المجموعات الأكاديمية (عامة وخاصة)","Academic Groups (Public & Private)","Groupes académiques")),h("button",{class:"btn",type:"button",onclick:discoverModal},cTr("انضمام برمز","Join Code","Code"))),gBox);
+  v.append(h("div",{class:"sec"},h("span",{},cTr("المجموعات الدراسية (عامة وخاصة)","Academic Groups (Public & Private)","Groupes académiques")),h("button",{class:"btn",type:"button",onclick:discoverModal},cTr("انضمام برمز","Join Code","Code"))),gBox);
   try{
    const gr=await Net.apiGet("/api/groups?peerId="+encodeURIComponent(myId));
    const groups=gr.groups||[];
    if(!groups.length){
-    gBox.append(h("div",{class:"cempty"},ic("users",{s:28}),h("b",{},cTr("لا مجموعات أكاديمية بعد","No academic groups yet","Aucun groupe")),h("div",{class:"meta"},cTr("أنشئ مجموعة عامة أو خاصة لمناقشة المقررات والأبحاث وإطلاق غرف دراسة بالفيديو.","Create a public or private group for coursework, peer tutoring, and video rooms.","Créez un groupe d'étude."))));
+    gBox.append(h("div",{class:"cempty"},ic("users",{s:28}),h("b",{},cTr("لا مجموعات دراسية بعد","No academic groups yet","Aucun groupe")),h("div",{class:"meta"},cTr("أنشئ مجموعة عامة أو خاصة لمناقشة المقررات والأبحاث وإطلاق غرف دراسة بالفيديو.","Create a public or private group for coursework, peer tutoring, and video rooms.","Créez un groupe d'étude."))));
    }else{
     groups.forEach(g=>{
      const isPriv=g.visibility==="private";

@@ -35,7 +35,7 @@
         <div class="player-card">
           <div class="avatar-mark" aria-hidden="true">✦</div>
           <div class="player-info">
-            <b id="player-name">مستكشف الأكاديمية</b>
+            <b id="player-name">مستكشف الساحة</b>
             <span><span data-copy="level">المستوى</span> 1 <i>·</i> <span data-copy="xp">خبرة تجريبية</span></span>
           </div>
           <div class="xp-block">
@@ -48,7 +48,7 @@
         </div>
 
         <div class="top-actions">
-          <button class="icon-button" id="customize-open" type="button" aria-label="Customize">✦</button>
+          <button class="icon-button" id="customize-open" type="button" aria-label="Customize" aria-keyshortcuts="c">✦</button>
           <button class="icon-button" id="settings-open" type="button" aria-label="Settings">⚙</button>
           <button class="icon-button pause-button" id="pause-open" type="button" aria-label="Pause">❚❚</button>
         </div>
@@ -56,7 +56,7 @@
 
       <div class="world-label">
         <span class="world-pulse"></span>
-        <span data-copy="location">ساحة الأكاديمية</span>
+        <span data-copy="location">الساحة الجامعية</span>
       </div>
 
       <div class="interaction-prompt" id="interaction-prompt" hidden>
@@ -66,11 +66,13 @@
 
       <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-      <div class="desktop-hints">
+      <div class="desktop-hints" role="note" aria-label="اختصارات لوحة المفاتيح" data-hints-label>
         <span><kbd>WASD</kbd><i data-copy="move">حركة</i></span>
         <span><kbd>Space</kbd><i data-copy="jump">قفز</i></span>
         <span><kbd>Shift</kbd><i data-copy="run">جري</i></span>
         <span><kbd>E</kbd><i data-copy="interact">تفاعل</i></span>
+        <span id="hint-mic" data-mic-active="false"><kbd>M</kbd><i data-copy="mic">تبديل الميكروفون</i></span>
+        <span id="hint-controls"><kbd>C</kbd><i data-copy="controls">لوحة التحكم</i></span>
         <span><kbd>Esc</kbd><i data-copy="menu">القائمة</i></span>
       </div>
 
@@ -89,14 +91,14 @@
         <div class="welcome-decoration" aria-hidden="true"><span>✦</span><i></i><b>7</b></div>
         <div class="welcome-card">
           <div class="eyebrow"><span>✦</span>ACADEMIC QUEST · 7SALAH SCHOLAR</div>
-          <h1 data-copy="title">أكاديميتك بانتظارك</h1>
+          <h1 data-copy="title">الساحة الجامعية بانتظارك</h1>
           <p data-copy="intro"></p>
           <div class="welcome-meta">
             <span data-copy="single-player"></span>
             <span data-copy="no-xp"></span>
           </div>
           <button class="primary-button" id="enter-academy" type="button">
-            <span data-copy="enter">دخول الأكاديمية</span>
+            <span data-copy="enter">بدء الاستكشاف</span>
             <b>→</b>
           </button>
           <p class="session-note" id="session-note" data-copy="session-check"></p>

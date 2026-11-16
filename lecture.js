@@ -93,14 +93,15 @@ async function invokeOnce(body,timeoutMs=REQ_TIMEOUT_MS){
   try{
    const res=await fetch(SUPA.url+"/functions/v1/lecture-ai",{
     method:"POST",
-    headers:{"Content-Type":"application/json",apikey:SUPA.key,Authorization:"Bearer "+token},
+    cache:"no-store",
+    headers:{"Content-Type":"application/json","Accept":"application/json",apikey:SUPA.key,Authorization:"Bearer "+token},
     body:JSON.stringify(body),
     signal:ctrl.signal
    });
    const txt=await res.text();
    let j=null;try{j=txt?JSON.parse(txt):null}catch(_){}
    if(!res.ok){
-    const code=(j&&j.error)||((res.status===408||res.status===504)?"server":"server");
+    const code=(j&&j.error)||"server";
     const err=new Error(code);err.code=code;err.status=res.status;
     throw err;
    }
@@ -111,14 +112,17 @@ async function invokeOnce(body,timeoutMs=REQ_TIMEOUT_MS){
    throw e;
   }finally{clearTimeout(tid)}
  };
- let ss=(await c.auth.getSession()).data.session;
- if(!ss||!ss.access_token){const rf=await c.auth.refreshSession();ss=rf.data&&rf.data.session}
+ let ss=null;
+ try{ss=(await c.auth.getSession()).data.session}catch(_){}
+ if(!ss||!ss.access_token){try{const rf=await c.auth.refreshSession();ss=rf.data&&rf.data.session}catch(_){}}
  if(!ss||!ss.access_token){const err=new Error("auth");err.code="auth";err.status=401;err.fatal=true;throw err}
  try{return await callFetch(ss.access_token)}
  catch(e){
   if(e&&e.status===401){
-   const rf=await c.auth.refreshSession();const ns=rf.data&&rf.data.session;
-   if(ns&&ns.access_token)return await callFetch(ns.access_token);
+   try{
+    const rf=await c.auth.refreshSession();const ns=rf.data&&rf.data.session;
+    if(ns&&ns.access_token)return await callFetch(ns.access_token);
+   }catch(_){}
   }
   throw e;
  }
@@ -148,8 +152,13 @@ function renderLec(v){
 async function library(v){
  const box=h("div",{});v.append(h("div",{class:"lec-bar"},h("button",{class:"btn fill",onclick:newModal},ic("plus"),lt("newL"))),h("div",{class:"note"},lt("hint")),box);
  if(LEC.recUI)box.append(recPanel());
- const c=await sb();const {data,error}=await c.from("lectures").select("id,title,subject,course,lecture_date,duration_sec,status,lecture_lang").order("created_at",{ascending:false}).limit(300);
- if(error)return box.append(h("div",{class:"card"},lt("eGen")));LEC.list=data||[];
+ try{
+  const c=await sb();const {data,error}=await c.from("lectures").select("id,title,subject,course,lecture_date,duration_sec,status,lecture_lang").order("created_at",{ascending:false}).limit(300);
+  if(error)throw error;
+  LEC.list=data||[];
+ }catch(_){
+  return box.append(h("div",{class:"card meta"},lt("eGen")));
+ }
  const subs=[...new Set(LEC.list.map(x=>x.subject).filter(Boolean))];
  const q=h("input",{class:"cin",placeholder:lt("search"),value:LEC.q,oninput:e=>{LEC.q=e.target.value;paint()}});
  const sel=h("select",{class:"cin",onchange:e=>{LEC.sub=e.target.value;paint()}},h("option",{value:""},lt("allSub")),subs.map(s=>h("option",{value:s,selected:s===LEC.sub},s)));

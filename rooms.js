@@ -1332,7 +1332,8 @@
     if(tok){
      const rawRes=await fetch("/api/rooms",{
       method:"POST",
-      headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},
+      cache:"no-store",
+      headers:{"Content-Type":"application/json","Accept":"application/json","Authorization":"Bearer "+tok},
       body:JSON.stringify(payload)
      });
      const j=await rawRes.json().catch(()=>({}));
@@ -1883,10 +1884,11 @@
  function paintRoomControls(){
   const bar=document.getElementById("rm-controls");
   const A=RM.active;if(!bar||!A)return;
+  const canScreen=Boolean(navigator.mediaDevices&&typeof navigator.mediaDevices.getDisplayMedia==="function");
   bar.replaceChildren(
    h("button",{class:"rm-cbtn"+(A.mic?"":" off"),type:"button",onclick:toggleRoomMic,title:rTr("الميكروفون","Microphone","Micro")},ic(A.mic?"mic":"mic-off"),h("span",{},A.mic?rTr("صوت","Mic","Micro"):rTr("صامت","Muted","Muet"))),
    h("button",{class:"rm-cbtn"+(A.cam?"":" off"),type:"button",onclick:toggleRoomCam,title:rTr("الكاميرا","Camera","Caméra")},ic(A.cam?"camera":"camera-off"),h("span",{},rTr("فيديو","Video","Vidéo"))),
-   h("button",{class:"rm-cbtn"+(A.screen?" gold-on":""),type:"button",onclick:toggleRoomScreen,title:rTr("مشاركة الشاشة","Share Screen","Partager l'écran")},ic(A.screen?"monitor-off":"monitor"),h("span",{},A.screen?rTr("إيقاف الشاشة","Stop Share","Arrêter"):rTr("مشاركة الشاشة","Share Screen","Écran"))),
+   canScreen?h("button",{class:"rm-cbtn"+(A.screen?" gold-on":""),type:"button",onclick:toggleRoomScreen,title:rTr("مشاركة الشاشة","Share Screen","Partager l'écran")},ic(A.screen?"monitor-off":"monitor"),h("span",{},A.screen?rTr("إيقاف الشاشة","Stop Share","Arrêter"):rTr("مشاركة الشاشة","Share Screen","Écran"))):null,
    h("button",{class:"rm-cbtn"+(FT.running?" gold-on":""),type:"button",onclick:()=>openFocusTimerModal(true),title:rTr("مؤقت التركيز","Focus Timer","Minuteur")},ic("clock"),h("span",{},rTr("مؤقت التركيز","Focus Timer","Minuteur"))),
    h("button",{class:"rm-cbtn",type:"button",onclick:openShareMaterialModal,title:rTr("مشاركة بطاقات أو ورقة","Share Cards/Paper","Partager")},ic("cards"),h("span",{},rTr("بطاقات/بحث","Material","Contenu"))),
    h("button",{class:"rm-cbtn",type:"button",onclick:()=>copyRoomInvite(A.room),title:rTr("نسخ الدعوة","Copy Invite","Inviter")},ic("link"),h("span",{},rTr("دعوة","Invite","Inviter"))),
@@ -2086,7 +2088,7 @@
   const codeInp=h("input",{class:"in",dir:"ltr",placeholder:rTr("أدخل رمز الغرفة (مثال: ABC-123)","Enter room code (e.g. ABC-123)","Code de salle"),onkeydown:e=>{if(e.key==="Enter"&&codeInp.value.trim())joinStudyRoom(codeInp.value.trim())}});
 
   v.append(h("div",{class:"hero"},
-   h("div",{class:"eyebrow"},ic("video")," ",rTr("مؤتمرات وغرف دراسة سكايب الأكاديمية","ACADEMIC VIDEO & STUDY ROOMS","SALLES D'ÉTUDE VIDÉO")),
+   h("div",{class:"eyebrow"},ic("video")," ",rTr("مؤتمرات وغرف دراسة سكايب البحثية","ACADEMIC VIDEO & STUDY ROOMS","SALLES D'ÉTUDE VIDÉO")),
    h("h1",{},rTr("غرف الدراسة والمناقشة المباشرة","Live Study Rooms & Video Consultations","Salles d'étude et appels vidéo")),
    h("p",{},rTr("تواصل بالفيديو والصوت ومشاركة الشاشة لمراجعة البطاقات، تفريغ المحاضرات، والأبحاث العلمية مع زملائك حول العالم.","Host or join WebRTC video study sessions with screen sharing, synced flashcard review, and instant room chat.","Sessions vidéo collaboratives avec partage d'écran, fiches synchronisées et discussion en direct.")),
    h("div",{class:"btns"},
