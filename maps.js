@@ -78,7 +78,8 @@
 
  async function getMapsConfig(){
   if(!cfgPromise){
-   cfgPromise=fetch("/api/maps/config",{cache:"no-store"})
+   const base=(window.APP&&typeof window.APP.apiBase==="string")?window.APP.apiBase.trim().replace(/\/+$/,""):"";
+   cfgPromise=fetch((base?base:"")+"/api/maps/config",{cache:"no-store"})
     .then(r=>r.ok?r.json():{configured:false,apiKey:"",attributionId:ATTRIBUTION_ID})
     .catch(()=>({configured:false,apiKey:"",attributionId:ATTRIBUTION_ID}));
   }
@@ -157,10 +158,14 @@
    body.lng=coords.lng;
   }
   try{
-   const res=await fetch("/api/ai/maps-grounding",{
+   const base=(window.APP&&typeof window.APP.apiBase==="string")?window.APP.apiBase.trim().replace(/\/+$/,""):"";
+   const mapsUrl=(base?base:"")+"/api/ai/maps-grounding";
+   const crossOrigin=/^https?:\/\//i.test(mapsUrl)&&new URL(mapsUrl,location.href).origin!==location.origin;
+   const res=await fetch(mapsUrl,{
     method:"POST",
+    mode:"cors",
     cache:"no-store",
-    credentials:"same-origin",
+    credentials:crossOrigin?"omit":"same-origin",
     headers:{"Content-Type":"application/json","Accept":"application/json"},
     body:JSON.stringify(body)
    });

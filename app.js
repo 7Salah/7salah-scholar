@@ -362,11 +362,15 @@ async function fetchWebGrounding(q,seq){
     if(tok)headers["Authorization"]="Bearer "+tok;
    }
   }catch(_){}
-  const res=await fetch("/api/ai/web-grounding",{
+  const apiBase=(window.APP&&typeof window.APP.apiBase==="string")?window.APP.apiBase.trim().replace(/\/+$/,""):"";
+  const wgUrl=apiBase?(apiBase+"/api/ai/web-grounding"):"/api/ai/web-grounding";
+  const crossOrigin=/^https?:\/\//i.test(wgUrl)&&new URL(wgUrl,location.href).origin!==location.origin;
+  const res=await fetch(wgUrl,{
    method:"POST",
+   mode:"cors",
    headers,
    cache:"no-store",
-   credentials:"same-origin",
+   credentials:crossOrigin?"omit":"same-origin",
    body:JSON.stringify({query:q,lang:S.lang||"ar",citeStyle:S.citeStyle||"apa"}),
    signal:ctrl?ctrl.signal:undefined
   });

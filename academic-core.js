@@ -202,13 +202,33 @@
       const lang = opts.lang || (global.S && global.S.lang) || "ar";
       let result = null;
 
+      const resolveApiUrl = (ep) => {
+        const clean = String(ep || "").trim();
+        if (/^https?:\/\//i.test(clean)) return clean;
+        const norm = clean.startsWith("/") ? clean : "/" + clean.replace(/^\/+/, "");
+        const base = global.APP && typeof global.APP.apiBase === "string"
+          ? global.APP.apiBase.trim().replace(/\/+$/, "")
+          : "";
+        return base ? base + norm : norm;
+      };
+      const isCrossOrigin = (u) => {
+        try {
+          return /^https?:\/\//i.test(u) && typeof global.location !== "undefined" &&
+            new URL(u, global.location.href).origin !== global.location.origin;
+        } catch (_) {
+          return false;
+        }
+      };
+
       let lastErrMsg = "";
       if (headers["Authorization"]) {
         try {
-          const response = await fetch(this.companionUrl, {
+          const companionEndpoint = resolveApiUrl(this.companionUrl);
+          const response = await fetch(companionEndpoint, {
             method: "POST",
+            mode: "cors",
             cache: "no-store",
-            credentials: "same-origin",
+            credentials: isCrossOrigin(companionEndpoint) ? "omit" : "same-origin",
             headers,
             body: JSON.stringify({
               message: msg,
@@ -227,10 +247,12 @@
       }
 
       if (!result || !result.reply) {
-        const res2 = await fetch("/api/ai/research", {
+        const researchEndpoint = resolveApiUrl("/api/ai/research");
+        const res2 = await fetch(researchEndpoint, {
           method: "POST",
+          mode: "cors",
           cache: "no-store",
-          credentials: "same-origin",
+          credentials: isCrossOrigin(researchEndpoint) ? "omit" : "same-origin",
           headers,
           body: JSON.stringify({
             messages: [{ role: "user", text: msg }],

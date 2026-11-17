@@ -383,9 +383,21 @@
 
  function resolveAiEndpoint(endpoint){
   const clean=String(endpoint||"").trim();
-  const base=(window.APP&&typeof window.APP.apiBase==="string")?window.APP.apiBase.trim().replace(/\/+$/,""):"";
-  if(!base)return clean.startsWith("/")?clean:("/"+clean.replace(/^\/+/,""));
-  return base+(clean.startsWith("/")?clean:("/"+clean.replace(/^\/+/,"")));
+  if(/^https?:\/\//i.test(clean))return clean;
+  const normalized=clean.startsWith("/")?clean:("/"+clean.replace(/^\/+/,""));
+  const metaEl=typeof document!=="undefined"?document.querySelector('meta[name="scholar-api-base"]'):null;
+  const metaBase=metaEl?metaEl.getAttribute("content")||"":"";
+  let storedBase="";
+  try{storedBase=localStorage.getItem("7s_api_base")||""}catch(_){}
+  const base=String((window.APP&&window.APP.apiBase)||metaBase||storedBase||"").trim().replace(/\/+$/,"");
+  return base?(base+normalized):normalized;
+ }
+
+ function isCrossOriginUrl(url){
+  try{
+   if(!/^https?:\/\//i.test(url)||typeof location==="undefined")return false;
+   return new URL(url,location.href).origin!==location.origin;
+  }catch(_){return false}
  }
 
  async function getAiHeaders(){
@@ -405,9 +417,12 @@
  }
 
  async function postAiJson(endpoint,payload,timeoutMs){
-  const url=resolveAiEndpoint(endpoint);
+  const cleanEp=String(endpoint||"").trim();
+  const normEp=cleanEp.startsWith("/")?cleanEp:("/"+cleanEp.replace(/^\/+/,""));
+  let url=resolveAiEndpoint(normEp);
   let lastErr=null;
   for(let attempt=0;attempt<2;attempt++){
+   const crossOrigin=isCrossOriginUrl(url);
    const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
    const tm=ctrl?setTimeout(()=>ctrl.abort(),timeoutMs||120000):null;
    try{
@@ -416,7 +431,7 @@
      method:"POST",
      mode:"cors",
      cache:"no-store",
-     credentials:"same-origin",
+     credentials:crossOrigin?"omit":"same-origin",
      headers,
      body:JSON.stringify(payload||{}),
      signal:ctrl?ctrl.signal:undefined
@@ -425,7 +440,19 @@
     let data={};
     if(raw){try{data=JSON.parse(raw)}catch(_){data={}}}
     if(!res.ok){
-     const err=new Error(data.error||aiTr("تعذر إتمام الطلب عبر Gemini API (رمز "+res.status+").","Gemini API request could not be completed (HTTP "+res.status+").","Échec de la requête Gemini ("+res.status+")."));
+     const fbBase=(window.APP&&typeof window.APP.fallbackApiBase==="string")?window.APP.fallbackApiBase.trim().replace(/\/+$/,""):"";
+     if(res.status===405&&!crossOrigin&&fbBase&&attempt===0&&typeof location!=="undefined"&&new URL(fbBase).origin!==location.origin){
+      url=fbBase+normEp;
+      continue;
+     }
+     const fallbackMsg=res.status===405
+      ?aiTr(
+        "تعذر إتمام الطلب عبر Gemini API (رمز 405): الخادم الحالي استضافة ثابتة لا تدعم طلبات POST على /api/ai/*. يرجى فتح التطبيق عبر خادم Node/Cloud Run أو ضبط window.APP.apiBase.",
+        "Gemini API request failed (HTTP 405): this static host does not accept POST /api/ai/*. Open the app on the Node/Cloud Run server or set window.APP.apiBase.",
+        "Erreur Gemini API (HTTP 405) : l'hébergement statique ne prend pas en charge POST /api/ai/*. Utilisez le serveur Node/Cloud Run ou configurez window.APP.apiBase."
+       )
+      :aiTr("تعذر إتمام الطلب عبر Gemini API (رمز "+res.status+").","Gemini API request could not be completed (HTTP "+res.status+").","Échec de la requête Gemini ("+res.status+").");
+     const err=new Error(data.error||fallbackMsg);
      err.status=res.status;
      if((res.status===502||res.status===503||res.status===504)&&attempt===0){
       lastErr=err;

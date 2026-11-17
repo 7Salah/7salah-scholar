@@ -65,8 +65,11 @@
 
  async function apiJson(url,opts){
   opts=opts||{};
+  const base=(window.APP&&typeof window.APP.apiBase==="string")?window.APP.apiBase.trim().replace(/\/+$/,""):"";
+  const targetUrl=(base&&typeof url==="string"&&url.startsWith("/"))?(base+url):url;
+  const crossOrigin=/^https?:\/\//i.test(targetUrl)&&new URL(targetUrl,location.href).origin!==location.origin;
   const mergedHeaders=Object.assign({"Content-Type":"application/json","Accept":"application/json"},opts.headers||{});
-  const res=await fetch(url,Object.assign({cache:"no-store",credentials:"same-origin"},opts,{headers:mergedHeaders}));
+  const res=await fetch(targetUrl,Object.assign({mode:"cors",cache:"no-store",credentials:crossOrigin?"omit":"same-origin"},opts,{headers:mergedHeaders}));
   const raw=await res.text().catch(()=>"");
   let data={};
   if(raw){try{data=JSON.parse(raw)}catch(e){data={}}}
