@@ -1742,20 +1742,26 @@ ${citsHtml?`<div class="card"><h2>${aiTr("قائمة المراجع","Verified R
   else if(src.prompt)await sendResearchQuery(src.prompt);
  };
 
+ window.postAiJson=postAiJson;
  window.callGeminiScholarAssistant=async function(userPrompt,opts){
   const prompt=String(userPrompt||"").trim();
   if(!prompt)return aiTr("يرجى إدخال سؤالك الأكاديمي أولاً.","Please enter your academic prompt first.","Veuillez saisir votre question académique.");
   const options=(opts&&typeof opts==="object")?opts:{};
-  const data=await postAiJson("/api/ai/research",{
-   messages:[{role:"user",text:prompt}],
-   mode:options.mode||"qa",
-   taskRoute:options.taskRoute||"general",
-   persona:options.persona||AI.persona||"advisor",
-   citeStyle:options.citeStyle||S.citeStyle||"apa",
-   lang:options.lang||S.lang||"ar",
-   field:options.field||AI.field||"",
-   useWebSearch:options.useWebSearch!==undefined?options.useWebSearch:AI.useWebSearch
-  },options.timeoutMs||120000);
-  return (data&&data.answer)||aiTr("عذراً، لم يتم تلقي رد واضح من المساعد.","No clear response was received from the assistant.","Aucune réponse claire reçue.");
+  try{
+   const data=await postAiJson("/api/ai/research",{
+    messages:[{role:"user",text:prompt}],
+    mode:options.mode||"qa",
+    taskRoute:options.taskRoute||"general",
+    persona:options.persona||AI.persona||"advisor",
+    citeStyle:options.citeStyle||S.citeStyle||"apa",
+    lang:options.lang||S.lang||"ar",
+    field:options.field||AI.field||"",
+    useWebSearch:options.useWebSearch!==undefined?options.useWebSearch:AI.useWebSearch
+   },options.timeoutMs||120000);
+   return (data&&data.answer)||aiTr("عذراً، لم يتم تلقي رد واضح من المساعد.","No clear response was received from the assistant.","Aucune réponse claire reçue.");
+  }catch(err){
+   console.error("AI error:",err);
+   return aiTr("تعذّر الاتصال: ","Connection error: ","Erreur de connexion : ")+((err&&err.message)||String(err||""));
+  }
  };
 })();
