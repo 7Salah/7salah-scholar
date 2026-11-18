@@ -419,10 +419,10 @@
  async function postAiJson(endpoint,payload,timeoutMs){
   const cleanEp=String(endpoint||"").trim();
   const normEp=cleanEp.startsWith("/")?cleanEp:("/"+cleanEp.replace(/^\/+/,""));
-  let url=resolveAiEndpoint(normEp);
+  const url=resolveAiEndpoint(normEp);
+  const crossOrigin=isCrossOriginUrl(url);
   let lastErr=null;
   for(let attempt=0;attempt<2;attempt++){
-   const crossOrigin=isCrossOriginUrl(url);
    const ctrl=typeof AbortController!=="undefined"?new AbortController():null;
    const tm=ctrl?setTimeout(()=>ctrl.abort(),timeoutMs||120000):null;
    try{
@@ -440,16 +440,11 @@
     let data={};
     if(raw){try{data=JSON.parse(raw)}catch(_){data={}}}
     if(!res.ok){
-     const fbBase=(window.APP&&typeof window.APP.fallbackApiBase==="string")?window.APP.fallbackApiBase.trim().replace(/\/+$/,""):"";
-     if(res.status===405&&!crossOrigin&&fbBase&&attempt===0&&typeof location!=="undefined"&&new URL(fbBase).origin!==location.origin){
-      url=fbBase+normEp;
-      continue;
-     }
      const fallbackMsg=res.status===405
       ?aiTr(
-        "تعذر إتمام الطلب عبر Gemini API (رمز 405): الخادم الحالي استضافة ثابتة لا تدعم طلبات POST على /api/ai/*. يرجى فتح التطبيق عبر خادم Node/Cloud Run أو ضبط window.APP.apiBase.",
-        "Gemini API request failed (HTTP 405): this static host does not accept POST /api/ai/*. Open the app on the Node/Cloud Run server or set window.APP.apiBase.",
-        "Erreur Gemini API (HTTP 405) : l'hébergement statique ne prend pas en charge POST /api/ai/*. Utilisez le serveur Node/Cloud Run ou configurez window.APP.apiBase."
+        "تعذر إتمام الطلب عبر Gemini API (رمز 405): هذا الموقع يعمل على استضافة ثابتة لا تشغّل خادم Node.js. افتح التطبيق من رابط الخادم المنشور أو اضبط window.APP.apiBase على رابط خادم فعّال.",
+        "Gemini API request failed (HTTP 405): this static host does not run the Node.js server. Open the deployed server URL or set window.APP.apiBase to a live backend.",
+        "Erreur Gemini API (HTTP 405) : cet hébergement statique n'exécute pas le serveur Node.js."
        )
       :aiTr("تعذر إتمام الطلب عبر Gemini API (رمز "+res.status+").","Gemini API request could not be completed (HTTP "+res.status+").","Échec de la requête Gemini ("+res.status+").");
      const err=new Error(data.error||fallbackMsg);
@@ -466,10 +461,17 @@
     if(err&&err.name==="AbortError"){
      throw new Error(aiTr("انتهت مهلة معالجة الطلب. حاول مجددًا بنص أقصر أو ملف أصغر.","Request timed out. Please retry with a shorter query or smaller file.","Délai dépassé."));
     }
-    if(err&&err.name==="TypeError"&&attempt===0){
-     lastErr=err;
-     await new Promise(r=>setTimeout(r,650));
-     continue;
+    if(err&&err.name==="TypeError"){
+     if(attempt===0){
+      lastErr=err;
+      await new Promise(r=>setTimeout(r,650));
+      continue;
+     }
+     throw new Error(aiTr(
+      "تعذر الوصول إلى خادم Gemini API (Failed to fetch). إذا كنت تفتح التطبيق من استضافة ثابتة مثل GitHub Pages، فافتح التطبيق من رابط الخادم المنشور أو انشر الخادم أولاً ثم ضع رابطه في window.APP.apiBase.",
+      "Could not reach Gemini API server (Failed to fetch). If you opened a static host like GitHub Pages, open the deployed app server URL or deploy the backend and set window.APP.apiBase.",
+      "Impossible de joindre le serveur Gemini API (Failed to fetch)."
+     ));
     }
     throw err;
    }finally{

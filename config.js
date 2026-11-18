@@ -10,19 +10,13 @@ window.SUPA={url:"https://sgacauoadufbuotreeeh.supabase.co",key:"sb_publishable_
  SUPA.bad=(u||k)?(!/^https:\/\/[a-z0-9-]+\.supabase\.(co|in)$/i.test(u)?"Project URL غير صالح — الصيغة الصحيحة: https://xxxxxxxx.supabase.co (بلا / في النهاية وبلا /rest/v1)":(!/^(eyJ|sb_publishable_)/.test(k)?"مفتاح anon غير صالح — انسخ anon public (يبدأ بـ eyJ) أو publishable key":"")):"";
  if(SUPA.bad){console.warn("[SUPA] "+SUPA.bad);SUPA.url="";SUPA.key=""}
 })();
-(function(){
- var SHARED_BACKEND_URL="https://ais-pre-letthavaikgnbpqqbvibb2-118936364019.europe-west1.run.app";
- var host=(typeof location!=="undefined"&&location.hostname)?location.hostname:"";
- var isStaticHost=/\.(?:github\.io|pages\.dev|netlify\.app|vercel\.app|web\.app|firebaseapp\.com|surge\.sh)$/i.test(host);
- window.APP={
+window.APP={
   pilot:false, // تفعيل أزرار المكالمات الصوتية والفيديو وغرف الدراسة المباشرة
-  apiBase:isStaticHost?SHARED_BACKEND_URL:"", // يوجّه طلبات /api/* تلقائيًا للخادم عند التشغيل من GitHub Pages
-  fallbackApiBase:SHARED_BACKEND_URL, // احتياطي تلقائي إذا ردّ أي نطاق ثابت برمز 405 على طلبات POST
+  apiBase:"", // اتركه فارغًا عند التشغيل على خادم Node/Cloud Run؛ أو ضع رابط خادم Node منشور وعام إذا فتحت الواجهة من استضافة ثابتة
   contact:"ضع-بريد-التواصل-هنا@example.com", // بريدك: يُرسَل مع طلبات الترجمة المجانية (MyMemory)
   // اختياري — المكالمات: بدون هذا السطر تُستخدم خوادم STUN العامة فقط، وقد لا تتصل المكالمة في بعض الشبكات.
   // لموثوقية أعلى أضف خادم TURN من مزوّد تختاره (انظر SETUP.md)، مثال:
   // ice:[{urls:"stun:stun.l.google.com:19302"},{urls:"turn:YOUR_TURN_HOST:3478",username:"USER",credential:"PASS"}],
   // اختياري — الترجمة: عنوان خدمتك الخاصة (يستقبل POST {text,to} ويعيد {text}). إن تركته فارغًا تُستخدم ترجمة المتصفح ثم MyMemory.
   // translateUrl:"https://your-domain.example/translate",
- };
-})();
+};
