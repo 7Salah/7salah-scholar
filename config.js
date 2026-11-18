@@ -20,3 +20,4 @@ window.APP={
   // اختياري — الترجمة: عنوان خدمتك الخاصة (يستقبل POST {text,to} ويعيد {text}). إن تركته فارغًا تُستخدم ترجمة المتصفح ثم MyMemory.
   // translateUrl:"https://your-domain.example/translate",
 };
+apiBase: "https://your-deployed-server-url.com",
