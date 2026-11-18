@@ -32,7 +32,7 @@ const text = {
   ar: {
     back: "العودة للمنصة", level: "المستوى", xp: "خبرة تجريبية", location: "الساحة الجامعية",
     title: "الساحة الجامعية بانتظارك", intro: "ادخل الساحة الجامعية، تعرّف إلى شخصيتك، واستكشف أول مساحة تعليمية ثلاثية الأبعاد.",
-    "single-player": "استكشاف فردي", "no-xp": "الخبرة تجريبية", enter: "بدء الاستكشاف",
+    "single-player": "استكشاف فردي", "no-xp": "الخبرة تجريبية", enter: "بدء الاستكشاف", entering: "جارٍ الإعداد…",
     "session-check": "يتم التحقق من جلسة المنصة عند الدخول…", character: "الشخصية",
     customize: "تخصيص المظهر", hair: "تسريحة الشعر", "hair-color": "لون الشعر", "eye-color": "لون العينين",
     outfit: "الزي المحتشم", shoes: "الحذاء", bag: "الحقيبة", accessory: "الإكسسوار",
@@ -60,7 +60,7 @@ const text = {
   en: {
     back: "Back to platform", level: "Level", xp: "Experimental XP", location: "Academy courtyard",
     title: "Your academy awaits", intro: "Enter the university courtyard, meet your character, and explore the first 3D learning space.",
-    "single-player": "Solo exploration", "no-xp": "XP is experimental", enter: "Enter academy",
+    "single-player": "Solo exploration", "no-xp": "XP is experimental", enter: "Enter academy", entering: "Preparing…",
     "session-check": "Your platform session will be checked when you enter…", character: "Character",
     customize: "Customize appearance", hair: "Hairstyle", "hair-color": "Hair color", "eye-color": "Eye color",
     outfit: "Modest outfit", shoes: "Shoes", bag: "Bag", accessory: "Accessory",
@@ -270,10 +270,19 @@ async function loadAcademyEntry(): Promise<void> {
   });
 }
 
+function setEnterLoading(loading: boolean) {
+  const enter = el<HTMLButtonElement>("enter-academy");
+  const label = enter.querySelector<HTMLElement>(".btn-label");
+  enter.disabled = loading;
+  enter.classList.toggle("is-loading", loading);
+  enter.setAttribute("aria-busy", loading ? "true" : "false");
+  if (label) label.textContent = loading ? copy.entering : copy.enter;
+}
+
 async function enterAcademy() {
   const enter = el<HTMLButtonElement>("enter-academy");
-  if (enter.disabled) return;
-  enter.disabled = true;
+  if (enter.disabled || enter.classList.contains("is-loading")) return;
+  setEnterLoading(true);
   el("loading-screen").hidden = false;
   el<HTMLElement>("session-note").textContent = copy.loadingSdk;
   let sessionState: { name: string | null; hasSession: boolean } = { name: null, hasSession: false };
@@ -306,11 +315,11 @@ async function enterAcademy() {
     });
     el("welcome-screen").hidden = true;
     el("loading-screen").hidden = true;
-    enter.disabled = false;
+    setEnterLoading(false);
     el<HTMLCanvasElement>("academy-canvas").focus({ preventScroll: true });
   } catch {
     el("loading-screen").hidden = true;
-    enter.disabled = false;
+    setEnterLoading(false);
     showToast(lang === "ar"
       ? "تعذر تحميل محرك اللعبة. تحقق من الاتصال ثم حاول مجدداً."
       : "Could not load the game engine. Check your connection and try again.");

@@ -97,9 +97,10 @@
             <span data-copy="single-player"></span>
             <span data-copy="no-xp"></span>
           </div>
-          <button class="primary-button" id="enter-academy" type="button">
-            <span data-copy="enter">بدء الاستكشاف</span>
-            <b>→</b>
+          <button class="primary-button" id="enter-academy" type="button" aria-busy="false">
+            <span class="btn-label" data-copy="enter">بدء الاستكشاف</span>
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <b aria-hidden="true">→</b>
           </button>
           <p class="session-note" id="session-note" data-copy="session-check"></p>
         </div>
