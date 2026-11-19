@@ -377,4 +377,13 @@ window.SUPA = (window.SUPA && window.SUPA.url && window.SUPA.key) ? window.SUPA 
       /* بدون اتصال: يبقى المستخدم ضيفاً */
     }
   });
+})();(function () {
+  function fix() {
+    document.querySelectorAll("button").forEach(function (b) {
+      if (!/Google/i.test(b.textContent) || !/دخول|sign in|connexion/i.test(b.textContent)) return;
+      var w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), n;
+      while ((n = w.nextNode())) if (/Google/i.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace(/\s*(with|avec|بحساب)?\s*Google\s*/gi, " ").replace(/\s{2,}/g, " ").trim();
+    });
+  }
+  window.addEventListener("load", function () { new MutationObserver(fix).observe(document.body, { childList: true, subtree: true }); fix(); });
 })();
