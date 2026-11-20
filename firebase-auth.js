@@ -386,4 +386,37 @@ window.SUPA = (window.SUPA && window.SUPA.url && window.SUPA.key) ? window.SUPA 
     });
   }
   window.addEventListener("load", function () { new MutationObserver(fix).observe(document.body, { childList: true, subtree: true }); fix(); });
+})();(function () {
+  function clean(s) {
+    return String(s).replace(/\s*(with|avec|بحساب)?\s*Google\s*/gi, " ").replace(/\s{2,}/g, " ").trim();
+  }
+  function fixBtn() {
+    var b = document.getElementById("auth-btn");
+    if (!b) return;
+    var w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), n;
+    while ((n = w.nextNode())) {
+      if (/Google/i.test(n.nodeValue)) {
+        var t = clean(n.nodeValue);
+        if (t) n.nodeValue = t;
+      }
+    }
+    var a = b.getAttribute("aria-label");
+    if (a && /Google/i.test(a)) {
+      var c = clean(a);
+      if (c) b.setAttribute("aria-label", c);
+    }
+  }
+  window.addEventListener("load", function () {
+    var orig = window.syncAuthBtn;
+    if (typeof orig === "function") {
+      window.syncAuthBtn = function () {
+        var r = orig.apply(this, arguments);
+        fixBtn();
+        return r;
+      };
+    }
+    fixBtn();
+    var b = document.getElementById("auth-btn");
+    if (b) new MutationObserver(fixBtn).observe(b, { childList: true, characterData: true, subtree: true });
+  });
 })();
