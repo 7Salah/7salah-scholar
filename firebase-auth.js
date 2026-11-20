@@ -1,5 +1,5 @@
 window.SUPA = (window.SUPA && window.SUPA.url && window.SUPA.key) ? window.SUPA : { url: "https://sgacauoadufbuotreeeh.supabase.co", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYWNhdW9hZHVmYnVvdHJlZWVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2NTMwMjcsImV4cCI6MjEwOTIyOTAyN30.tBQCxrFkE2cWfJGmx4QRWUI8tI_Uw3VWwA3LhIDTp1U" };/ 7Salah Scholar — الدخول بالبريد وكلمة المرور عبر Supabase
-// يعمل كسكربت عادي (بدون import)، ويحافظ على واجهة window.ScholarAuth التي تستخدمها بقية الملفات.
+window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreeeh.supabase.co/functions/v1/scholar-api";// يعمل كسكربت عادي (بدون import)، ويحافظ على واجهة window.ScholarAuth التي تستخدمها بقية الملفات.
 (function () {
   "use strict";
 
