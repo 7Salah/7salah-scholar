@@ -25,7 +25,7 @@
   return d?(d[S.lang]||d.en):id;
  }
 
- function ensurePeerId(){
+ function ensurePeerId(){  try{var au=window.ScholarAuth&&window.ScholarAuth.getUser&&window.ScholarAuth.getUser();if(au&&au.id)return au.id}catch(e){}
   if(window.SC&&SC.user&&SC.user.id)return SC.user.id;
   let id="";
   try{id=localStorage.getItem("7s_peer_id")||""}catch(e){}
