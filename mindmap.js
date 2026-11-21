@@ -227,3 +227,37 @@
 
   window.MindMap = { open: open, close: close };
 })();
+/* ===== ربط تبويب "خرائط الدراسة" بالخرائط الذهنية ===== */
+(function () {
+  var RE = /خرائط\s*الدراسة|أماكن\s*الدراسة/;
+  var EXACT = /^\s*خرائط\s*الدراسة\s*$/;
+  function relabel() {
+    var tabs = document.querySelectorAll("button,[role=tab],a");
+    for (var i = 0; i < tabs.length; i++) {
+      var b = tabs[i];
+      if (b.closest("#mm") || b.getAttribute("data-mm")) continue;
+      if (!EXACT.test(b.textContent || "")) continue;
+      b.setAttribute("data-mm", "1");
+      var target = b, all = b.querySelectorAll("*");
+      for (var j = 0; j < all.length; j++) {
+        if (!all[j].children.length && EXACT.test(all[j].textContent)) target = all[j];
+      }
+      target.textContent = "الخرائط الذهنية";
+    }
+  }
+  var timer;
+  new MutationObserver(function () { clearTimeout(timer); timer = setTimeout(relabel, 150); })
+    .observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener("DOMContentLoaded", relabel);
+  setTimeout(relabel, 500);
+
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("button,[role=tab],a,[role=button]");
+    if (!b || b.closest("#mm")) return;
+    var s = (b.textContent || "") + " " + (b.getAttribute("aria-label") || "");
+    if (b.getAttribute("data-mm") || (s.length < 120 && RE.test(s))) {
+      e.preventDefault(); e.stopPropagation();
+      window.MindMap.open();
+    }
+  }, true);
+})();
