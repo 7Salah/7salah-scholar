@@ -1,21 +1,22 @@
 {
- "name": "7salah-scholar — منصة 7Salah Scholar العلمية",
- "short_name": "7salah",
- "description": "بطاقات دراسة موثّقة بالمصادر العلمية، مراجعة متباعدة، وتحدّيات بين الأصدقاء",
- "start_url": "./",
- "scope": "./",
- "display": "standalone",
-   "background_color": "#FFFFFF",
- "theme_color": "#001449",
- "lang": "ar",
- "dir": "rtl",
- "icons": [
-  
-  {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-  {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
- ],
- "shortcuts": [
-  {"name": "راجع الآن", "url": "./?go=study", "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}]},
-  {"name": "بحث علمي", "url": "./?go=search", "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}]}
- ].
+  "id": "./",
+  "name": "7Salah Scholar — منصة 7Salah Scholar العلمية",
+  "short_name": "7salah",
+  "description": "بطاقات دراسة موثّقة بالمصادر العلمية، مراجعة متباعدة، وتحدّيات بين الأصدقاء",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#001449",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "راجع الآن", "url": "./?go=study", "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}]},
+    {"name": "بحث علمي", "url": "./?go=search", "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}]}
+  ]
 }
