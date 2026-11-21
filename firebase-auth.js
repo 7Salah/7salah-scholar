@@ -1,5 +1,6 @@
-window.SUPA = (window.SUPA && window.SUPA.url && window.SUPA.key) ? window.SUPA : { url: "https://sgacauoadufbuotreeeh.supabase.co", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYWNhdW9hZHVmYnVvdHJlZWVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2NTMwMjcsImV4cCI6MjEwOTIyOTAyN30.tBQCxrFkE2cWfJGmx4QRWUI8tI_Uw3VWwA3LhIDTp1U" };/ 7Salah Scholar — الدخول بالبريد وكلمة المرور عبر Supabase
-window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreeeh.supabase.co/functions/v1/scholar-api";// يعمل كسكربت عادي (بدون import)، ويحافظ على واجهة window.ScholarAuth التي تستخدمها بقية الملفات.
+window.SUPA = (window.SUPA && window.SUPA.url && window.SUPA.key) ? window.SUPA : { url: "https://sgacauoadufbuotreeeh.supabase.co", key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnYWNhdW9hZHVmYnVvdHJlZWVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2NTMwMjcsImV4cCI6MjEwOTIyOTAyN30.tBQCxrFkE2cWfJGmx4QRWUI8tI_Uw3VWwA3LhIDTp1U" };
+// 7Salah Scholar — الدخول بالبريد وكلمة المرور عبر Supabase
+window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreeeh.supabase.co/functions/v1/scholar-api";
 (function () {
   "use strict";
 
@@ -7,6 +8,7 @@ window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreee
   var currentUser = null;
   var currentToken = null;
   var clientPromise = null;
+  var recoveryPending = /type=recovery/.test(String(location.hash) + String(location.search));
 
   function lang() {
     try {
@@ -111,7 +113,7 @@ window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreee
 
   async function resetPassword(email) {
     var c = await getClient();
-    var r = await c.auth.resetPasswordForEmail(email);
+    var r = await c.auth.resetPasswordForEmail(email, { redirectTo: location.href.split("#")[0].split("?")[0] });
     if (r.error) throw r.error;
   }
 
@@ -329,6 +331,53 @@ window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreee
     }, 50);
   }
 
+  // ===== شاشة تعيين كلمة مرور جديدة (بعد رابط الاسترجاع) =====
+  function openRecoveryModal() {
+    closeModal();
+    var rtl = lang() === "ar";
+    var overlay = el("div", "position:fixed;inset:0;z-index:99999;background:rgba(0,12,40,.78);display:flex;align-items:center;justify-content:center;padding:16px;font-family:'IBM Plex Sans Arabic','Plus Jakarta Sans',system-ui,sans-serif;");
+    overlay.setAttribute("dir", rtl ? "rtl" : "ltr");
+    var card = el("div", "width:100%;max-width:380px;background:#fff;color:#001449;border-radius:18px;padding:22px 20px;border-bottom:4px solid #d5a83e;box-shadow:0 18px 48px rgba(0,0,0,.35);");
+    var title = el("h2", "margin:0 0 6px;font-size:20px;font-weight:700;", tr("تعيين كلمة مرور جديدة", "Set a new password", "Nouveau mot de passe"));
+    var sub = el("p", "margin:0 0 14px;font-size:13.5px;color:#4a5b78;line-height:1.7;", tr("اكتب كلمة المرور الجديدة (6 أحرف على الأقل) وكررها.", "Type your new password (6+ characters) and repeat it.", "Saisissez le nouveau mot de passe (6 caractères min.)."));
+    var css = "width:100%;box-sizing:border-box;border:1px solid #c8d2e2;border-radius:12px;padding:12px 13px;font:inherit;font-size:15px;color:#001449;background:#f8fafd;margin-bottom:10px;";
+    var p1 = el("input", css); p1.type = "password"; p1.autocomplete = "new-password"; p1.setAttribute("dir", "ltr"); p1.placeholder = tr("كلمة المرور الجديدة", "New password", "Nouveau mot de passe");
+    var p2 = el("input", css); p2.type = "password"; p2.autocomplete = "new-password"; p2.setAttribute("dir", "ltr"); p2.placeholder = tr("أعد كتابتها", "Repeat it", "Répétez-le");
+    var msg = el("div", "min-height:20px;font-size:13.5px;line-height:1.6;margin:0 0 10px;");
+    var btn = el("button", "width:100%;border:0;border-radius:12px;padding:13px;font:inherit;font-size:16px;font-weight:700;background:#d5a83e;color:#001449;cursor:pointer;", tr("حفظ كلمة المرور", "Save password", "Enregistrer"));
+    btn.type = "button";
+    function setMsg(t, ok) { msg.textContent = t || ""; msg.style.color = ok ? "#14663a" : "#b3261e"; }
+    var busy = false;
+    async function save() {
+      if (busy) return;
+      if (p1.value.length < 6) return setMsg(tr("كلمة المرور قصيرة، استخدم 6 أحرف على الأقل.", "Password is too short (6+ characters).", "Mot de passe trop court."));
+      if (p1.value !== p2.value) return setMsg(tr("كلمتا المرور غير متطابقتين.", "Passwords do not match.", "Les mots de passe ne correspondent pas."));
+      busy = true; btn.disabled = true; btn.style.opacity = ".6";
+      setMsg(tr("جارٍ الحفظ…", "Saving…", "Enregistrement…"), true);
+      try {
+        var c = await getClient();
+        var r = await c.auth.updateUser({ password: p1.value });
+        if (r.error) throw r.error;
+        recoveryPending = false;
+        try { history.replaceState(null, "", location.pathname); } catch (e) {}
+        setMsg(tr("تم تغيير كلمة المرور. أنت داخل الآن.", "Password changed. You are signed in.", "Mot de passe modifié."), true);
+        var g = await c.auth.getSession();
+        setSession(g && g.data ? g.data.session : null);
+        setTimeout(closeModal, 1200);
+      } catch (err) {
+        setMsg(friendlyError(err));
+        btn.disabled = false; btn.style.opacity = "1";
+      } finally { busy = false; }
+    }
+    btn.addEventListener("click", save);
+    [p1, p2].forEach(function (i) { i.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); save(); } }); });
+    [title, sub, p1, p2, msg, btn].forEach(function (n) { card.appendChild(n); });
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    modalEl = overlay;
+    setTimeout(function () { try { p1.focus(); } catch (e) {} }, 50);
+  }
+
   // ===== الواجهة العامة (نفس أسماء الواجهة القديمة) =====
   var ScholarAuth = {
     getUser: function () {
@@ -351,6 +400,7 @@ window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreee
     signUpEmail: signUpEmail,
     resetPassword: resetPassword,
     signOut: signOutScholar,
+    openRecovery: openRecoveryModal,
     onChange: function (cb) {
       listeners.push(cb);
       return function () {
@@ -368,7 +418,9 @@ window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreee
       var c = await getClient();
       var r = await c.auth.getSession();
       setSession(r && r.data ? r.data.session : null);
+      if (recoveryPending) openRecoveryModal();
       c.auth.onAuthStateChange(function (_event, session) {
+        if (_event === "PASSWORD_RECOVERY") { setSession(session); openRecoveryModal(); return; }
         var prev = currentUser && currentUser.id;
         var next = session && session.user ? session.user.id : null;
         if (prev !== next || (session && session.access_token !== currentToken)) setSession(session);
@@ -377,16 +429,8 @@ window.APP = window.APP || {}; window.APP.apiBase = "https://sgacauoadufbuotreee
       /* بدون اتصال: يبقى المستخدم ضيفاً */
     }
   });
-})();(function () {
-  function fix() {
-    document.querySelectorAll("button").forEach(function (b) {
-      if (!/Google/i.test(b.textContent) || !/دخول|sign in|connexion/i.test(b.textContent)) return;
-      var w = document.createTreeWalker(b, NodeFilter.SHOW_TEXT), n;
-      while ((n = w.nextNode())) if (/Google/i.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace(/\s*(with|avec|بحساب)?\s*Google\s*/gi, " ").replace(/\s{2,}/g, " ").trim();
-    });
-  }
-  window.addEventListener("load", function () { new MutationObserver(fix).observe(document.body, { childList: true, subtree: true }); fix(); });
-})();(function () {
+})();
+(function () {
   function clean(s) {
     return String(s).replace(/\s*(with|avec|بحساب)?\s*Google\s*/gi, " ").replace(/\s{2,}/g, " ").trim();
   }
