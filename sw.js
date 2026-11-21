@@ -1,6 +1,6 @@
 // 7salah-scholar service worker: offline app shell + notification click
 const V='7s-v44-auth-fix';
-const SHELL=['./','index.html','styles.css','firebase-auth.js','academic-core.js','app.js','network.js','social.js','diag.js','chat.js','admin.js','discover.js','rank.js','formats.js','stories.js','groups.js','translate.js','calls.js','maps.js','rooms.js','x.js','x.css','lecture.js','lecture.css','ai.js','config.js','icons.js','theme.js','manifest.json','logo.svg','favicon-32.png','icon-192.png','icon-512.png'];
+const SHELL=['./','index.html','styles.css','firebase-auth.js','academic-core.js','app.js','network.js','social.js','diag.js','chat.js','admin.js','discover.js','rank.js','formats.js','stories.js','groups.js','translate.js','calls.js','maps.js','rooms.js','x.js','x.css','lecture.js','lecture.css','ai.js','mindmap.js','config.js','icons.js','theme.js','manifest.json','logo.svg','favicon-32.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:'no-cache'})))).then(()=>self.skipWaiting()).catch(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 // الشبكة أولًا للملفات المحلية (لتصل التحديثات) ثم النسخة المخزّنة عند انقطاع الإنترنت. طلبات الفهارس الخارجية و /api/ لا تُعترَض.
