@@ -12,12 +12,6 @@ window.SUPA={url:"https://sgacauoadufbuotreeeh.supabase.co",key:"sb_publishable_
 })();
 window.APP={
   pilot:false, // تفعيل أزرار المكالمات الصوتية والفيديو وغرف الدراسة المباشرة
-  apiBase:"", // اتركه فارغًا عند التشغيل على خادم Node/Cloud Run؛ أو ضع رابط خادم Node منشور وعام إذا فتحت الواجهة من استضافة ثابتة
+  apiBase:"https://sgacauoadufbuotreeeh.supabase.co/functions/v1/scholar-api",
   contact:"ضع-بريد-التواصل-هنا@example.com", // بريدك: يُرسَل مع طلبات الترجمة المجانية (MyMemory)
-  // اختياري — المكالمات: بدون هذا السطر تُستخدم خوادم STUN العامة فقط، وقد لا تتصل المكالمة في بعض الشبكات.
-  // لموثوقية أعلى أضف خادم TURN من مزوّد تختاره (انظر SETUP.md)، مثال:
-  // ice:[{urls:"stun:stun.l.google.com:19302"},{urls:"turn:YOUR_TURN_HOST:3478",username:"USER",credential:"PASS"}],
-  // اختياري — الترجمة: عنوان خدمتك الخاصة (يستقبل POST {text,to} ويعيد {text}). إن تركته فارغًا تُستخدم ترجمة المتصفح ثم MyMemory.
-  // translateUrl:"https://your-domain.example/translate",
 };
-apiBase: "https://your-deployed-server-url.com",
