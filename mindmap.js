@@ -261,3 +261,90 @@
     }
   }, true);
 })();
+/* ===== جسر الذكاء الاصطناعي للخرائط الذهنية + رفع PDF ===== */
+(function () {
+  function lang() { try { return (typeof S !== "undefined" && S.lang) || "ar"; } catch (e) { return "ar"; } }
+  var RULES = " أرجع JSON فقط، بلا أي شرح أو مراجع أو Markdown أو أسوار ```، بهذا الشكل بالضبط: {\"t\":\"العنوان\",\"kids\":[{\"t\":\"فرع\",\"kids\":[]}]}. القواعد: من 4 إلى 7 فروع رئيسية، ولكل فرع من 2 إلى 5 فروع فرعية، وعمق أقصى 3 مستويات، وكل نص أقل من 8 كلمات، وبلغة المستخدم.";
+
+  function extract(text) {
+    var s = String(text || ""), a = s.indexOf("{"), b = s.lastIndexOf("}");
+    if (a > -1 && b > a) { try { var o = JSON.parse(s.slice(a, b + 1)); if (o && (o.t || o.kids)) return o; } catch (e) {} }
+    var root = { t: "", kids: [] }, stack = [{ ind: -1, n: root }];
+    s.split(/\r?\n/).forEach(function (raw) {
+      var m = /^([ \t]*)(?:[-*•+]|\d+[.)])\s+(.*)$/.exec(raw); if (!m) return;
+      var ind = m[1].replace(/\t/g, "  ").length, t = m[2].replace(/\*\*/g, "").trim(); if (!t) return;
+      while (stack.length > 1 && stack[stack.length - 1].ind >= ind) stack.pop();
+      var n = { t: t, kids: [] }; stack[stack.length - 1].n.kids.push(n); stack.push({ ind: ind, n: n });
+    });
+    return root.kids.length ? root : null;
+  }
+
+  async function ask(message, doc) {
+    if (typeof window.postAiJson !== "function") throw new Error("ai.js غير محمّل");
+    var payload = {
+      messages: [{ role: "user", text: message }],
+      mode: "qa", taskRoute: "fast", persona: "summarizer",
+      citeStyle: "apa", lang: lang(), field: "", useWebSearch: false
+    };
+    if (doc) payload.documentContext = doc;
+    var data = await window.postAiJson("/api/ai/research", payload, 120000);
+    var tree = extract(data && data.answer);
+    if (!tree) throw new Error("bad-format");
+    if (!tree.t) tree.t = "خريطة";
+    return tree;
+  }
+
+  window.MindMapAI = function (o) {
+    if (o.pdf) {
+      return ask("حوّل هذا المستند إلى خريطة ذهنية دراسية للمراجعة." + RULES,
+        { kind: "pdf", title: o.pdf.title, pdfBase64: o.pdf.base64 });
+    }
+    if (o.mode === "edit") {
+      return ask("هذه خريطة ذهنية (JSON): " + JSON.stringify(o.tree) + "\nنفّذ التعديل التالي على هذا الفرع: «" + o.instruction + "». أبقِ ما لا يحتاج تغييراً." + RULES);
+    }
+    return ask("أنشئ خريطة ذهنية دراسية عن: «" + o.instruction + "»." + RULES);
+  };
+
+  function conv(n, d) {
+    var X = window.MindMap._x();
+    var o = { id: X.uid(), t: String(n.t || n.title || "؟").slice(0, 80), c: null, open: true, kids: [] };
+    if (d < 4 && Array.isArray(n.kids)) o.kids = n.kids.slice(0, 12).map(function (k) { return conv(k, d + 1); });
+    return o;
+  }
+
+  var CLIP = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 11-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></svg>';
+  var LOAD = '<svg class="ic spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.6"/></svg>';
+
+  function pickPdf(btn) {
+    var inp = document.createElement("input"); inp.type = "file"; inp.accept = "application/pdf,.pdf";
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; if (!f) return;
+      if (f.size > 10 * 1024 * 1024) { alert("الحد الأقصى 10 ميغابايت."); return; }
+      var X = window.MindMap._x(), sel = X.st.sel && X.find(X.st.cur.root, X.st.sel, null), target = sel ? sel.n : X.st.cur.root;
+      btn.innerHTML = LOAD; btn.disabled = true;
+      var r = new FileReader();
+      r.onload = function () {
+        window.MindMapAI({ pdf: { title: f.name, base64: String(r.result || "") } })
+          .then(function (tree) {
+            target.kids = target.kids.concat((tree.kids || []).map(function (k) { return conv(k, 0); }));
+            target.open = true; X.save(); X.render(); X.bar();
+          })
+          .catch(function () { alert("تعذّر توليد الخريطة من الملف. قد تكون حصة الذكاء مؤقتاً قد نفدت، حاول لاحقاً."); })
+          .then(function () { btn.innerHTML = CLIP; btn.disabled = false; });
+      };
+      r.onerror = function () { btn.innerHTML = CLIP; btn.disabled = false; alert("تعذّرت قراءة الملف."); };
+      r.readAsDataURL(f);
+    };
+    inp.click();
+  }
+
+  function addPdfButton() {
+    var root = document.getElementById("mm"); if (!root || root.querySelector(".pdfbtn")) return;
+    var bar = root.querySelector(".bar"), X = window.MindMap && window.MindMap._x && window.MindMap._x();
+    if (!bar || !X) return;
+    var b = document.createElement("button"); b.className = "pdfbtn"; b.innerHTML = CLIP;
+    b.onclick = function () { pickPdf(b); };
+    bar.insertBefore(b, X.el.ai);
+  }
+  new MutationObserver(addPdfButton).observe(document.documentElement, { childList: true, subtree: true });
+})();
